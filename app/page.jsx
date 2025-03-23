@@ -126,7 +126,7 @@ export default function Home() {
 
   return (
     <main>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-700 to-cyan-600">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-amber-600">
         {isLoading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
             <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
@@ -200,7 +200,7 @@ export default function Home() {
             <div>
               <button
                 type="submit" // Change button type to "submit" for form submission
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-cyan-700 hover:bg-cyan-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
               >
                 SUBMIT
               </button>
