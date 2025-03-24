@@ -992,7 +992,7 @@ export default function RoomDashboard() {
 
   return (
     <div>
-      <div className="min-h-screen bg-stone-200">
+      <div className="min-h-screen bg-amber-50">
         {/* Navigation */}
         <Navbar />
         {isLoading && (

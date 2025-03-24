@@ -126,7 +126,7 @@ export default function Home() {
 
   return (
     <main>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-amber-600">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-blue-900">
         {isLoading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
             <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
@@ -155,7 +155,7 @@ export default function Home() {
             src="/Hotel-Logo.png"
             alt="BookingMaster.in"
             width={200}
-            height={40}
+            height={60}
             priority
           />
         </div>
@@ -200,7 +200,7 @@ export default function Home() {
             <div>
               <button
                 type="submit" // Change button type to "submit" for form submission
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
               >
                 SUBMIT
               </button>
@@ -213,7 +213,7 @@ export default function Home() {
           </div>
         </div>
         <div className="mt-8 text-center text-white text-sm">
-          © {timestamp},  Solvotel. All Rights Reserved.
+          © {timestamp}, solvotel. All Rights Reserved.
         </div>
       </div>
     </main>

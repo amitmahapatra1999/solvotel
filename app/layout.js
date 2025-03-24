@@ -4,7 +4,7 @@ import "./globals.css";
 const merriweather = Merriweather({ subsets: ["latin"], weight: ["400", "700"]});
 
 export const metadata = {
-  title: "Booking Master",
+  title: "Solvotel.com",
   description: "One Click Hotel Booking Site",
 };
 

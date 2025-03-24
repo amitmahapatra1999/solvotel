@@ -263,7 +263,7 @@ export default function InventoryCategory() {
   return (
     <div>
       <Navbar />
-      <div className="bg-stone-200 min-h-screen">
+      <div className="bg-amber-50 min-h-screen">
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -287,14 +287,14 @@ export default function InventoryCategory() {
             </div>
           </div>
         )}
-        <div className="container mx-auto py-10">
-          <div className="flex justify-between" style={{ maxWidth: '84%', margin: '0 auto' }}>
-          <h1 className="text-3xl font-bold mb-4 text-stone-800" >Inventory Category</h1>
+        <div className="container mx-auto p-4">
+          <h1 className="text-3xl font-bold mb-4 text-cyan-900" style={{ maxWidth: '80%', margin: '0 auto' }}>Inventory Category</h1>
+          <div className="flex justify-end" style={{ maxWidth: '80%', margin: '0 auto' }}>
             <button onClick={() => { setShowModal(true); setCurrentProduct(null); }} className="bg-green-500 text-white px-4 py-2 rounded mb-4">
               Add New +
             </button>
           </div>
-          <TableContainer component={Paper} style={{ maxWidth: '84%', margin: '0 auto' }}>
+          <TableContainer component={Paper} style={{ maxWidth: '80%', margin: '0 auto' }}>
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#f5f5f5" }}>

@@ -229,7 +229,7 @@ export default function InventoryList() {
   return (
     <div>
       <Navbar />
-      <div className="bg-amber-50 min-h-screen">
+      <div className="bg-blue-50 min-h-screen">
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -254,14 +254,15 @@ export default function InventoryList() {
             </div>
           </div>
         )}
-        <div className="container mx-auto p-4">
-          <h1 className="text-3xl font-bold mb-4 text-cyan-900" style={{ maxWidth: '80%', margin: '0 auto' }}>Inventory List</h1>
-          <div className="flex justify-end" style={{ maxWidth: '80%', margin: '0 auto' }}>
+        <div className="container mx-auto py-10" >
+          
+          <div className="flex justify-between" style={{ maxWidth: '84%', margin: '0 auto' }} >
+          <h1 className="text-3xl font-bold mb-4 text-cyan-900" >Inventory List</h1>
             <button onClick={() => { setShowModal(true); setCurrentItem(null); }} className="bg-green-500 text-white px-4 py-2 rounded mb-4">
               Add Items +
             </button>
           </div>
-          <TableContainer component={Paper} style={{ maxWidth: '80%', margin: '0 auto' }}>
+          <TableContainer component={Paper} style={{ maxWidth: '84%', margin: '0 auto' }}>
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
@@ -295,6 +296,11 @@ export default function InventoryList() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {items?.length === 0 && (
+                   <TableRow sx={{ backgroundColor: "white" }}>
+                    <TableCell colSpan={8} sx={{ textAlign: "center" }}>No data in the table</TableCell>
+                    </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>

@@ -127,12 +127,12 @@ export default function Navbar() {
   // Determine which dropdowns to show based on token presence and roles
   const showMaster = authToken || (!userAuthToken && !authToken && (roles.includes("Property & Frontdesk") || roles.includes("Restaurant") || roles.includes("Inventory")));
   const showProperty = authToken || ((userAuthToken || authToken) && roles.includes("Property & Frontdesk"));
-   const showFrontOffice = authToken || ((userAuthToken || authToken) && roles.includes("Property & Frontdesk"));
+  
   const showRestaurant = authToken || ((userAuthToken || authToken) && roles.includes("Restaurant"));
   const showInventory = authToken || ((userAuthToken || authToken) && roles.includes("Inventory"));
 
   return (
-    <nav className=" p-4 shadow-lg" style={{background:"#000"}}>
+    <nav className="bg-blue-900 p-4 shadow-lg">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link href={(userAuthToken || authToken) ? "/property/roomdashboard" : "/"}>
           <div className="transform hover:scale-105 transition-transform duration-300">
@@ -151,13 +151,13 @@ export default function Navbar() {
                 <span>Admin</span>
               </button>
               {openDropdown === 1 && (
-                <ul className="absolute top-[100%] left-0 w-48 bg-neutral-800 text-white rounded-b-lg shadow-xl z-10">
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <Users2 className="w-4 h-4 text-white" />
+                <ul className="absolute top-[100%] left-0 w-48 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <Users2 className="w-4 h-4 text-blue-900" />
                     <Link href="/master/users">Users</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <UserCircle className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <UserCircle className="w-4 h-4 text-blue-900" />
                     <Link href="/master/profile">Profile</Link>
                   </li>
                 </ul>
@@ -165,7 +165,7 @@ export default function Navbar() {
             </li>
           )}
 
-          {/* Property & Frontdesk Dropdown (shown if authToken exists or logged in with userAuthToken and has role) */}
+          {/* Property (shown if authToken exists or logged in with userAuthToken and has role) */}
           {showProperty && (
             <li className="relative group"
                 onMouseEnter={() => handleMouseEnter(2)}
@@ -175,47 +175,46 @@ export default function Navbar() {
                 <span>Property</span>
               </button>
               {openDropdown === 2 && (
-                <ul className="absolute top-[100%] left-0 w-56 bg-neutral-800 text-white rounded-b-lg shadow-xl z-10">
-                 
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <ListChecks className="w-4 h-4 text-white" />
+                <ul className="absolute top-[100%] left-0 w-56 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
+                  
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <ListChecks className="w-4 h-4 text-blue-900" />
                     <Link href="/property/roomcategories">Room Categories</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <BedDouble className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <BedDouble className="w-4 h-4 text-blue-900" />
                     <Link href="/property/roomlist">Room List</Link>
                   </li>
-                  
+                 
                 </ul>
               )}
             </li>
           )}
-          {/* Property & Frontdesk Dropdown (shown if authToken exists or logged in with userAuthToken and has role) */}
-          {showFrontOffice && (
+          {/* Property (shown if authToken exists or logged in with userAuthToken and has role) */}
+          {showProperty && (
             <li className="relative group"
-                onMouseEnter={() => handleMouseEnter(10)}
+                onMouseEnter={() => handleMouseEnter(3)}
                 onMouseLeave={handleMouseLeave}>
               <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
                 <Building2 className="w-5 h-5" />
-                <span>Front office</span>
+                <span>Front Office</span>
               </button>
-              {openDropdown === 10 && (
-                <ul className="absolute top-[100%] left-0 w-56 bg-neutral-800 text-white rounded-b-lg shadow-xl z-10">
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <LayoutDashboard className="w-4 h-4 text-white" />
+              {openDropdown === 3 && (
+                <ul className="absolute top-[100%] left-0 w-56 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <LayoutDashboard className="w-4 h-4 text-blue-900" />
                     <Link href="/property/roomdashboard">Room Dashboard</Link>
                   </li>
-                 
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <Users2 className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <Users2 className="w-4 h-4 text-blue-900" />
                     <Link href="/property/guests">Guests</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <BookOpen className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <BookOpen className="w-4 h-4 text-blue-900" />
                     <Link href="/property/billing">Booking</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <ClipboardList className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <ClipboardList className="w-4 h-4 text-blue-900" />
                     <Link href="/property/roomreport">Room Report</Link>
                   </li>
                 </ul>
@@ -226,37 +225,37 @@ export default function Navbar() {
           {/* Restaurant Dropdown (shown if authToken exists or logged in with userAuthToken and has role) */}
           {showRestaurant && (
             <li className="relative group"
-                onMouseEnter={() => handleMouseEnter(7)}
+                onMouseEnter={() => handleMouseEnter(4)}
                 onMouseLeave={handleMouseLeave}>
               <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
                 <UtensilsCrossed className="w-5 h-5" />
                 <span>Restaurant</span>
               </button>
-              {openDropdown === 7 && (
-                <ul className="absolute top-[100%] left-0 w-48 bg-neutral-800 text-white rounded-b-lg shadow-xl z-10">
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <LayoutDashboard className="w-4 h-4 text-white" />
+              {openDropdown === 4 && (
+                <ul className="absolute top-[100%] left-0 w-48 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <LayoutDashboard className="w-4 h-4 text-blue-900" />
                     <Link href="/Restaurant/dashboard">Dashboard</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <TableProperties className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <TableProperties className="w-4 h-4 text-blue-900" />
                     <Link href="/Restaurant/Tables">Tables</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <Menu className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <Menu className="w-4 h-4 text-blue-900" />
                     <Link href="/Restaurant/restaurantmenu">Restaurant Menu</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <BookOpen className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <BookOpen className="w-4 h-4 text-blue-900" />
                     <Link href="/Restaurant/restaurantbooking">Booking</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <Receipt className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <Receipt className="w-4 h-4 text-blue-900" />
                     <Link href="/Restaurant/invoice">Invoice</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <FileText className="w-4 h-4 text-white" />
-                    <Link href="/Restaurant/restaurantreport">Restaurant Report</Link>
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <FileText className="w-4 h-4 text-blue-900" />
+                    <Link href="/Restaurant/restaurantreport">Invoice Report</Link>
                   </li>
                 </ul>
               )}
@@ -266,32 +265,32 @@ export default function Navbar() {
           {/* Inventory Dropdown (shown if authToken exists or logged in with userAuthToken and has role) */}
           {showInventory && (
             <li className="relative group"
-                onMouseEnter={() => handleMouseEnter(8)}
+                onMouseEnter={() => handleMouseEnter(5)}
                 onMouseLeave={handleMouseLeave}>
               <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
                 <Package className="w-5 h-5" />
                 <span>Inventory</span>
               </button>
-              {openDropdown === 8 && (
-                <ul className="absolute top-[100%] left-0 w-48 bg-neutral-800 text-white rounded-b-lg shadow-xl z-10">
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <FolderTree className="w-4 h-4 text-white" />
+              {openDropdown === 5 && (
+                <ul className="absolute top-[100%] left-0 w-48 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <FolderTree className="w-4 h-4 text-blue-900" />
                     <Link href="/Inventory/Category">Category</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <PackageSearch className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <PackageSearch className="w-4 h-4 text-blue-900" />
                     <Link href="/Inventory/InventoryList">Inventory List</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <ShoppingCart className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <ShoppingCart className="w-4 h-4 text-blue-900" />
                     <Link href="/Inventory/PurchaseReport">Purchase Item</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <Receipt className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <Receipt className="w-4 h-4 text-blue-900" />
                     <Link href="/Inventory/SalesReport">Sales Item</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-[#fd9900] flex items-center space-x-2 transition-colors duration-200">
-                    <BarChart3 className="w-4 h-4 text-white" />
+                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                    <BarChart3 className="w-4 h-4 text-blue-900" />
                     <Link href="/Inventory/StockReport">Stock Report</Link>
                   </li>
                 </ul>
