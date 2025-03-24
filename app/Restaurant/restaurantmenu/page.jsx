@@ -79,11 +79,10 @@ export default function RestaurantList() {
       });
       const result = await response.json();
       if (result.success) {
-        setRestaurantItems(
-          (prev) =>
-            prev.map((item) =>
-              item._id === selectedItem._id ? result.data : item
-            )
+        setRestaurantItems((prev) =>
+          prev.map((item) =>
+            item._id === selectedItem._id ? result.data : item
+          )
         );
         toast.success("Item updated successfully");
         setOpenEditModal(false);
@@ -122,7 +121,6 @@ export default function RestaurantList() {
     }
   };
 
-
   return (
     <div>
       <Navbar />
@@ -138,7 +136,7 @@ export default function RestaurantList() {
         pauseOnHover
         theme="dark"
       />
-      <div className="bg-amber-50 min-h-screen">
+      <div className="bg-blue-50 min-h-screen">
         <Box>
           {isLoading && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
@@ -165,35 +163,25 @@ export default function RestaurantList() {
               </div>
             </div>
           )}
-          <Box
-            sx={{ padding: 4, justifyItems: "flex-end" }}
-            style={{ maxWidth: "80%", margin: "0 auto" }}
-          >
-            <Typography
-              variant="h4"
-              sx={{ color: "#064c61", fontWeight: "bold" }}
-              style={{ maxWidth: "80%", margin: "0 auto" }}
+          <Box sx={{ py: 10, justifyItems: "flex-end" }}>
+            <div
+              className=" flex justify-between mb-3"
+              style={{ maxWidth: "85%", margin: "0 auto" }}
             >
-              Restaurant Menu
-            </Typography>
-
-            <Box
-              sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}
-              style={{ maxWidth: "80%", margin: "0 auto" }}
-            >
-              <Button
-                variant="contained"
-                color="primary"
+              <h2 className="text-3xl font-semibold text-cyan-900 ">
+                Restaurant Menu
+              </h2>
+              <button
+                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4"
                 onClick={() => router.push("/Restaurant/restaurantmenu/add")}
-                sx={{ minWidth: "150px" }}
-                className="mb-4"
               >
-                Add New Item
-              </Button>
-            </Box>
+                Add New +
+              </button>
+            </div>
+
             <TableContainer
               component={Paper}
-              style={{ maxWidth: "80%", margin: "0 auto" }}
+              style={{ maxWidth: "85%", margin: "0 auto" }}
             >
               <Table>
                 <TableHead>
@@ -240,6 +228,13 @@ export default function RestaurantList() {
                       </TableCell>
                     </TableRow>
                   ))}
+                  {restaurantItems?.length === 0 && (
+                    <TableRow sx={{ backgroundColor: "white" }}>
+                      <TableCell colSpan={6} sx={{ textAlign: "center" }}>
+                        No data in the table
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>

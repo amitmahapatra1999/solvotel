@@ -35,23 +35,29 @@ export default function Billing() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const authtoken = getCookie('authToken');
+        const authtoken = getCookie("authToken");
         const usertoken = getCookie("userAuthToken");
         if (!authtoken && !usertoken) {
-            router.push("/"); // Redirect to login if no token is found
-            return;
+          router.push("/"); // Redirect to login if no token is found
+          return;
         }
 
         let decoded, userId;
         if (authtoken) {
-            // Verify the authToken (legacy check)
-            decoded = await jwtVerify(authtoken, new TextEncoder().encode(SECRET_KEY));
-            userId = decoded.payload.id;
+          // Verify the authToken (legacy check)
+          decoded = await jwtVerify(
+            authtoken,
+            new TextEncoder().encode(SECRET_KEY)
+          );
+          userId = decoded.payload.id;
         }
         if (usertoken) {
-            // Verify the userAuthToken
-            decoded = await jwtVerify(usertoken, new TextEncoder().encode(SECRET_KEY));
-            userId = decoded.payload.profileId; // Use userId from the new token structure
+          // Verify the userAuthToken
+          decoded = await jwtVerify(
+            usertoken,
+            new TextEncoder().encode(SECRET_KEY)
+          );
+          userId = decoded.payload.profileId; // Use userId from the new token structure
         }
         const profileResponse = await fetch(`/api/Profile/${userId}`);
         const profileData = await profileResponse.json();
@@ -62,7 +68,10 @@ export default function Billing() {
         const username = profileData.data.username;
         const token = document.cookie
           .split("; ")
-          .find((row) => row.startsWith("authToken=") || row.startsWith("userAuthToken="))
+          .find(
+            (row) =>
+              row.startsWith("authToken=") || row.startsWith("userAuthToken=")
+          )
           .split("=")[1];
         const headers = { Authorization: `Bearer ${token}` };
 
@@ -203,7 +212,9 @@ export default function Billing() {
 
     if (today < checkIn) {
       return "Booked";
-    } else if (today.toLocaleDateString('en-GB') === checkIn.toLocaleDateString('en-GB')) {
+    } else if (
+      today.toLocaleDateString("en-GB") === checkIn.toLocaleDateString("en-GB")
+    ) {
       return "Checked In";
     } else if (bill.bill.Bill_Paid === "yes") {
       return "Checked Out";
@@ -221,7 +232,7 @@ export default function Billing() {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-amber-50">
+      <div className="min-h-screen bg-blue-50">
         {isLoading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
             <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
@@ -441,12 +452,13 @@ export default function Billing() {
                           backgroundColor: "white",
                           textAlign: "center",
                         },
-                        background: `linear-gradient(to right, ${bill.bill.Cancelled === "yes"
+                        background: `linear-gradient(to right, ${
+                          bill.bill.Cancelled === "yes"
                             ? "#808080"
                             : bill.bill.Bill_Paid === "yes"
-                              ? "#1ebc1e"
-                              : "#f24a23"
-                          } 5%, white 5%)`,
+                            ? "#1ebc1e"
+                            : "#f24a23"
+                        } 5%, white 5%)`,
                       }}
                     >
                       <TableCell>{bill.bookingId || "N/A"}</TableCell>

@@ -1,21 +1,33 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import Navbar from "../../_components/Navbar";
 import { Footer } from "../../_components/Footer";
-import { ToastContainer, toast } from 'react-toastify'; //impo
-import 'react-toastify/dist/ReactToastify.css'; //impo
+import { ToastContainer, toast } from "react-toastify"; //impo
+import "react-toastify/dist/ReactToastify.css"; //impo
 import TextField from "@mui/material/TextField";
 import Modal from "@mui/material/Modal";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import React from 'react';
-import { getCookie } from 'cookies-next'; // Import getCookie from cookies-next
-import { jwtVerify } from 'jose'; // Import jwtVerify for decoding JWT
-import { useRouter } from 'next/navigation';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton } from '@mui/material';
-import { ChevronUpIcon, ChevronDownIcon, PencilIcon } from '@heroicons/react/outline'; // Ensure you have @heroicons/react installed
-
+import React from "react";
+import { getCookie } from "cookies-next"; // Import getCookie from cookies-next
+import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
+import { useRouter } from "next/navigation";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+} from "@mui/material";
+import {
+  ChevronUpIcon,
+  ChevronDownIcon,
+  PencilIcon,
+} from "@heroicons/react/outline"; // Ensure you have @heroicons/react installed
 
 const PurchaseReportPage = () => {
   const [purchaseReports, setPurchaseReports] = useState([]);
@@ -34,7 +46,7 @@ const PurchaseReportPage = () => {
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [duplicateError, setDuplicateError] = useState({
     purchaseorderno: false,
-    Invoiceno: false
+    Invoiceno: false,
   });
 
   // Filters
@@ -44,13 +56,13 @@ const PurchaseReportPage = () => {
   // Ref to access the table
   const tableRef = useRef(null);
   const router = useRouter();
-  const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key';
+  const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const token = getCookie('authToken');
+        const token = getCookie("authToken");
         const usertoken = getCookie("userAuthToken");
         if (!token && !usertoken) {
           router.push("/"); // Redirect to login if no token is found
@@ -60,26 +72,32 @@ const PurchaseReportPage = () => {
         let decoded, userId;
         if (token) {
           // Verify the authToken (legacy check)
-          decoded = await jwtVerify(token, new TextEncoder().encode(SECRET_KEY));
+          decoded = await jwtVerify(
+            token,
+            new TextEncoder().encode(SECRET_KEY)
+          );
           userId = decoded.payload.id;
         }
         if (usertoken) {
           // Verify the userAuthToken
-          decoded = await jwtVerify(usertoken, new TextEncoder().encode(SECRET_KEY));
+          decoded = await jwtVerify(
+            usertoken,
+            new TextEncoder().encode(SECRET_KEY)
+          );
           userId = decoded.payload.profileId; // Use userId from the new token structure
         }
         // Fetch the profile by userId to get the username
         const profileResponse = await fetch(`/api/Profile/${userId}`);
         const profileData = await profileResponse.json();
         if (!profileData.success || !profileData.data) {
-          router.push('/'); // Redirect to login if profile not found
+          router.push("/"); // Redirect to login if profile not found
           return;
         }
         const username = profileData.data.username;
 
         const [itemsResponse, purchaseResponse] = await Promise.all([
           fetch(`/api/InventoryList?username=${username}`),
-          fetch(`/api/stockreport?username=${username}`)
+          fetch(`/api/stockreport?username=${username}`),
         ]);
 
         const itemsData = await itemsResponse.json();
@@ -104,10 +122,10 @@ const PurchaseReportPage = () => {
 
   // Function to check for duplicates
   const checkForDuplicates = (field, value) => {
-    return purchaseReports.some(report => {
-      if (field === 'purchaseorderno') {
+    return purchaseReports.some((report) => {
+      if (field === "purchaseorderno") {
         return report.purchaseorderno.toLowerCase() === value.toLowerCase();
-      } else if (field === 'invoiceno') {
+      } else if (field === "invoiceno") {
         return report.Invoiceno.toLowerCase() === value.toLowerCase();
       }
       return false;
@@ -117,8 +135,9 @@ const PurchaseReportPage = () => {
   // Modify useEffect to include duplicate checks
   useEffect(() => {
     if (quantityAmount && rate && selectedItem) {
-      const taxMultiplier = 1 + (selectedItem.tax / 100);
-      const calculatedTotal = parseFloat(quantityAmount) * parseFloat(rate) * taxMultiplier;
+      const taxMultiplier = 1 + selectedItem.tax / 100;
+      const calculatedTotal =
+        parseFloat(quantityAmount) * parseFloat(rate) * taxMultiplier;
       setTotal(calculatedTotal.toFixed(2));
       // Check for validation conditions
       const isDisabled =
@@ -132,26 +151,34 @@ const PurchaseReportPage = () => {
       setTotal("");
       setIsSaveDisabled(true);
     }
-  }, [quantityAmount, rate, selectedItem, purchaseorderno, purchasedate, Invoiceno, duplicateError]);
+  }, [
+    quantityAmount,
+    rate,
+    selectedItem,
+    purchaseorderno,
+    purchasedate,
+    Invoiceno,
+    duplicateError,
+  ]);
 
   // Update the handlers for purchaseorderno and invoiceno
   const handlePurchaseOrderChange = (e) => {
     const value = e.target.value;
     setPurchaseorderno(value);
-    const isDuplicate = checkForDuplicates('purchaseorderno', value);
-    setDuplicateError(prev => ({
+    const isDuplicate = checkForDuplicates("purchaseorderno", value);
+    setDuplicateError((prev) => ({
       ...prev,
-      purchaseorderno: isDuplicate
+      purchaseorderno: isDuplicate,
     }));
   };
 
   const handleInvoiceNoChange = (e) => {
     const value = e.target.value;
     setInvoiceno(value);
-    const isDuplicate = checkForDuplicates('invoiceno', value);
-    setDuplicateError(prev => ({
+    const isDuplicate = checkForDuplicates("invoiceno", value);
+    setDuplicateError((prev) => ({
       ...prev,
-      invoiceno: isDuplicate
+      invoiceno: isDuplicate,
     }));
   };
 
@@ -167,7 +194,7 @@ const PurchaseReportPage = () => {
     setIsModalOpen(false);
     setDuplicateError({
       purchaseorderno: false,
-      invoiceno: false
+      invoiceno: false,
     });
   };
 
@@ -177,8 +204,15 @@ const PurchaseReportPage = () => {
   };
 
   const handlePurchase = async () => {
-    if (!purchaseorderno || !purchasedate || !Invoiceno || !selectedItem || !quantityAmount || !rate) {
-      toast.warn('🥲 Please fill in all fields!', {
+    if (
+      !purchaseorderno ||
+      !purchasedate ||
+      !Invoiceno ||
+      !selectedItem ||
+      !quantityAmount ||
+      !rate
+    ) {
+      toast.warn("🥲 Please fill in all fields!", {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -206,7 +240,7 @@ const PurchaseReportPage = () => {
       taxpercent: selectedItem._id,
       total: parseFloat(total),
       purorsell: "purchase",
-      username: selectedItem.username // Include username in the request body
+      username: selectedItem.username, // Include username in the request body
     };
     try {
       const response = await fetch("/api/stockreport", {
@@ -218,10 +252,17 @@ const PurchaseReportPage = () => {
       });
       const result = await response.json();
       if (response.ok) {
-        await updateStockQuantity(selectedItem._id, parseFloat(quantityAmount), selectedItem.stock);
-        setPurchaseReports((prevReports) => [...prevReports, result.stockReport]);
+        await updateStockQuantity(
+          selectedItem._id,
+          parseFloat(quantityAmount),
+          selectedItem.stock
+        );
+        setPurchaseReports((prevReports) => [
+          ...prevReports,
+          result.stockReport,
+        ]);
         handleCloseModal();
-        toast.success('👍 Item Purchased Successfully!', {
+        toast.success("👍 Item Purchased Successfully!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -230,11 +271,11 @@ const PurchaseReportPage = () => {
           draggable: true,
           progress: undefined,
           theme: "dark",
-          onClose: () => window.location.reload()
+          onClose: () => window.location.reload(),
         });
       } else {
         setError(result.error || "Failed to save purchase report");
-        toast.error('👎 Failed to save purchase report', {
+        toast.error("👎 Failed to save purchase report", {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -259,7 +300,10 @@ const PurchaseReportPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ stock: newStock, username: selectedItem.username }), // Include username in the request body
+        body: JSON.stringify({
+          stock: newStock,
+          username: selectedItem.username,
+        }), // Include username in the request body
       });
       const result = await response.json();
       if (!response.ok) {
@@ -328,7 +372,6 @@ const PurchaseReportPage = () => {
     window.location.reload();
   };
 
-
   if (error) {
     return <div>Error: {error}</div>;
   }
@@ -336,9 +379,8 @@ const PurchaseReportPage = () => {
   return (
     <div>
       <Navbar />
-      <div className="bg-amber-50 min-h-screen">
-
-        <ToastContainer    //position
+      <div className="bg-blue-50 min-h-screen">
+        <ToastContainer //position
           position="top-right"
           autoClose={5000}
           hideProgressBar={false}
@@ -369,17 +411,27 @@ const PurchaseReportPage = () => {
                   fill="currentFill"
                 />
               </svg>
-              <span className="mt-4 text-gray-700">Loading Purchase Reports...</span>
+              <span className="mt-4 text-gray-700">
+                Loading Purchase Reports...
+              </span>
             </div>
           </div>
         )}
         <div className="container mx-auto p-4">
-          <div className="   bg-amber-50 mb-4 ">
-            <div className=" bg-amber-50 p-4  mb-4 ">
-              <h1 className="text-3xl font-bold text-cyan-900 " style={{ maxWidth: '80%', margin: '0 auto' }}>Purchase Report</h1>
+          <div className="   bg-blue-50 mb-4 ">
+            <div className=" bg-blue-50 p-4  mb-4 ">
+              <h1
+                className="text-3xl font-bold text-cyan-900 "
+                style={{ maxWidth: "80%", margin: "0 auto" }}
+              >
+                Purchase Report
+              </h1>
             </div>
 
-            <div className=" space-x-3  justify-center " style={{ maxWidth: '80%', margin: '0 auto' }}>
+            <div
+              className=" space-x-3  justify-center "
+              style={{ maxWidth: "80%", margin: "0 auto" }}
+            >
               <TextField
                 label="Start Date"
                 type="date"
@@ -426,9 +478,9 @@ const PurchaseReportPage = () => {
                 className="ml-2"
                 size="small"
                 sx={{
-                  backgroundColor: 'orange',
-                  '&:hover': {
-                    backgroundColor: 'darkorange',
+                  backgroundColor: "orange",
+                  "&:hover": {
+                    backgroundColor: "darkorange",
                   },
                 }}
               >
@@ -444,20 +496,103 @@ const PurchaseReportPage = () => {
             </div>
           </div>
 
-          <TableContainer component={Paper} style={{ maxWidth: '80%', margin: '0 auto' }}>
+          <TableContainer
+            component={Paper}
+            style={{ maxWidth: "80%", margin: "0 auto" }}
+          >
             <Table ref={tableRef}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Purchase No</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Item Name</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Purchase Date</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Invoice No</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Purchased Quantity</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Unit</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Rate</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>CGST</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>SGST</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Total</TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Purchase No
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Item Name
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Purchase Date
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Invoice No
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Purchased Quantity
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Unit
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Rate
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    CGST
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    SGST
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Total
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -466,39 +601,63 @@ const PurchaseReportPage = () => {
                     <TableRow
                       key={report._id}
                       sx={{
-                        '& > td': {
-                          backgroundColor: 'white',
+                        "& > td": {
+                          backgroundColor: "white",
                         },
                       }}
                     >
                       <TableCell
                         sx={{
-                          textAlign: 'center',
+                          textAlign: "center",
                           background: `linear-gradient(
                                       to right,
-                                      ${report.purorsell === 'purchase' ? '#1ebc1e' : '#f24a23'} 5%, 
+                                      ${
+                                        report.purorsell === "purchase"
+                                          ? "#1ebc1e"
+                                          : "#f24a23"
+                                      } 5%, 
                                       white 5%
                                       )`,
                         }}
-                      >{report.purchaseorderno}
+                      >
+                        {report.purchaseorderno}
                       </TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{report.name?.name}</TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.name?.name}
+                      </TableCell>
                       <TableCell sx={{ textAlign: "center" }}>
                         {(() => {
                           const date = new Date(report.purchasedate);
                           const day = String(date.getDate()).padStart(2, "0");
-                          const month = String(date.getMonth() + 1).padStart(2, "0");
+                          const month = String(date.getMonth() + 1).padStart(
+                            2,
+                            "0"
+                          );
                           const year = date.getFullYear();
                           return `${day}/${month}/${year}`;
                         })()}
                       </TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{report.Invoiceno}</TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{report.quantityAmount}</TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{report.unit?.quantityUnit}</TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{report.rate}</TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{(report.taxpercent?.tax) / 2}</TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{(report.taxpercent?.tax) / 2}</TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{report.total}</TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.Invoiceno}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.quantityAmount}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.unit?.quantityUnit}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.rate}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.taxpercent?.tax / 2}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.taxpercent?.tax / 2}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.total}
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
@@ -510,13 +669,14 @@ const PurchaseReportPage = () => {
                 )}
               </TableBody>
             </Table>
-
           </TableContainer>
         </div>
 
-
         <Modal open={isModalOpen} onClose={handleCloseModal}>
-          <Box className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 w-1/2 shadow-md max-h-[90%] overflow-y-auto" sx={{ borderRadius: 2 }}>
+          <Box
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 w-1/2 shadow-md max-h-[90%] overflow-y-auto"
+            sx={{ borderRadius: 2 }}
+          >
             <h2 className="text-xl font-bold mb-4">New Sales</h2>
             <form className="space-y-4">
               <TextField
@@ -528,7 +688,11 @@ const PurchaseReportPage = () => {
                 onChange={handlePurchaseOrderChange}
                 className="w-full"
                 error={duplicateError.purchaseorderno}
-                helperText={duplicateError.purchaseorderno ? "This Sales Order No already exists" : ""}
+                helperText={
+                  duplicateError.purchaseorderno
+                    ? "This Sales Order No already exists"
+                    : ""
+                }
               />
               <TextField
                 required
@@ -550,14 +714,18 @@ const PurchaseReportPage = () => {
                 onChange={handleInvoiceNoChange}
                 className="w-full"
                 error={duplicateError.invoiceno}
-                helperText={duplicateError.invoiceno ? "This Invoice No already exists" : ""}
+                helperText={
+                  duplicateError.invoiceno
+                    ? "This Invoice No already exists"
+                    : ""
+                }
               />
               <TextField
                 required
                 select
                 id="itemname"
                 variant="outlined"
-                value={selectedItem?._id || ''}
+                value={selectedItem?._id || ""}
                 onChange={(e) => handleItemChange(e.target.value)}
                 className="w-full"
                 SelectProps={{
@@ -576,7 +744,7 @@ const PurchaseReportPage = () => {
                 id="unit"
                 label="Unit"
                 variant="outlined"
-                value={selectedItem?.quantityUnit || ''}
+                value={selectedItem?.quantityUnit || ""}
                 disabled
                 className="w-full"
               />
@@ -585,7 +753,7 @@ const PurchaseReportPage = () => {
                 id="stock"
                 label="Current Stock"
                 variant="outlined"
-                value={selectedItem?.stock || '0'}
+                value={selectedItem?.stock || "0"}
                 disabled
                 className="w-full"
               />
@@ -614,7 +782,7 @@ const PurchaseReportPage = () => {
                 id="taxpercent"
                 label="IGST Tax Percent"
                 variant="outlined"
-                value={selectedItem?.tax || ''}
+                value={selectedItem?.tax || ""}
                 disabled
                 className="w-full"
               />
@@ -623,7 +791,7 @@ const PurchaseReportPage = () => {
                 id="taxpercent"
                 label="SGST Tax Percent"
                 variant="outlined"
-                value={((selectedItem?.tax) / 2).toFixed(2) || ''}
+                value={(selectedItem?.tax / 2).toFixed(2) || ""}
                 disabled
                 className="w-full"
               />
@@ -632,7 +800,7 @@ const PurchaseReportPage = () => {
                 id="taxpercent"
                 label="CGST Tax Percent"
                 variant="outlined"
-                value={((selectedItem?.tax) / 2).toFixed(2) || ''}
+                value={(selectedItem?.tax / 2).toFixed(2) || ""}
                 disabled
                 className="w-full"
               />
@@ -648,27 +816,16 @@ const PurchaseReportPage = () => {
               <div className="flex justify-end">
                 <Button
                   variant="contained"
-                  sx={{
-                    backgroundColor: 'green',
-                    '&:hover': { backgroundColor: 'darkgreen' },
-                    '&:disabled': { backgroundColor: 'gray' }
-                  }}
+                  color="success"
+                  sx={{ mr: 2 }}
                   onClick={handlePurchase}
                   disabled={isSaveDisabled}
                 >
                   Save
                 </Button>
                 <Button
-                  variant="outlined"
-                  sx={{
-                    color: 'red',
-                    borderColor: 'red',
-                    '&:hover': {
-                      borderColor: 'darkred',
-                      backgroundColor: 'rgba(255, 0, 0, 0.1)',
-                    },
-                    ml: 2
-                  }}
+                  variant="contained"
+                  color="error"
                   onClick={handleCloseModal}
                 >
                   Cancel
@@ -677,8 +834,6 @@ const PurchaseReportPage = () => {
             </form>
           </Box>
         </Modal>
-
-
       </div>
       <Footer />
     </div>

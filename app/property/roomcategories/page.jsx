@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Navbar from "../../_components/Navbar";
 import { Footer } from "../../_components/Footer";
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Button from '@mui/material/Button';
-import { IconButton } from '@mui/material';
-import { Delete, Edit } from '@mui/icons-material';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import Button from "@mui/material/Button";
+import { IconButton } from "@mui/material";
+import { Delete, Edit } from "@mui/icons-material";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function RoomCategories() {
   const [categories, setCategories] = useState([]);
@@ -54,39 +54,38 @@ export default function RoomCategories() {
     if (!confirm("Are you sure you want to delete this category?")) return;
     try {
       setIsLoading(true);
-      const res = await fetch(`/api/roomCategories/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/roomCategories/${id}`, {
+        method: "DELETE",
+      });
       const data = await res.json();
 
       if (data.success) {
-        toast.success("Category deleted successfully!"
-          ,
-          {  //success toaster
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-            onClose: () => window.location.reload()
-          });
-
+        toast.success("Category deleted successfully!", {
+          //success toaster
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          onClose: () => window.location.reload(),
+        });
 
         //fetchCategories();
       } else {
-        toast.error("Failed to delete category."
-          , {   //error toaster
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-          });
-
+        toast.error("Failed to delete category.", {
+          //error toaster
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
       }
     } catch (error) {
       console.error("Error deleting room category:", error);
@@ -104,7 +103,6 @@ export default function RoomCategories() {
     <div>
       <Navbar />
       <div className="min-h-screen bg-amber-50">
-
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -136,17 +134,31 @@ export default function RoomCategories() {
                   fill="currentFill"
                 />
               </svg>
-              <span className="mt-4 text-gray-700">Loading Room Categories...</span>
+              <span className="mt-4 text-gray-700">
+                Loading Room Categories...
+              </span>
             </div>
           </div>
         )}
         <div className="p-4">
           <div className="p-4">
             {/* Header container */}
-            <div style={{ maxWidth: '80%', margin: '0 auto', marginBottom: '2rem' }}>
+            <div
+              style={{
+                maxWidth: "80%",
+                margin: "0 auto",
+                marginBottom: "2rem",
+              }}
+            >
               {/* First row - Title and Display records */}
               <div className="flex justify-between items-center mb-6">
-                <h2 style={{ color: "#082930", fontWeight: "bold", fontSize: "1.75rem" }}>
+                <h2
+                  style={{
+                    color: "#082930",
+                    fontWeight: "bold",
+                    fontSize: "1.75rem",
+                  }}
+                >
                   Category List
                 </h2>
 
@@ -172,33 +184,129 @@ export default function RoomCategories() {
                 <Button
                   variant="contained"
                   color="success"
-                  onClick={() => router.push("/property/roomcategories/addRoomCategory")}
+                  onClick={() =>
+                    router.push("/property/roomcategories/addRoomCategory")
+                  }
                 >
                   Add New +
                 </Button>
               </div>
             </div>
 
-            <TableContainer component={Paper} style={{ maxWidth: '80%', margin: '0 auto' }}>
+            <TableContainer
+              component={Paper}
+              style={{ maxWidth: "80%", margin: "0 auto" }}
+            >
               <Table>
                 <TableHead>
                   <TableRow style={{ backgroundColor: "#f5f5f5" }}>
-                    <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Image</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Category</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Description</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Tariff (INR)</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>CGST (%)</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>SGST (%)</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>GST (%)</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Total (incl. GST)</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Booking Eng.</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Conf. Room</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Action</TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      Image
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      Category
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      Description
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      Tariff (INR)
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      CGST (%)
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      SGST (%)
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      GST (%)
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      Total (incl. GST)
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      Booking Eng.
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      Conf. Room
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      Action
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {filteredCategories.map((room) => (
-                    <TableRow key={room._id} style={{ backgroundColor: "#f8f9fa" }}>
+                    <TableRow
+                      key={room._id}
+                      style={{ backgroundColor: "#f8f9fa" }}
+                    >
                       <TableCell>
                         <Image
                           src={room.image}
@@ -210,8 +318,8 @@ export default function RoomCategories() {
                       <TableCell>{room.category}</TableCell>
                       <TableCell>{room.description}</TableCell>
                       <TableCell>{room.tariff}</TableCell>
-                      <TableCell>{room.gst/2}</TableCell>
-                      <TableCell>{room.gst/2}</TableCell>
+                      <TableCell>{room.gst / 2}</TableCell>
+                      <TableCell>{room.gst / 2}</TableCell>
                       <TableCell>{room.gst}</TableCell>
                       <TableCell>{room.total}</TableCell>
                       <TableCell>{room.bookingEng}</TableCell>
@@ -220,7 +328,11 @@ export default function RoomCategories() {
                         <div className="flex justify-center items-center space-x-2">
                           <IconButton
                             color="primary"
-                            onClick={() => router.push(`/property/roomcategories/editRoomCategory/${room._id}`)}
+                            onClick={() =>
+                              router.push(
+                                `/property/roomcategories/editRoomCategory/${room._id}`
+                              )
+                            }
                           >
                             <Edit />
                           </IconButton>
@@ -239,10 +351,8 @@ export default function RoomCategories() {
             </TableContainer>
           </div>
         </div>
-
       </div>
       <Footer />
     </div>
-
   );
 }

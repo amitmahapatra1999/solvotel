@@ -31,7 +31,7 @@ import { Switch, FormControlLabel, Typography } from "@mui/material"; // Added S
 // Component for summary items at the top of the page
 const SummaryItem = ({ icon: Icon, title, count }) => (
   <div className="flex items-center space-x-2 bg-white p-2 rounded shadow">
-    <Icon className="text-amber-600" />
+    <Icon className="text-blue-600" />
     <div>
       <div className="text-xs text-gray-500">{title}</div>
       <div className="text-lg font-bold">{count}</div>
@@ -113,7 +113,7 @@ const RoomCard = ({
     try {
       const updatedGuest = { ...currentGuest, [field]: value };
       const response = await fetch(`/api/NewBooking/${currentGuest._id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -275,18 +275,21 @@ const RoomCard = ({
         console.log("price to remove", priceToRemove);
         if (billData.roomNo.length === 1) {
           await fetch(`/api/Billing/${room.currentBillingId}`, {
-            method: 'PUT',
+            method: "PUT",
             headers: {
               ...headers,
-              'Content-Type': 'application/json'
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               Cancelled: "yes",
-              dueAmount: 0
-            })
+              dueAmount: 0,
+            }),
           });
         } else {
-          console.log("bill itemlist", billData.roomNo.filter((_, index) => index !== indexToRemove));
+          console.log(
+            "bill itemlist",
+            billData.roomNo.filter((_, index) => index !== indexToRemove)
+          );
           const currentItemList = billData.itemList;
           const currentPriceList = billData.priceList;
           const currentQuantityList = billData.quantityList;
@@ -323,13 +326,13 @@ const RoomCard = ({
         }
 
         const roomResponse = await fetch(`/api/rooms/${room._id}`, {
-          headers: headers
+          headers: headers,
         });
         const roomData = await roomResponse.json();
         const currentRoomData = roomData.data;
 
         const currentPosition = currentRoomData.billWaitlist.findIndex(
-          billId => billId._id.toString() === room.currentBillingId.toString()
+          (billId) => billId._id.toString() === room.currentBillingId.toString()
         );
 
         let updateData = {
@@ -339,7 +342,8 @@ const RoomCard = ({
           checkOutDateList: currentRoomData.checkOutDateList,
         };
 
-        const hasNextBooking = currentPosition < currentRoomData.billWaitlist.length - 1;
+        const hasNextBooking =
+          currentPosition < currentRoomData.billWaitlist.length - 1;
         if (hasNextBooking) {
           updateData = {
             ...updateData,
@@ -347,7 +351,7 @@ const RoomCard = ({
             currentGuestId: currentRoomData.guestWaitlist[currentPosition + 1],
             occupied: "Vacant",
             clean: true,
-            billingStarted: "No"
+            billingStarted: "No",
           };
         } else {
           updateData = {
@@ -361,12 +365,12 @@ const RoomCard = ({
         }
 
         const updateResponse = await fetch(`/api/rooms/${room._id}`, {
-          method: 'PUT',
+          method: "PUT",
           headers: {
             ...headers,
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(updateData)
+          body: JSON.stringify(updateData),
         });
 
         const updateResult = await updateResponse.json();
@@ -374,9 +378,11 @@ const RoomCard = ({
         if (updateResult.success) {
           setShowGuestModal(false);
           setCurrentGuest(null);
-          setRooms(prevRooms => prevRooms.map(r =>
-            r._id === room._id ? { ...r, ...updateData } : r
-          ));
+          setRooms((prevRooms) =>
+            prevRooms.map((r) =>
+              r._id === room._id ? { ...r, ...updateData } : r
+            )
+          );
           alert("Booking cancelled successfully!");
           window.location.reload();
         } else {
@@ -419,7 +425,8 @@ const RoomCard = ({
         className={`
           relative overflow-hidden transition-all duration-400 ease-in-out 
           border border-gray-200 rounded-lg shadow-md 
-          transform ${isHovered ? "scale-[1.03] shadow-xl" : "scale-100 shadow-md"
+          transform ${
+            isHovered ? "scale-[1.03] shadow-xl" : "scale-100 shadow-md"
           }
           ${statusConfig[room.occupied].bgColor}
         `}
@@ -428,7 +435,7 @@ const RoomCard = ({
           <div className="flex items-center space-x-3">
             <Building
               className={`
-                text-amber-500 transition-transform duration-300
+                text-blue-500 transition-transform duration-300
                 ${isHovered ? "rotate-6 scale-110" : "rotate-0 scale-100"}
               `}
               size={24}
@@ -436,14 +443,14 @@ const RoomCard = ({
             <h3
               className={`
                 text-xl font-semibold text-gray-800 transition-all duration-300
-                ${isHovered ? "text-amber-700" : "text-gray-800"}
+                ${isHovered ? "text-blue-700" : "text-gray-800"}
               `}
             >
               Room {room.number}
               {currentGuest && (
                 <button
                   onClick={() => setShowGuestModal(true)}
-                  className="ml-2 text-amber-600 hover:text-amber-800 transition-colors"
+                  className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
                 >
                   <Info size={20} />
                 </button>
@@ -451,18 +458,19 @@ const RoomCard = ({
               {
                 <div className="flex items-center space-x-2">
                   {React.createElement(categoryInfo.icon || Calendar, {
-                    className: `text-gray-500 transition-transform duration-300 ${isHovered ? "rotate-12 scale-110" : "rotate-0 scale-100"
-                      }`,
+                    className: `text-gray-500 transition-transform duration-300 ${
+                      isHovered ? "rotate-12 scale-110" : "rotate-0 scale-100"
+                    }`,
                     size: 20,
                   })}
                   <span className="text-sm text-gray-600">
                     {currentGuest
                       ? "Next Booking: " +
-                      `${new Date(currentGuest.checkIn).toLocaleDateString(
-                        "en-GB"
-                      )}-${new Date(currentGuest.checkOut).toLocaleDateString(
-                        "en-GB"
-                      )}`
+                        `${new Date(currentGuest.checkIn).toLocaleDateString(
+                          "en-GB"
+                        )}-${new Date(currentGuest.checkOut).toLocaleDateString(
+                          "en-GB"
+                        )}`
                       : "No New Bookings"}
                   </span>
                 </div>
@@ -473,9 +481,10 @@ const RoomCard = ({
           <div
             className={`
               flex space-x-2 transition-all duration-300 ease-in-out
-              ${isHovered
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-2"
+              ${
+                isHovered
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-2"
               }
             `}
           >
@@ -514,8 +523,9 @@ const RoomCard = ({
               >
                 <div className="flex items-center space-x-2">
                   <Key
-                    className={`text-gray-500 transition-transform duration-300 ${isHovered ? "rotate-12 scale-110" : "rotate-0 scale-100"
-                      }`}
+                    className={`text-gray-500 transition-transform duration-300 ${
+                      isHovered ? "rotate-12 scale-110" : "rotate-0 scale-100"
+                    }`}
                     size={20}
                   />
                   <span className="text-sm text-gray-600">
@@ -524,8 +534,9 @@ const RoomCard = ({
                 </div>
                 <div className="flex items-center space-x-2">
                   {React.createElement(categoryInfo.icon || Tags, {
-                    className: `text-gray-500 transition-transform duration-300 ${isHovered ? "rotate-12 scale-110" : "rotate-0 scale-100"
-                      }`,
+                    className: `text-gray-500 transition-transform duration-300 ${
+                      isHovered ? "rotate-12 scale-110" : "rotate-0 scale-100"
+                    }`,
                     size: 20,
                   })}
                   <span className="text-sm text-gray-600">
@@ -557,22 +568,23 @@ const RoomCard = ({
           <div
             className={`
             text-center py-1 rounded transition-all duration-300
-            ${currentGuest
-                ? "bg-amber-100 text-amber-700"
+            ${
+              currentGuest
+                ? "bg-blue-100 text-blue-700"
                 : "bg-gray-100 text-gray-700"
-              }
+            }
             ${isHovered ? "scale-105 shadow-md" : "scale-100"}
           `}
           >
             Booked On:{" "}
             {currentGuest
               ? new Date(currentGuest.createdAt).toLocaleString("en-GB", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
               : "No Booking"}
           </div>
         </div>
@@ -581,9 +593,9 @@ const RoomCard = ({
       {/* Guest Modal with Toggle Switches */}
       {showGuestModal && currentGuest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 animate-fade-in">
-          <div className="bg-white w-96 rounded-lg shadow-2xl p-6 animate-slide-up border-4 border-amber-500">
+          <div className="bg-white w-96 rounded-lg shadow-2xl p-6 animate-slide-up border-4 border-blue-500">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-amber-700">
+              <h2 className="text-2xl font-bold text-blue-700">
                 Guest Details
               </h2>
               <button
@@ -595,7 +607,7 @@ const RoomCard = ({
             </div>
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
-                <User className="text-amber-600" size={24} />
+                <User className="text-blue-600" size={24} />
                 <div>
                   <p className="font-semibold text-gray-800">
                     {currentGuest.guestName}
@@ -605,13 +617,13 @@ const RoomCard = ({
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 bg-amber-50 p-3 rounded-lg">
+              <div className="grid grid-cols-2 gap-3 bg-blue-50 p-3 rounded-lg">
                 <div>
                   <p className="text-xs text-gray-500">Mobile</p>
                   <p className="font-medium">{currentGuest.mobileNo}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 bg-amber-50 p-3 rounded-lg">
+              <div className="grid grid-cols-2 gap-3 bg-blue-50 p-3 rounded-lg">
                 <div>
                   <p className="text-xs text-gray-500">Email</p>
                   <p className="font-medium">
@@ -619,7 +631,7 @@ const RoomCard = ({
                   </p>
                 </div>
               </div>
-              <div className="bg-amber-50 p-3 rounded-lg">
+              <div className="bg-blue-50 p-3 rounded-lg">
                 <div className="flex justify-between mb-2">
                   <div>
                     <p className="text-xs text-gray-500">Check-In</p>
@@ -647,7 +659,7 @@ const RoomCard = ({
                 </div>
               </div>
               {/* Added Toggle Switches */}
-              <div className="bg-amber-50 p-3 rounded-lg space-y-2">
+              <div className="bg-blue-50 p-3 rounded-lg space-y-2">
                 {!currentGuest.CheckedIn ? (
                   <FormControlLabel
                     control={
@@ -992,7 +1004,7 @@ export default function RoomDashboard() {
 
   return (
     <div>
-      <div className="min-h-screen bg-amber-50">
+      <div className="min-h-screen bg-blue-50">
         {/* Navigation */}
         <Navbar />
         {isLoading && (
@@ -1033,28 +1045,31 @@ export default function RoomDashboard() {
               {/* Status Filters */}
               <button
                 onClick={() => setFilter("all")}
-                className={`px-4 py-2 rounded transition-colors ${filter === "all"
+                className={`px-4 py-2 rounded transition-colors ${
+                  filter === "all"
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200 text-gray-700 hover:bg-blue-100"
-                  }`}
+                }`}
               >
                 All Rooms
               </button>
               <button
                 onClick={() => setFilter("occupied")}
-                className={`px-4 py-2 rounded transition-colors ${filter === "occupied"
+                className={`px-4 py-2 rounded transition-colors ${
+                  filter === "occupied"
                     ? "bg-red-500 text-white"
                     : "bg-gray-200 text-gray-700 hover:bg-red-200"
-                  }`}
+                }`}
               >
                 Occupied
               </button>
               <button
                 onClick={() => setFilter("vacant")}
-                className={`px-4 py-2 rounded transition-colors ${filter === "vacant"
+                className={`px-4 py-2 rounded transition-colors ${
+                  filter === "vacant"
                     ? "bg-green-500 text-white"
                     : "bg-gray-200 text-gray-700 hover:bg-green-100"
-                  }`}
+                }`}
               >
                 Vacant
               </button>

@@ -30,8 +30,8 @@ import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
 import { IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function BookingMasterControlPanel() {
   const router = useRouter();
@@ -99,7 +99,9 @@ export default function BookingMasterControlPanel() {
 
       const data = await response.json();
       if (data.success) {
-        setTableData((prevTables) => prevTables.filter((table) => table._id !== id));
+        setTableData((prevTables) =>
+          prevTables.filter((table) => table._id !== id)
+        );
         toast.success("Table deleted successfully");
       } else {
         console.error("Failed to delete table:", data.error);
@@ -196,7 +198,7 @@ export default function BookingMasterControlPanel() {
   };
 
   return (
-    <div className="min-h-screen bg-amber-50">
+    <div className="bg-blue-50 min-h-screen">
       <Navbar />
       <ToastContainer
         position="top-right"
@@ -233,15 +235,14 @@ export default function BookingMasterControlPanel() {
           </div>
         </div>
       )}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="  rounded-lg">
+      <main className="py-6 ">
+        <div className="rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <div
               className=" flex justify-between mb-3"
-              style={{ maxWidth: "80%", margin: "0 auto" }}
+              style={{ maxWidth: "85%", margin: "0 auto" }}
             >
               <h2 className="text-3xl font-semibold text-cyan-900 ">
-                {/* <BoltIcon className="h-6 w-6 mr-2 text-yellow-500" /> */}
                 Table List
               </h2>
               <button
@@ -251,37 +252,11 @@ export default function BookingMasterControlPanel() {
                 Add New +
               </button>
             </div>
-            <div
-              className="flex justify-between mb-4 "
-              style={{ maxWidth: "80%", margin: "0 auto" }}
-            >
-              <div className="flex items-center">
-                <span className="mr-2">Display</span>
-                <select
-                  value={displayCount}
-                  onChange={(e) => setDisplayCount(Number(e.target.value))}
-                  className="border rounded px-2 py-1"
-                >
-                  <option value={15}>15</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                </select>
-                <span className="ml-2">records</span>
-              </div>
-              <div>
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="border rounded px-2 py-1 mb-4"
-                />
-              </div>
-            </div>
-            <div className="overflow-x-auto">
+
+            <div>
               <TableContainer
                 component={Paper}
-                style={{ maxWidth: "80%", margin: "0 auto" }}
+                style={{ maxWidth: "85%", margin: "0 auto" }}
               >
                 <Table>
                   <TableHead>

@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import Navbar from "../../_components/Navbar";
 import { Footer } from "../../_components/Footer";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import TextField from "@mui/material/TextField";
 import Modal from "@mui/material/Modal";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import { getCookie } from 'cookies-next'; // Import getCookie from cookies-next
-import { jwtVerify } from 'jose'; // Import jwtVerify for decoding JWT
-import { useRouter } from 'next/navigation';
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import { getCookie } from "cookies-next"; // Import getCookie from cookies-next
+import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
+import { useRouter } from "next/navigation";
 
 const SalesReportPage = () => {
   const [purchaseReports, setPurchaseReports] = useState([]);
@@ -38,7 +38,7 @@ const SalesReportPage = () => {
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const [duplicateError, setDuplicateError] = useState({
     purchaseorderno: false,
-    Invoiceno: false
+    Invoiceno: false,
   });
   // Filters
   const [startDate, setStartDate] = useState("");
@@ -47,14 +47,13 @@ const SalesReportPage = () => {
   // Ref to access the table
   const tableRef = useRef(null);
   const router = useRouter();
-  const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key';
-
+  const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const token = getCookie('authToken');
+        const token = getCookie("authToken");
         const usertoken = getCookie("userAuthToken");
         if (!token && !usertoken) {
           router.push("/"); // Redirect to login if no token is found
@@ -64,26 +63,32 @@ const SalesReportPage = () => {
         let decoded, userId;
         if (token) {
           // Verify the authToken (legacy check)
-          decoded = await jwtVerify(token, new TextEncoder().encode(SECRET_KEY));
+          decoded = await jwtVerify(
+            token,
+            new TextEncoder().encode(SECRET_KEY)
+          );
           userId = decoded.payload.id;
         }
         if (usertoken) {
           // Verify the userAuthToken
-          decoded = await jwtVerify(usertoken, new TextEncoder().encode(SECRET_KEY));
+          decoded = await jwtVerify(
+            usertoken,
+            new TextEncoder().encode(SECRET_KEY)
+          );
           userId = decoded.payload.profileId; // Use userId from the new token structure
         }
         // Fetch the profile by userId to get the username
         const profileResponse = await fetch(`/api/Profile/${userId}`);
         const profileData = await profileResponse.json();
         if (!profileData.success || !profileData.data) {
-          router.push('/'); // Redirect to login if profile not found
+          router.push("/"); // Redirect to login if profile not found
           return;
         }
         const username = profileData.data.username;
 
         const [itemsResponse, purchaseResponse] = await Promise.all([
           fetch(`/api/InventoryList?username=${username}`),
-          fetch(`/api/stockreport?username=${username}`)
+          fetch(`/api/stockreport?username=${username}`),
         ]);
 
         const itemsData = await itemsResponse.json();
@@ -106,13 +111,12 @@ const SalesReportPage = () => {
     fetchData();
   }, [router]);
 
-
   // Function to check for duplicates
   const checkForDuplicates = (field, value) => {
-    return purchaseReports.some(report => {
-      if (field === 'purchaseorderno') {
+    return purchaseReports.some((report) => {
+      if (field === "purchaseorderno") {
         return report.purchaseorderno.toLowerCase() === value.toLowerCase();
-      } else if (field === 'invoiceno') {
+      } else if (field === "invoiceno") {
         return report.Invoiceno.toLowerCase() === value.toLowerCase();
       }
       return false;
@@ -121,15 +125,17 @@ const SalesReportPage = () => {
   // Modify useEffect to include duplicate checks
   useEffect(() => {
     if (quantityAmount && rate && selectedItem) {
-      const taxMultiplier = 1 + (selectedItem.tax / 100);
-      const calculatedTotal = parseFloat(quantityAmount) * parseFloat(rate) * taxMultiplier;
+      const taxMultiplier = 1 + selectedItem.tax / 100;
+      const calculatedTotal =
+        parseFloat(quantityAmount) * parseFloat(rate) * taxMultiplier;
       setTotal(calculatedTotal.toFixed(2));
 
       // Check if purchase amount exceeds current stock
       const isValidQuantity = parseFloat(quantityAmount) <= selectedItem.stock;
 
       // Check for validation conditions
-      const isDisabled = !isValidQuantity ||
+      const isDisabled =
+        !isValidQuantity ||
         !purchaseorderno ||
         !purchasedate ||
         !Invoiceno ||
@@ -141,26 +147,34 @@ const SalesReportPage = () => {
       setTotal("");
       setIsSaveDisabled(true);
     }
-  }, [quantityAmount, rate, selectedItem, purchaseorderno, purchasedate, Invoiceno, duplicateError]);
+  }, [
+    quantityAmount,
+    rate,
+    selectedItem,
+    purchaseorderno,
+    purchasedate,
+    Invoiceno,
+    duplicateError,
+  ]);
 
   // Update the handlers for purchaseorderno and invoiceno
   const handlePurchaseOrderChange = (e) => {
     const value = e.target.value;
     setPurchaseorderno(value);
-    const isDuplicate = checkForDuplicates('purchaseorderno', value);
-    setDuplicateError(prev => ({
+    const isDuplicate = checkForDuplicates("purchaseorderno", value);
+    setDuplicateError((prev) => ({
       ...prev,
-      purchaseorderno: isDuplicate
+      purchaseorderno: isDuplicate,
     }));
   };
 
   const handleInvoiceNoChange = (e) => {
     const value = e.target.value;
     setInvoiceno(value);
-    const isDuplicate = checkForDuplicates('invoiceno', value);
-    setDuplicateError(prev => ({
+    const isDuplicate = checkForDuplicates("invoiceno", value);
+    setDuplicateError((prev) => ({
       ...prev,
-      invoiceno: isDuplicate
+      invoiceno: isDuplicate,
     }));
   };
 
@@ -177,7 +191,7 @@ const SalesReportPage = () => {
     setIsModalOpen(false);
     setDuplicateError({
       purchaseorderno: false,
-      invoiceno: false
+      invoiceno: false,
     });
   };
 
@@ -187,9 +201,15 @@ const SalesReportPage = () => {
   };
 
   const handlePurchase = async () => {
-    if (!purchaseorderno || !purchasedate || !Invoiceno || !selectedItem ||
-      !quantityAmount || !rate) {
-      toast.warn('🥲 Please fill in all fields!', {
+    if (
+      !purchaseorderno ||
+      !purchasedate ||
+      !Invoiceno ||
+      !selectedItem ||
+      !quantityAmount ||
+      !rate
+    ) {
+      toast.warn("🥲 Please fill in all fields!", {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -219,7 +239,7 @@ const SalesReportPage = () => {
       taxpercent: selectedItem._id,
       total: parseFloat(total),
       purorsell: "sell",
-      username: selectedItem.username // Include username in the request body
+      username: selectedItem.username, // Include username in the request body
     };
 
     try {
@@ -239,11 +259,14 @@ const SalesReportPage = () => {
           parseFloat(quantityAmount),
           selectedItem.stock
         );
-        setPurchaseReports((prevReports) => [...prevReports, result.stockReport]);
+        setPurchaseReports((prevReports) => [
+          ...prevReports,
+          result.stockReport,
+        ]);
         handleCloseModal();
 
         // Show success toast with onClose callback to reload the page
-        toast.success('👍 Item Sold Successfully!', {
+        toast.success("👍 Item Sold Successfully!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -252,11 +275,11 @@ const SalesReportPage = () => {
           draggable: true,
           progress: undefined,
           theme: "dark",
-          onClose: () => window.location.reload()
+          onClose: () => window.location.reload(),
         });
       } else {
         setError(result.error || "Failed to save purchase report");
-        toast.error('👎 Failed to save sales report', {
+        toast.error("👎 Failed to save sales report", {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -273,7 +296,6 @@ const SalesReportPage = () => {
     }
   };
 
-
   const updateStockQuantity = async (itemId, quantityAmount, currentStock) => {
     try {
       const newStock = currentStock - quantityAmount;
@@ -282,7 +304,10 @@ const SalesReportPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ stock: newStock, username: selectedItem.username }),
+        body: JSON.stringify({
+          stock: newStock,
+          username: selectedItem.username,
+        }),
       });
 
       const result = await response.json();
@@ -359,8 +384,7 @@ const SalesReportPage = () => {
   return (
     <div>
       <Navbar />
-      <div className="bg-amber-50 min-h-screen">
-
+      <div className="bg-blue-50 min-h-screen">
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -392,13 +416,20 @@ const SalesReportPage = () => {
                   fill="currentFill"
                 />
               </svg>
-              <span className="mt-4 text-gray-700">Loading Sales Reports...</span>
+              <span className="mt-4 text-gray-700">
+                Loading Sales Reports...
+              </span>
             </div>
           </div>
         )}
-        <div className="container mx-auto p-6 ">
+        <div className="container mx-auto py-5 ">
           <div className="mb-4">
-            <h1 className="text-3xl font-bold text-cyan-900 " style={{ maxWidth: '80%', margin: '0 auto' }}>Sales Report</h1>
+            <h1
+              className="text-3xl font-bold text-cyan-900 "
+              style={{ maxWidth: "85%", margin: "0 auto" }}
+            >
+              Sales Report
+            </h1>
           </div>
 
           <div className="flex space-x-2 mb-4 justify-center">
@@ -426,7 +457,6 @@ const SalesReportPage = () => {
               onClick={filterByDate}
               className="ml-2 flex justify-center"
               size="small"
-
             >
               Filter
             </Button>
@@ -449,9 +479,9 @@ const SalesReportPage = () => {
               className="ml-2 flex justify-center"
               size="small"
               sx={{
-                backgroundColor: 'orange',
-                '&:hover': {
-                  backgroundColor: 'darkorange',
+                backgroundColor: "orange",
+                "&:hover": {
+                  backgroundColor: "darkorange",
                 },
               }}
             >
@@ -467,20 +497,103 @@ const SalesReportPage = () => {
             </Button>
           </div>
 
-          <TableContainer component={Paper} style={{ maxWidth: '80%', margin: '0 auto' }}>
+          <TableContainer
+            component={Paper}
+            style={{ maxWidth: "85%", margin: "0 auto" }}
+          >
             <Table ref={tableRef}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Sales No</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Item Name</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Sales Date</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Invoice No</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Sold Quantity</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Unit</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Rate</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>CGST</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>SGST</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb", textAlign: "center" }}>Total</TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Sales No
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Item Name
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Sales Date
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Invoice No
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Sold Quantity
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Unit
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Rate
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    CGST
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    SGST
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Total
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -489,39 +602,63 @@ const SalesReportPage = () => {
                     <TableRow
                       key={report._id}
                       sx={{
-                        '& > td': {
-                          backgroundColor: 'white',
+                        "& > td": {
+                          backgroundColor: "white",
                         },
                       }}
                     >
                       <TableCell
                         sx={{
-                          textAlign: 'center',
+                          textAlign: "center",
                           background: `linear-gradient(
                                       to right,
-                                      ${report.purorsell === 'purchase' ? '#1ebc1e' : '#f24a23'} 5%, 
+                                      ${
+                                        report.purorsell === "purchase"
+                                          ? "#1ebc1e"
+                                          : "#f24a23"
+                                      } 5%, 
                                       white 5%
                                       )`,
                         }}
-                      >{report.purchaseorderno}
+                      >
+                        {report.purchaseorderno}
                       </TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{report.name?.name}</TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.name?.name}
+                      </TableCell>
                       <TableCell sx={{ textAlign: "center" }}>
                         {(() => {
                           const date = new Date(report.purchasedate);
                           const day = String(date.getDate()).padStart(2, "0");
-                          const month = String(date.getMonth() + 1).padStart(2, "0");
+                          const month = String(date.getMonth() + 1).padStart(
+                            2,
+                            "0"
+                          );
                           const year = date.getFullYear();
                           return `${day}/${month}/${year}`;
                         })()}
                       </TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{report.Invoiceno}</TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{report.quantityAmount}</TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{report.unit?.quantityUnit}</TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{report.rate}</TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{(report.taxpercent?.tax) / 2}</TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{(report.taxpercent?.tax) / 2}</TableCell>
-                      <TableCell sx={{ textAlign: "center" }}>{report.total}</TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.Invoiceno}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.quantityAmount}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.unit?.quantityUnit}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.rate}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.taxpercent?.tax / 2}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.taxpercent?.tax / 2}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {report.total}
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
@@ -533,13 +670,14 @@ const SalesReportPage = () => {
                 )}
               </TableBody>
             </Table>
-
           </TableContainer>
         </div>
 
-
         <Modal open={isModalOpen} onClose={handleCloseModal}>
-          <Box className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 w-1/2 shadow-md max-h-[90%] overflow-y-auto" sx={{ borderRadius: 2 }}>
+          <Box
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 w-1/2 shadow-md max-h-[90%] overflow-y-auto"
+            sx={{ borderRadius: 2 }}
+          >
             <h2 className="text-xl font-bold mb-4">New Sales</h2>
             <form className="space-y-4">
               <TextField
@@ -551,7 +689,11 @@ const SalesReportPage = () => {
                 onChange={handlePurchaseOrderChange}
                 className="w-full"
                 error={duplicateError.purchaseorderno}
-                helperText={duplicateError.purchaseorderno ? "This Sales Order No already exists" : ""}
+                helperText={
+                  duplicateError.purchaseorderno
+                    ? "This Sales Order No already exists"
+                    : ""
+                }
               />
               <TextField
                 required
@@ -573,7 +715,11 @@ const SalesReportPage = () => {
                 onChange={handleInvoiceNoChange}
                 className="w-full"
                 error={duplicateError.invoiceno}
-                helperText={duplicateError.invoiceno ? "This Invoice No already exists" : ""}
+                helperText={
+                  duplicateError.invoiceno
+                    ? "This Invoice No already exists"
+                    : ""
+                }
               />
 
               <TextField
@@ -581,7 +727,7 @@ const SalesReportPage = () => {
                 select
                 id="itemname"
                 variant="outlined"
-                value={selectedItem?._id || ''}
+                value={selectedItem?._id || ""}
                 onChange={(e) => handleItemChange(e.target.value)}
                 className="w-full"
                 SelectProps={{
@@ -600,7 +746,7 @@ const SalesReportPage = () => {
                 id="unit"
                 label="Unit"
                 variant="outlined"
-                value={selectedItem?.quantityUnit || ''}
+                value={selectedItem?.quantityUnit || ""}
                 disabled
                 className="w-full"
               />
@@ -609,7 +755,7 @@ const SalesReportPage = () => {
                 id="stock"
                 label="Current Stock"
                 variant="outlined"
-                value={selectedItem?.stock || '0'}
+                value={selectedItem?.stock || "0"}
                 disabled
                 className="w-full"
               />
@@ -625,15 +771,24 @@ const SalesReportPage = () => {
                   setQuantityAmount(value);
                   // Add error helper text if quantity exceeds stock
                   if (selectedItem && parseFloat(value) > selectedItem.stock) {
-                    e.target.setCustomValidity(`Cannot sell more than available stock (${selectedItem.stock})`);
+                    e.target.setCustomValidity(
+                      `Cannot sell more than available stock (${selectedItem.stock})`
+                    );
                   } else {
-                    e.target.setCustomValidity('');
+                    e.target.setCustomValidity("");
                   }
                 }}
                 className="w-full"
-                helperText={selectedItem && parseFloat(quantityAmount) > selectedItem.stock ?
-                  `Cannot sell more than available stock (${selectedItem.stock})` : ''}
-                error={selectedItem && parseFloat(quantityAmount) > selectedItem.stock}
+                helperText={
+                  selectedItem &&
+                  parseFloat(quantityAmount) > selectedItem.stock
+                    ? `Cannot sell more than available stock (${selectedItem.stock})`
+                    : ""
+                }
+                error={
+                  selectedItem &&
+                  parseFloat(quantityAmount) > selectedItem.stock
+                }
               />
               <TextField
                 required
@@ -650,7 +805,7 @@ const SalesReportPage = () => {
                 id="taxpercent"
                 label="IGST Tax Percent"
                 variant="outlined"
-                value={selectedItem?.tax || ''}
+                value={selectedItem?.tax || ""}
                 disabled
                 className="w-full"
               />
@@ -659,7 +814,7 @@ const SalesReportPage = () => {
                 id="taxpercent"
                 label="SGST Tax Percent"
                 variant="outlined"
-                value={((selectedItem?.tax) / 2).toFixed(2) || ''}
+                value={(selectedItem?.tax / 2).toFixed(2) || ""}
                 disabled
                 className="w-full"
               />
@@ -668,7 +823,7 @@ const SalesReportPage = () => {
                 id="taxpercent"
                 label="CGST Tax Percent"
                 variant="outlined"
-                value={((selectedItem?.tax) / 2).toFixed(2) || ''}
+                value={(selectedItem?.tax / 2).toFixed(2) || ""}
                 disabled
                 className="w-full"
               />
@@ -684,27 +839,16 @@ const SalesReportPage = () => {
               <div className="flex justify-end">
                 <Button
                   variant="contained"
-                  sx={{
-                    backgroundColor: 'green',
-                    '&:hover': { backgroundColor: 'darkgreen' },
-                    '&:disabled': { backgroundColor: 'gray' }
-                  }}
+                  color="success"
+                  sx={{ mr: 2 }}
                   onClick={handlePurchase}
                   disabled={isSaveDisabled}
                 >
                   Save
                 </Button>
                 <Button
-                  variant="outlined"
-                  sx={{
-                    color: 'red',
-                    borderColor: 'red',
-                    '&:hover': {
-                      borderColor: 'darkred',
-                      backgroundColor: 'rgba(255, 0, 0, 0.1)',
-                    },
-                    ml: 2
-                  }}
+                  variant="contained"
+                  color="error"
                   onClick={handleCloseModal}
                 >
                   Cancel
@@ -713,8 +857,6 @@ const SalesReportPage = () => {
             </form>
           </Box>
         </Modal>
-
-
       </div>
       <Footer />
     </div>

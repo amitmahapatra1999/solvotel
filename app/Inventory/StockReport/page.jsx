@@ -176,7 +176,7 @@ export default function InventoryList() {
   return (
     <div>
       <Navbar />
-      <div className="bg-amber-50 min-h-screen">
+      <div className="bg-blue-50 min-h-screen">
 
         {isLoading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
@@ -189,8 +189,8 @@ export default function InventoryList() {
             </div>
           </div>
         )}
-        <div className="container mx-auto p-4">
-          <h1 className="text-3xl font-bold mb-4 text-cyan-900" style={{ maxWidth: '80%', margin: '0 auto' }}>Stock Reports</h1>
+        <div className="container mx-auto py-10">
+          <h1 className="text-3xl font-bold mb-4 text-cyan-900" style={{ maxWidth: '85%', margin: '0 auto' }}>Stock Reports</h1>
           <div className="flex space-x-2 mb-4 justify-center mt-4">
             <TextField
               type="date"
@@ -244,7 +244,7 @@ export default function InventoryList() {
           </div>
 
           {showTable && (
-            <TableContainer component={Paper} style={{ maxWidth: '80%', margin: '0 auto' }}>
+            <TableContainer component={Paper} style={{ maxWidth: '85%', margin: '0 auto' }}>
               <Table ref={tableRef}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: "#f5f5f5" }}>

@@ -152,11 +152,11 @@ export default function Navbar() {
               </button>
               {openDropdown === 1 && (
                 <ul className="absolute top-[100%] left-0 w-48 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <Users2 className="w-4 h-4 text-blue-900" />
                     <Link href="/master/users">Users</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <UserCircle className="w-4 h-4 text-blue-900" />
                     <Link href="/master/profile">Profile</Link>
                   </li>
@@ -177,11 +177,11 @@ export default function Navbar() {
               {openDropdown === 2 && (
                 <ul className="absolute top-[100%] left-0 w-56 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
                   
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <ListChecks className="w-4 h-4 text-blue-900" />
                     <Link href="/property/roomcategories">Room Categories</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <BedDouble className="w-4 h-4 text-blue-900" />
                     <Link href="/property/roomlist">Room List</Link>
                   </li>
@@ -201,19 +201,19 @@ export default function Navbar() {
               </button>
               {openDropdown === 3 && (
                 <ul className="absolute top-[100%] left-0 w-56 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <LayoutDashboard className="w-4 h-4 text-blue-900" />
                     <Link href="/property/roomdashboard">Room Dashboard</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <Users2 className="w-4 h-4 text-blue-900" />
                     <Link href="/property/guests">Guests</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <BookOpen className="w-4 h-4 text-blue-900" />
                     <Link href="/property/billing">Booking</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <ClipboardList className="w-4 h-4 text-blue-900" />
                     <Link href="/property/roomreport">Room Report</Link>
                   </li>
@@ -233,27 +233,27 @@ export default function Navbar() {
               </button>
               {openDropdown === 4 && (
                 <ul className="absolute top-[100%] left-0 w-48 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <LayoutDashboard className="w-4 h-4 text-blue-900" />
                     <Link href="/Restaurant/dashboard">Dashboard</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <TableProperties className="w-4 h-4 text-blue-900" />
                     <Link href="/Restaurant/Tables">Tables</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <Menu className="w-4 h-4 text-blue-900" />
                     <Link href="/Restaurant/restaurantmenu">Restaurant Menu</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <BookOpen className="w-4 h-4 text-blue-900" />
                     <Link href="/Restaurant/restaurantbooking">Booking</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <Receipt className="w-4 h-4 text-blue-900" />
                     <Link href="/Restaurant/invoice">Invoice</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <FileText className="w-4 h-4 text-blue-900" />
                     <Link href="/Restaurant/restaurantreport">Invoice Report</Link>
                   </li>
@@ -273,23 +273,23 @@ export default function Navbar() {
               </button>
               {openDropdown === 5 && (
                 <ul className="absolute top-[100%] left-0 w-48 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <FolderTree className="w-4 h-4 text-blue-900" />
                     <Link href="/Inventory/Category">Category</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <PackageSearch className="w-4 h-4 text-blue-900" />
                     <Link href="/Inventory/InventoryList">Inventory List</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <ShoppingCart className="w-4 h-4 text-blue-900" />
                     <Link href="/Inventory/PurchaseReport">Purchase Item</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <Receipt className="w-4 h-4 text-blue-900" />
                     <Link href="/Inventory/SalesReport">Sales Item</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-orange-100 flex items-center space-x-2 transition-colors duration-200">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <BarChart3 className="w-4 h-4 text-blue-900" />
                     <Link href="/Inventory/StockReport">Stock Report</Link>
                   </li>

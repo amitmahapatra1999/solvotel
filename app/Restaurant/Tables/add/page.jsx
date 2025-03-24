@@ -1,19 +1,19 @@
-"use client"
-import { useState, useEffect } from 'react'
-import { BoltIcon } from 'lucide-react'
+"use client";
+import { useState, useEffect } from "react";
+import { BoltIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import TextField from '@mui/material/TextField';
+import TextField from "@mui/material/TextField";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
-import Navbar from '../../../_components/Navbar';
-import { Footer } from '../../../_components/Footer';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import Navbar from "../../../_components/Navbar";
+import { Footer } from "../../../_components/Footer";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function AddTable() {
   const router = useRouter();
-  const [tableNo, setTableNo] = useState('');
-  const [pos, setPos] = useState('');
+  const [tableNo, setTableNo] = useState("");
+  const [pos, setPos] = useState("");
   const [existingTables, setExistingTables] = useState([]);
   const [error, setError] = useState("");
 
@@ -39,12 +39,12 @@ export default function AddTable() {
     fetchTables();
   }, []);
 
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (existingTables.includes(tableNo)) {
-      setError("Table number already exists! Please choose a different number.");
+      setError(
+        "Table number already exists! Please choose a different number."
+      );
       return;
     }
     if (!pos) {
@@ -52,11 +52,10 @@ export default function AddTable() {
       return;
     }
     try {
-      const response = await fetch('/api/tables', {
-
-        method: 'POST',
+      const response = await fetch("/api/tables", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           tableNo,
@@ -65,23 +64,21 @@ export default function AddTable() {
       });
       const result = await response.json();
       if (result.success) {
-        console.log('Table added successfully');
-        toast.success('Table added successfully');
+        console.log("Table added successfully");
+        toast.success("Table added successfully");
         // Clear form after submission
-        setTableNo('');
-        setPos('');
+        setTableNo("");
+        setPos("");
 
         // router.back();
       } else {
-        console.error('Error adding table');
-        toast.error('Error adding table');
+        console.error("Error adding table");
+        toast.error("Error adding table");
       }
     } catch (error) {
       console.error(error);
-      toast.error('Error occurred while creating user');
+      toast.error("Error occurred while creating user");
     }
-
-
   };
   const handleClose = () => {
     setError("");
@@ -90,7 +87,7 @@ export default function AddTable() {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-amber-50">
+      <div className="min-h-screen bg-blue-50">
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -113,12 +110,16 @@ export default function AddTable() {
               <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">Table Details</h3>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Table Details
+                    </h3>
                     <div className="mt-4 space-y-4">
                       <div>
-                        <TextField id="Table Number" label="Table Number" variant="outlined"
+                        <TextField
+                          id="Table Number"
+                          label="Table Number"
+                          variant="outlined"
                           type="text"
-
                           value={tableNo}
                           onChange={(e) => setTableNo(e.target.value)}
                           className="border rounded w-full"
@@ -126,7 +127,10 @@ export default function AddTable() {
                         />
                       </div>
                       <div>
-                        <label htmlFor="pos" className="block text-sm font-medium text-gray-700">
+                        <label
+                          htmlFor="pos"
+                          className="block text-sm font-medium text-gray-700"
+                        >
                           POS
                         </label>
                         <select
@@ -148,7 +152,7 @@ export default function AddTable() {
                   <button
                     type="submit"
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700"
-                    onClick={() => router.push('/Restaurant/Tables')}
+                    onClick={() => router.push("/Restaurant/Tables")}
                   >
                     Submit
                   </button>
@@ -165,7 +169,11 @@ export default function AddTable() {
           </div>
         </main>
         <Snackbar open={!!error} autoHideDuration={6000} onClose={handleClose}>
-          <MuiAlert onClose={handleClose} severity="error" sx={{ width: "100%" }}>
+          <MuiAlert
+            onClose={handleClose}
+            severity="error"
+            sx={{ width: "100%" }}
+          >
             {error}
           </MuiAlert>
         </Snackbar>

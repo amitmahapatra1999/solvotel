@@ -88,7 +88,7 @@ export default function Dashboard() {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-amber-50">
+      <div className="min-h-screen bg-blue-50">
         
         {isLoading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
@@ -114,7 +114,7 @@ export default function Dashboard() {
           </div>
         )}
         <header>
-          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <div className="max-w-7xl mx-auto pt-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
             <h1 className="text-3xl font-bold text-cyan-900">Restaurant Dashboard</h1>
             <div className="space-x-4">
 
@@ -122,7 +122,7 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <main className="max-w-7xl mx-auto pb-6 sm:px-6 lg:px-8">
           <div className="flex space-x-4 mb-6"></div>
 
           <div className="mb-6">
@@ -163,19 +163,19 @@ export default function Dashboard() {
                     }}
                   >
                     <CardHeader
-                      avatar={<TableRestaurantIcon color="primary" />}
+                      avatar={<TableRestaurantIcon style={{color:"#fff"}} />}
                       title={`Table-${table.tableNo}`}
                       titleTypographyProps={{
                         variant: "h6",
                         fontWeight: "bold",
-                        color: "#007BFF",
+                        color: "#fff",
                       }}
                       sx={{
-                        backgroundColor: "#F0F4FF",
+                        backgroundColor: "#FFC107",
                         padding: "16px",
                         display: "flex",
                         alignItems: "center",
-                        gap: 2,
+                        
                       }}
                     />
                     <CardContent sx={{ padding: "16px" }}>
