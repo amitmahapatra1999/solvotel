@@ -4,10 +4,31 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Users, UserCircle, Building2, BedDouble, ListChecks, Users2, BookOpen, 
-  ClipboardList, UtensilsCrossed, LayoutDashboard, TableProperties, Menu, 
-  Receipt, FileText, Package, FolderTree, PackageSearch, ShoppingCart, 
-  BarChart3, LogOut } from "lucide-react";
+import {
+  User,
+  UserCircle,
+  Building2,
+  BedDouble,
+  ListChecks,
+  Users2,
+  BookOpen,
+  ClipboardList,
+  UtensilsCrossed,
+  LayoutDashboard,
+  TableProperties,
+  Menu,
+  Receipt,
+  FileText,
+  Package,
+  FolderTree,
+  PackageSearch,
+  ShoppingCart,
+  BarChart3,
+  LogOut,
+  Monitor,
+  Utensils,
+  PaintBucket,
+} from "lucide-react";
 import { jwtVerify } from "jose"; // Import jwtVerify for token verification
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -71,9 +92,11 @@ export default function Navbar() {
         setUserAuthToken(null); // Clear userAuthToken on error
         setAuthToken(null); // Clear authToken on error
         // Clear both tokens from cookies
-        document.cookie = "userAuthToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+        document.cookie =
+          "userAuthToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
         // document.cookie = "userClientToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
-        document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+        document.cookie =
+          "authToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
         // document.cookie = "clientToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
       }
     };
@@ -92,20 +115,22 @@ export default function Navbar() {
   const deleteSpecificCookies = () => {
     // Delete userAuthToken if it exists
     if (userAuthToken) {
-      document.cookie = "userAuthToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+      document.cookie =
+        "userAuthToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
     }
     // Delete authToken if it exists
     if (authToken) {
-      document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+      document.cookie =
+        "authToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
     }
   };
 
   const handleLogout = () => {
     setIsLoggingOut(true);
-    
+
     // Delete specific cookies based on which tokens exist
     deleteSpecificCookies();
-    
+
     // Determine redirect based on tokens
     let redirectPath = "/";
     if (userAuthToken && !authToken) {
@@ -125,29 +150,50 @@ export default function Navbar() {
   };
 
   // Determine which dropdowns to show based on token presence and roles
-  const showMaster = authToken || (!userAuthToken && !authToken && (roles.includes("Property & Frontdesk") || roles.includes("Restaurant") || roles.includes("Inventory")));
-  const showProperty = authToken || ((userAuthToken || authToken) && roles.includes("Property & Frontdesk"));
-  
-  const showRestaurant = authToken || ((userAuthToken || authToken) && roles.includes("Restaurant"));
-  const showInventory = authToken || ((userAuthToken || authToken) && roles.includes("Inventory"));
+  const showMaster =
+    authToken ||
+    (!userAuthToken &&
+      !authToken &&
+      (roles.includes("Property & Frontdesk") ||
+        roles.includes("Restaurant") ||
+        roles.includes("Inventory")));
+  const showProperty =
+    authToken ||
+    ((userAuthToken || authToken) && roles.includes("Property & Frontdesk"));
+
+  const showRestaurant =
+    authToken || ((userAuthToken || authToken) && roles.includes("Restaurant"));
+  const showInventory =
+    authToken || ((userAuthToken || authToken) && roles.includes("Inventory"));
 
   return (
     <nav className="bg-blue-900 p-4 shadow-lg">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <Link href={(userAuthToken || authToken) ? "/property/roomdashboard" : "/"}>
+        <Link
+          href={userAuthToken || authToken ? "/property/roomdashboard" : "/"}
+        >
           <div className="transform hover:scale-105 transition-transform duration-300">
-            <Image src="/Hotel-Logo.png" alt="BookingMaster.in" width={150} height={60} priority className="pr-4" />
+            <Image
+              src="/Hotel-Logo.png"
+              alt="BookingMaster.in"
+              width={150}
+              height={60}
+              priority
+              className="pr-4"
+            />
           </div>
         </Link>
 
         <ul className="flex space-x-6 text-white">
           {/* Master Dropdown (shown if authToken exists or no tokens and any role exists) */}
           {showMaster && (
-            <li className="relative group" 
-                onMouseEnter={() => handleMouseEnter(1)} 
-                onMouseLeave={handleMouseLeave}>
+            <li
+              className="relative group"
+              onMouseEnter={() => handleMouseEnter(1)}
+              onMouseLeave={handleMouseLeave}
+            >
               <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
-                <Users className="w-5 h-5" />
+                <User className="w-5 h-5" />
                 <span>Admin</span>
               </button>
               {openDropdown === 1 && (
@@ -167,16 +213,17 @@ export default function Navbar() {
 
           {/* Property (shown if authToken exists or logged in with userAuthToken and has role) */}
           {showProperty && (
-            <li className="relative group"
-                onMouseEnter={() => handleMouseEnter(2)}
-                onMouseLeave={handleMouseLeave}>
+            <li
+              className="relative group"
+              onMouseEnter={() => handleMouseEnter(2)}
+              onMouseLeave={handleMouseLeave}
+            >
               <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
                 <Building2 className="w-5 h-5" />
                 <span>Property</span>
               </button>
               {openDropdown === 2 && (
                 <ul className="absolute top-[100%] left-0 w-56 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
-                  
                   <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <ListChecks className="w-4 h-4 text-blue-900" />
                     <Link href="/property/roomcategories">Room Categories</Link>
@@ -185,18 +232,19 @@ export default function Navbar() {
                     <BedDouble className="w-4 h-4 text-blue-900" />
                     <Link href="/property/roomlist">Room List</Link>
                   </li>
-                 
                 </ul>
               )}
             </li>
           )}
           {/* Property (shown if authToken exists or logged in with userAuthToken and has role) */}
           {showProperty && (
-            <li className="relative group"
-                onMouseEnter={() => handleMouseEnter(3)}
-                onMouseLeave={handleMouseLeave}>
+            <li
+              className="relative group"
+              onMouseEnter={() => handleMouseEnter(3)}
+              onMouseLeave={handleMouseLeave}
+            >
               <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
-                <Building2 className="w-5 h-5" />
+                <Monitor className="w-5 h-5" />
                 <span>Front Office</span>
               </button>
               {openDropdown === 3 && (
@@ -221,17 +269,41 @@ export default function Navbar() {
               )}
             </li>
           )}
+          {showProperty && (
+            <li
+              className="relative group"
+              onMouseEnter={() => handleMouseEnter(4)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
+                <PaintBucket className="w-5 h-5" />
+                <span>Housekeeping</span>
+              </button>
+              {openDropdown === 4 && (
+                <ul className="absolute top-[100%] left-0 w-56 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
+                    <LayoutDashboard className="w-4 h-4 text-blue-900" />
+                    <Link href="/property/roomdashboard/classiclayout">
+                      Dashboard
+                    </Link>
+                  </li>
+                </ul>
+              )}
+            </li>
+          )}
 
           {/* Restaurant Dropdown (shown if authToken exists or logged in with userAuthToken and has role) */}
           {showRestaurant && (
-            <li className="relative group"
-                onMouseEnter={() => handleMouseEnter(4)}
-                onMouseLeave={handleMouseLeave}>
+            <li
+              className="relative group"
+              onMouseEnter={() => handleMouseEnter(5)}
+              onMouseLeave={handleMouseLeave}
+            >
               <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
-                <UtensilsCrossed className="w-5 h-5" />
+                <Utensils className="w-5 h-5" />
                 <span>Restaurant</span>
               </button>
-              {openDropdown === 4 && (
+              {openDropdown === 5 && (
                 <ul className="absolute top-[100%] left-0 w-48 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
                   <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <LayoutDashboard className="w-4 h-4 text-blue-900" />
@@ -243,7 +315,9 @@ export default function Navbar() {
                   </li>
                   <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <Menu className="w-4 h-4 text-blue-900" />
-                    <Link href="/Restaurant/restaurantmenu">Restaurant Menu</Link>
+                    <Link href="/Restaurant/restaurantmenu">
+                      Restaurant Menu
+                    </Link>
                   </li>
                   <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <BookOpen className="w-4 h-4 text-blue-900" />
@@ -255,7 +329,9 @@ export default function Navbar() {
                   </li>
                   <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <FileText className="w-4 h-4 text-blue-900" />
-                    <Link href="/Restaurant/restaurantreport">Invoice Report</Link>
+                    <Link href="/Restaurant/restaurantreport">
+                      Invoice Report
+                    </Link>
                   </li>
                 </ul>
               )}
@@ -264,14 +340,16 @@ export default function Navbar() {
 
           {/* Inventory Dropdown (shown if authToken exists or logged in with userAuthToken and has role) */}
           {showInventory && (
-            <li className="relative group"
-                onMouseEnter={() => handleMouseEnter(5)}
-                onMouseLeave={handleMouseLeave}>
+            <li
+              className="relative group"
+              onMouseEnter={() => handleMouseEnter(6)}
+              onMouseLeave={handleMouseLeave}
+            >
               <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
-                <Package className="w-5 h-5" />
+                <ShoppingCart className="w-5 h-5" />
                 <span>Inventory</span>
               </button>
-              {openDropdown === 5 && (
+              {openDropdown === 6 && (
                 <ul className="absolute top-[100%] left-0 w-48 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
                   <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <FolderTree className="w-4 h-4 text-blue-900" />
@@ -307,14 +385,22 @@ export default function Navbar() {
                 className={`
                   flex items-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 
                   text-white rounded-lg transform transition-all duration-300
-                  ${isLoggingOut ? 'scale-95 opacity-80' : 'hover:scale-105'}
+                  ${isLoggingOut ? "scale-95 opacity-80" : "hover:scale-105"}
                   focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-50 
                   shadow-md hover:shadow-lg
                 `}
               >
-                <LogOut className={`w-5 h-5 transform transition-transform duration-500 ${isLoggingOut ? 'rotate-90' : ''}`} />
-                <span className={`transition-opacity duration-300 ${isLoggingOut ? 'opacity-0' : 'opacity-100'}`}>
-                  {isLoggingOut ? 'Logging out...' : 'Logout'}
+                <LogOut
+                  className={`w-5 h-5 transform transition-transform duration-500 ${
+                    isLoggingOut ? "rotate-90" : ""
+                  }`}
+                />
+                <span
+                  className={`transition-opacity duration-300 ${
+                    isLoggingOut ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  {isLoggingOut ? "Logging out..." : "Logout"}
                 </span>
               </button>
             </li>

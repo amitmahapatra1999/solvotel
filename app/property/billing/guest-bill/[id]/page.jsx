@@ -93,10 +93,13 @@ const BookingDashboard = () => {
     const fetchMenuItems = async () => {
       try {
         const token = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("authToken=") || row.startsWith("userAuthToken="))
-        .split("=")[1];
-      const headers = { Authorization: `Bearer ${token}` };
+          .split("; ")
+          .find(
+            (row) =>
+              row.startsWith("authToken=") || row.startsWith("userAuthToken=")
+          )
+          .split("=")[1];
+        const headers = { Authorization: `Bearer ${token}` };
         const menuResponse = await fetch("/api/menuItem");
         const menuData = await menuResponse.json();
         setMenuItems(menuData.data);
@@ -112,7 +115,10 @@ const BookingDashboard = () => {
       try {
         const token = document.cookie
           .split("; ")
-          .find((row) => row.startsWith("authToken=") || row.startsWith("userAuthToken="))
+          .find(
+            (row) =>
+              row.startsWith("authToken=") || row.startsWith("userAuthToken=")
+          )
           .split("=")[1];
         const headers = { Authorization: `Bearer ${token}` };
 
@@ -185,9 +191,9 @@ const BookingDashboard = () => {
         });
 
         // Get categories for all matched rooms
-        const matchedCategories = matchedRooms.map(room =>
+        const matchedCategories = matchedRooms.map((room) =>
           roomCategoriesResponse.data.data.find(
-            category => category._id === room.category._id
+            (category) => category._id === room.category._id
           )
         );
 
@@ -197,30 +203,37 @@ const BookingDashboard = () => {
         });
 
         // Find bookings for all rooms
-        const matchedBookings = await Promise.all(matchedRooms.map(async (room) => {
-          if (billingData.Bill_Paid === "yes" || billingData.Cancelled === "yes") {
-            const currentBillIndex = room.billWaitlist.findIndex(
-              (billId) => billId._id.toString() === billingData._id.toString()
-            );
+        const matchedBookings = await Promise.all(
+          matchedRooms.map(async (room) => {
+            if (
+              billingData.Bill_Paid === "yes" ||
+              billingData.Cancelled === "yes"
+            ) {
+              const currentBillIndex = room.billWaitlist.findIndex(
+                (billId) => billId._id.toString() === billingData._id.toString()
+              );
 
-            if (currentBillIndex === -1) {
-              return null;
+              if (currentBillIndex === -1) {
+                return null;
+              }
+
+              const correspondingGuestId = room.guestWaitlist[currentBillIndex];
+              return newBookingsResponse.data.data.find(
+                (booking) => booking._id === correspondingGuestId._id.toString()
+              );
+            } else {
+              return newBookingsResponse.data.data.find(
+                (booking) => booking._id === room.currentGuestId
+              );
             }
-
-            const correspondingGuestId = room.guestWaitlist[currentBillIndex];
-            return newBookingsResponse.data.data.find(
-              (booking) => booking._id === correspondingGuestId._id.toString()
-            );
-          } else {
-            return newBookingsResponse.data.data.find(
-              (booking) => booking._id === room.currentGuestId
-            );
-          }
-        }));
+          })
+        );
 
         // Filter out duplicates and null values
         const uniqueBookings = Array.from(
-          new Set(matchedBookings.filter(booking => booking).map(JSON.stringify))
+          new Set(
+            matchedBookings.filter((booking) => booking).map(JSON.stringify)
+          )
         ).map(JSON.parse);
         console.log("uniqueBookings", uniqueBookings);
         setBookingData({
@@ -359,7 +372,7 @@ const BookingDashboard = () => {
       setSelectedFoodItem(selectedItem);
       setFoodName(selectedItem.itemName || "");
       setFoodPrice(selectedItem.price?.toString() || "0");
-      setFoodTax(((selectedItem.sgst + selectedItem.cgst) || 0).toString());
+      setFoodTax((selectedItem.sgst + selectedItem.cgst || 0).toString());
       setFoodQuantity(1);
     }
   };
@@ -392,7 +405,7 @@ const BookingDashboard = () => {
     const newItem = {
       selectedFoodItem,
       quantity: foodQuantity,
-      totalPrice: totalPriceWithTax
+      totalPrice: totalPriceWithTax,
     };
     setSelectedFoodItems([...selectedFoodItems, newItem]);
     setSelectedFoodItem([]);
@@ -401,7 +414,6 @@ const BookingDashboard = () => {
     setFoodTax("");
     setFoodQuantity(1);
   };
-
 
   const handleRemoveItem = (index) => {
     const updatedItems = selectedFoodItems.filter((_, idx) => idx !== index);
@@ -420,14 +432,13 @@ const BookingDashboard = () => {
         return {
           ...item,
           quantity: newQuantity,
-          totalPrice: totalPriceWithTax
+          totalPrice: totalPriceWithTax,
         };
       }
       return item;
     });
     setSelectedFoodItems(updatedItems);
   };
-
 
   const handleAddFood = async () => {
     if (selectedFoodItems.length === 0) {
@@ -441,43 +452,55 @@ const BookingDashboard = () => {
         .split("=")[1];
       const headers = { Authorization: `Bearer ${token}` };
 
-      const foodUpdates = selectedFoodItems.map(item => ({
+      const foodUpdates = selectedFoodItems.map((item) => ({
         name: item.selectedFoodItem.itemName,
         price: item.totalPrice, // This is now the total price including tax
-        tax: Number(item.selectedFoodItem.sgst + item.selectedFoodItem.cgst) || 0,
-        quantity: Number(item.quantity)
+        tax:
+          Number(item.selectedFoodItem.sgst + item.selectedFoodItem.cgst) || 0,
+        quantity: Number(item.quantity),
       }));
 
       // Get current billing state
-      const billingResponse = await axios.get(`/api/Billing/${id}`, { headers });
+      const billingResponse = await axios.get(`/api/Billing/${id}`, {
+        headers,
+      });
       const currentBilling = billingResponse.data.data;
 
       // Update arrays immutably
-      const updatedItemList = currentBilling.itemList.map(arr => [...arr]);
-      const updatedPriceList = currentBilling.priceList.map(arr => [...arr]);
-      const updatedQuantityList = currentBilling.quantityList.map(arr => [...arr]);
-      const updatedTaxList = currentBilling.taxList.map(arr => [...arr]);
+      const updatedItemList = currentBilling.itemList.map((arr) => [...arr]);
+      const updatedPriceList = currentBilling.priceList.map((arr) => [...arr]);
+      const updatedQuantityList = currentBilling.quantityList.map((arr) => [
+        ...arr,
+      ]);
+      const updatedTaxList = currentBilling.taxList.map((arr) => [...arr]);
 
-      foodUpdates.forEach(item => {
+      foodUpdates.forEach((item) => {
         updatedItemList[selectedRoomIndex].push(item.name);
         updatedPriceList[selectedRoomIndex].push(item.price);
         updatedQuantityList[selectedRoomIndex].push(item.quantity);
         updatedTaxList[selectedRoomIndex].push(item.tax);
       });
 
-      await axios.put(`/api/Billing/${id}`, {
-        itemList: updatedItemList,
-        priceList: updatedPriceList,
-        quantityList: updatedQuantityList,
-        taxList: updatedTaxList,
-        roomIndex: selectedRoomIndex,
-        FoodRemarks: [...currentBilling.FoodRemarks, foodRemarks]
-      }, { headers });
+      await axios.put(
+        `/api/Billing/${id}`,
+        {
+          itemList: updatedItemList,
+          priceList: updatedPriceList,
+          quantityList: updatedQuantityList,
+          taxList: updatedTaxList,
+          roomIndex: selectedRoomIndex,
+          FoodRemarks: [...currentBilling.FoodRemarks, foodRemarks],
+        },
+        { headers }
+      );
 
-      setServices([...services, ...foodUpdates.map(item => ({
-        ...item,
-        roomIndex: selectedRoomIndex
-      }))]);
+      setServices([
+        ...services,
+        ...foodUpdates.map((item) => ({
+          ...item,
+          roomIndex: selectedRoomIndex,
+        })),
+      ]);
 
       handleCloseFoodModal();
     } catch (error) {
@@ -485,7 +508,6 @@ const BookingDashboard = () => {
       alert("Failed to add food items");
     }
   };
-
 
   const handleAddPayment = async () => {
     const paymentAmountNum = Number(paymentAmount);
@@ -573,7 +595,8 @@ const BookingDashboard = () => {
 
         // Find position of current bill in the waitlist
         const currentPosition = currentRoomData.billWaitlist.findIndex(
-          (billId) => billId._id.toString() === bookingData.billing._id.toString()
+          (billId) =>
+            billId._id.toString() === bookingData.billing._id.toString()
         );
 
         // Prepare update data
@@ -655,7 +678,6 @@ const BookingDashboard = () => {
   }
   const { billing, booking, room, category } = bookingData;
 
-  console.log("Booking Data: ", billing);
   return (
     <div className="min-h-screen bg-amber-50">
       <Navbar />
@@ -665,47 +687,58 @@ const BookingDashboard = () => {
           <h2 className="text-xl font-semibold text-gray-800">
             Booking Dashboard{" "}
             {console.log("Booking Data: ", bookingData.bookings.bookingId)}
-            <span className="text-gray-500">({bookingData.bookings[0].bookingId})</span>
+            <span className="text-gray-500">
+              ({bookingData.bookings[0].bookingId})
+            </span>
           </h2>
 
           {/* Booking Information */}
           <div className="mt-4 bg-blue-100 p-4 rounded">
             <p className="text-lg font-semibold">
               {bookingData.bookings[0].guestName}{" "}
-              <span className="text-sm text-green-700 bg-green-100 px-2 py-1 rounded">
-                Posting On
-              </span>
             </p>
             <p className="mt-2 text-sm text-gray-700">
               Check-In:{" "}
               <strong>
-                {new Date(bookingData.bookings[0].checkIn).toLocaleDateString("en-GB")}
+                {new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
+                  "en-GB"
+                )}
               </strong>{" "}
               | Expected Check-Out:{" "}
               <strong>
-                {new Date(bookingData.bookings[0].checkOut).toLocaleDateString("en-GB")}
+                {new Date(bookingData.bookings[0].checkOut).toLocaleDateString(
+                  "en-GB"
+                )}
               </strong>{" "}
-              | Phone No: <strong>+91 {bookingData.bookings[0].mobileNo}</strong>
+              | Phone No:{" "}
+              <strong>+91 {bookingData.bookings[0].mobileNo}</strong>
             </p>
             <p className="mt-1 text-sm text-gray-700">
-              Guest ID: <strong>{bookingData.bookings[0].guestid}</strong> | Date of Birth:{" "}
+              Guest ID: <strong>{bookingData.bookings[0].guestid}</strong> |
+              Date of Birth:{" "}
               <strong>
-                {new Date(bookingData.bookings[0].dateofbirth).toLocaleDateString("en-GB")}
+                {new Date(
+                  bookingData.bookings[0].dateofbirth
+                ).toLocaleDateString("en-GB")}
               </strong>{" "}
-              | Booking Type: <strong>{bookingData.bookings[0].bookingType}</strong> | Booking
+              | Booking Type:{" "}
+              <strong>{bookingData.bookings[0].bookingType}</strong> | Booking
               Source: <strong>{bookingData.bookings[0].bookingSource}</strong>
             </p>
             <p className="mt-1 text-sm text-gray-700">
               Booked On:{" "}
               <strong>
-                {new Date(bookingData.bookings[0].createdAt).toLocaleDateString("en-GB")}
+                {new Date(bookingData.bookings[0].createdAt).toLocaleDateString(
+                  "en-GB"
+                )}
               </strong>{" "}
-              | PAX:{" "}
+              | No. Of guest(s):{" "}
               <strong>
-                {bookingData.bookings[0].adults} Adult {bookingData.bookings[0].children} Child
+                {bookingData.bookings[0].adults} Adult{" "}
+                {bookingData.bookings[0].children} Child
               </strong>{" "}
-              | Meal Plan: <strong>{bookingData.bookings[0].mealPlan}</strong> | Notes:{" "}
-              <strong>{bookingData.bookings[0].remarks || "-"}</strong>
+              | Meal Plan: <strong>{bookingData.bookings[0].mealPlan}</strong> |
+              Notes: <strong>{bookingData.bookings[0].remarks || "-"}</strong>
             </p>
           </div>
 
@@ -714,9 +747,12 @@ const BookingDashboard = () => {
             <h3 className="font-semibold text-gray-800">Rooms Booked</h3>
             <p className="text-sm text-gray-700">
               {new Date(bookingData.bookings[0].checkIn).toLocaleDateString()} (
-              {new Date(bookingData.bookings[0].checkIn).toLocaleString("default", {
-                weekday: "short",
-              })}
+              {new Date(bookingData.bookings[0].checkIn).toLocaleString(
+                "default",
+                {
+                  weekday: "short",
+                }
+              )}
               ) &raquo; Rooms:{" "}
               {Array.isArray(billing.roomNo)
                 ? billing.roomNo.join(", ")
@@ -736,7 +772,9 @@ const BookingDashboard = () => {
                 disabled:
                   billing.Bill_Paid === "yes" ||
                   billing.Cancelled === "yes" ||
-                  new Date(bookingData.bookings[0].checkIn).toLocaleDateString("en-GB") > new Date().toLocaleDateString("en-GB"),
+                  new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
+                    "en-GB"
+                  ) > new Date().toLocaleDateString("en-GB"),
               },
               {
                 label: "Add Food",
@@ -746,7 +784,9 @@ const BookingDashboard = () => {
                 disabled:
                   billing.Bill_Paid === "yes" ||
                   billing.Cancelled === "yes" ||
-                  new Date(bookingData.bookings[0].checkIn).toLocaleDateString("en-GB") > new Date().toLocaleDateString("en-GB"),
+                  new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
+                    "en-GB"
+                  ) > new Date().toLocaleDateString("en-GB"),
               },
               {
                 label: "Bill Payment",
@@ -759,7 +799,9 @@ const BookingDashboard = () => {
                 disabled:
                   remainingDueAmount <= 0 ||
                   billing.Cancelled === "yes" ||
-                  new Date(bookingData.bookings[0].checkIn).toLocaleDateString("en-GB") > new Date().toLocaleDateString("en-GB"),
+                  new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
+                    "en-GB"
+                  ) > new Date().toLocaleDateString("en-GB"),
               },
             ].map((btn, index) => (
               <Button
@@ -852,24 +894,11 @@ const BookingDashboard = () => {
             <h3 className="font-semibold text-gray-800">Billing Summary</h3>
             <div className="grid grid-cols-2 gap-4 mt-2">
               <div className="text-gray-700">
-                <p>Total Room Charges (incl. GST):</p>
-                <p>Billed Amount:</p>
-                <p>Cumulative Paid Amount:</p>
+                <p>Total Amount:</p>
+                <p>Paid Amount:</p>
                 <p>Due Amount:</p>
               </div>
               <div className="text-gray-800 font-semibold text-right">
-                {(() => {
-                  // Calculate total room charges
-                  const totalRoomCharges = billing.priceList.reduce((sum, priceArray) => {
-                    // Check if priceArray is an array and has values
-                    const price = Array.isArray(priceArray) ? parseFloat(priceArray[0]) || 0 : 0;
-                    return sum + price;
-                  }, 0);
-
-                  // Display the total
-                  return totalRoomCharges.toFixed(2);
-                })()}
-
                 <p>{parseFloat(billing.totalAmount).toFixed(2)}</p>
 
                 <p>{parseFloat(billing.amountAdvanced).toFixed(2)}</p>
@@ -918,7 +947,9 @@ const BookingDashboard = () => {
                 remainingDueAmount > 0 ||
                 billing.Bill_Paid === "yes" ||
                 billing.Cancelled === "yes" ||
-                new Date(bookingData.bookings[0].checkIn).toLocaleDateString("en-GB") > new Date().toLocaleDateString("en-GB")
+                new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
+                  "en-GB"
+                ) > new Date().toLocaleDateString("en-GB")
               }
               onClick={handleCompletePayment}
             >
@@ -940,10 +971,13 @@ const BookingDashboard = () => {
                 {billing.roomNo.map((roomNumber, index) => (
                   <tr key={index}>
                     <td className="p-2 text-left">
-                      {new Date(bookingData.bookings[0].checkIn).toLocaleDateString("en-GB")}
+                      {new Date(
+                        bookingData.bookings[0].checkIn
+                      ).toLocaleDateString("en-GB")}
                     </td>
                     <td className="p-2 text-center">
-                      Room # {roomNumber} - {bookingData.rooms[index].category.category}
+                      Room # {roomNumber} -{" "}
+                      {bookingData.rooms[index].category.category}
                     </td>
                     <td className="p-2 text-right">
                       {billing.priceList[index][0].toFixed(2)}
@@ -996,7 +1030,9 @@ const BookingDashboard = () => {
               <tbody>
                 {serviceItems.map((service, index) => (
                   <tr key={index}>
-                    <td className="p-2 text-left">Room #{billing.roomNo[service.roomIndex]}</td>
+                    <td className="p-2 text-left">
+                      Room #{billing.roomNo[service.roomIndex]}
+                    </td>
                     <td className="p-2 text-left">{service.name}</td>
                     <td className="p-2 text-center">{service.quantity}</td>
                     <td className="p-2 text-center">{service.tax}%</td>
@@ -1342,7 +1378,9 @@ const BookingDashboard = () => {
               <tbody>
                 {foodItems.map((food, index) => (
                   <tr key={index}>
-                    <td className="p-2 text-left">Room #{billing.roomNo[food.roomIndex]}</td>
+                    <td className="p-2 text-left">
+                      Room #{billing.roomNo[food.roomIndex]}
+                    </td>
                     <td className="p-2 text-left">{food.name}</td>
                     <td className="p-2 text-center">{food.quantity}</td>
                     <td className="p-2 text-center">{food.tax}%</td>
