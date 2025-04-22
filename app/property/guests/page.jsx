@@ -539,7 +539,7 @@ export default function GuestList() {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-blue-50">
+      <div className="min-h-screen bg-white">
         {isLoading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
             <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
@@ -565,7 +565,7 @@ export default function GuestList() {
         )}
         <main className="max-w-7xl mx-auto py-6 ">
           <div className="px-4 py-6 sm:px-0">
-            <div className="bg-blue-50  rounded-lg p-6">
+            <div className="rounded-lg p-6">
               <h1 className="text-3xl font-semibold text-cyan-900 mb-4">
                 Guest List
               </h1>

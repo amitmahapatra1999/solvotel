@@ -60,7 +60,12 @@ const StyledTableHead = styled(TableHead)(({ theme }) => ({
 // Custom styling for table rows with fallback for theme
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:hover": {
-    backgroundColor: (theme && theme.palette && theme.palette.grey && theme.palette.grey[100]) || "#f5f5f5", // Fallback to a default grey color
+    backgroundColor:
+      (theme &&
+        theme.palette &&
+        theme.palette.grey &&
+        theme.palette.grey[100]) ||
+      "#f5f5f5", // Fallback to a default grey color
   },
   "& .MuiTableCell-root": {
     textAlign: "center",
@@ -75,18 +80,38 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   },
   "& .MuiOutlinedInput-root": {
     "& fieldset": {
-      borderColor: (theme && theme.palette && theme.palette.grey && theme.palette.grey[300]) || "#d9d9d9",
+      borderColor:
+        (theme &&
+          theme.palette &&
+          theme.palette.grey &&
+          theme.palette.grey[300]) ||
+        "#d9d9d9",
     },
     "&:hover fieldset": {
-      borderColor: (theme && theme.palette && theme.palette.primary && theme.palette.primary.main) || "#1976d2",
+      borderColor:
+        (theme &&
+          theme.palette &&
+          theme.palette.primary &&
+          theme.palette.primary.main) ||
+        "#1976d2",
     },
     "&.Mui-focused fieldset": {
-      borderColor: (theme && theme.palette && theme.palette.primary && theme.palette.primary.main) || "#1976d2",
+      borderColor:
+        (theme &&
+          theme.palette &&
+          theme.palette.primary &&
+          theme.palette.primary.main) ||
+        "#1976d2",
     },
   },
   "& .MuiInputLabel-root": {
     fontSize: "0.875rem",
-    color: (theme && theme.palette && theme.palette.grey && theme.palette.grey[700]) || "#666",
+    color:
+      (theme &&
+        theme.palette &&
+        theme.palette.grey &&
+        theme.palette.grey[700]) ||
+      "#666",
   },
 }));
 
@@ -97,13 +122,28 @@ const StyledSelect = styled(Select)(({ theme }) => ({
   },
   "& .MuiOutlinedInput-root": {
     "& fieldset": {
-      borderColor: (theme && theme.palette && theme.palette.grey && theme.palette.grey[300]) || "#d9d9d9",
+      borderColor:
+        (theme &&
+          theme.palette &&
+          theme.palette.grey &&
+          theme.palette.grey[300]) ||
+        "#d9d9d9",
     },
     "&:hover fieldset": {
-      borderColor: (theme && theme.palette && theme.palette.primary && theme.palette.primary.main) || "#1976d2",
+      borderColor:
+        (theme &&
+          theme.palette &&
+          theme.palette.primary &&
+          theme.palette.primary.main) ||
+        "#1976d2",
     },
     "&.Mui-focused fieldset": {
-      borderColor: (theme && theme.palette && theme.palette.primary && theme.palette.primary.main) || "#1976d2",
+      borderColor:
+        (theme &&
+          theme.palette &&
+          theme.palette.primary &&
+          theme.palette.primary.main) ||
+        "#1976d2",
     },
   },
 }));
@@ -158,8 +198,10 @@ export default function Page() {
   }, []);
 
   const filteredUsers = users.filter((user) =>
-    Object.values(user).some((value) =>
-      typeof value === "string" && value.toLowerCase().includes(searchTerm.toLowerCase())
+    Object.values(user).some(
+      (value) =>
+        typeof value === "string" &&
+        value.toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
 
@@ -178,7 +220,9 @@ export default function Page() {
       setIsLoading(true);
       const response = await axios.delete(`/api/User/${selectedUser}`);
       if (response.data.success) {
-        setUsers((prevUsers) => prevUsers.filter((user) => user._id !== selectedUser));
+        setUsers((prevUsers) =>
+          prevUsers.filter((user) => user._id !== selectedUser)
+        );
         setOpenDialog(false);
         toast.success("User deleted successfully!", {
           position: "top-right",
@@ -223,7 +267,12 @@ export default function Page() {
   };
 
   // Initialize react-hook-form for edit form
-  const { handleSubmit: handleEditSubmit, control: editControl, reset, formState: { errors } } = useForm({
+  const {
+    handleSubmit: handleEditSubmit,
+    control: editControl,
+    reset,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
       name: "",
       hotelName: "",
@@ -260,7 +309,9 @@ export default function Page() {
 
       if (result.success) {
         setUsers((prevUsers) =>
-          prevUsers.map((user) => (user._id === selectedUser._id ? { ...user, ...data } : user))
+          prevUsers.map((user) =>
+            user._id === selectedUser._id ? { ...user, ...data } : user
+          )
         );
         handleClose();
         toast.success("User updated successfully!", {
@@ -302,7 +353,7 @@ export default function Page() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-amber-50">
+    <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
       <ToastContainer
         position="top-right"
@@ -325,7 +376,9 @@ export default function Page() {
         </div>
       )}
       <main className="flex-grow p-8">
-        <h1 className="text-3xl font-semibold mb-6 text-cyan-900 ml-4">Booking Master Control Panel</h1>
+        <h1 className="text-3xl font-semibold mb-6 text-cyan-900 ml-4">
+          Booking Master Control Panel
+        </h1>
         <StyledContainer>
           <div className="p-4 rounded-t-lg">
             <h2 className="text-2xl font-semibold text-cyan-900 mb-4">Users</h2>
@@ -466,7 +519,9 @@ export default function Page() {
                   fullWidth
                   required
                   variant="outlined"
-                  {...editControl.register("name", { required: "Name is required" })}
+                  {...editControl.register("name", {
+                    required: "Name is required",
+                  })}
                   error={!!errors.name}
                   helperText={errors.name?.message}
                   sx={{ mb: 2 }}
@@ -478,7 +533,9 @@ export default function Page() {
                   fullWidth
                   required
                   variant="outlined"
-                  {...editControl.register("hotelName", { required: "Hotel Name is required" })}
+                  {...editControl.register("hotelName", {
+                    required: "Hotel Name is required",
+                  })}
                   error={!!errors.hotelName}
                   helperText={errors.hotelName?.message}
                   sx={{ mb: 2 }}
@@ -508,7 +565,9 @@ export default function Page() {
                   fullWidth
                   required
                   variant="outlined"
-                  {...editControl.register("phone", { required: "Phone number is required" })}
+                  {...editControl.register("phone", {
+                    required: "Phone number is required",
+                  })}
                   error={!!errors.phone}
                   helperText={errors.phone?.message}
                   sx={{ mb: 2 }}
@@ -516,7 +575,10 @@ export default function Page() {
               </Grid>
               <Grid item xs={12}>
                 <Box sx={{ mb: 2 }}>
-                  <InputLabel id="userType-label" sx={{ fontSize: "0.875rem", color: "#666", mb: 1 }}>
+                  <InputLabel
+                    id="userType-label"
+                    sx={{ fontSize: "0.875rem", color: "#666", mb: 1 }}
+                  >
                     User Type
                   </InputLabel>
                   <Controller
@@ -539,7 +601,11 @@ export default function Page() {
                     )}
                   />
                   {errors.userType && (
-                    <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
+                    <Typography
+                      variant="caption"
+                      color="error"
+                      sx={{ mt: 0.5 }}
+                    >
                       {errors.userType.message}
                     </Typography>
                   )}
@@ -547,7 +613,10 @@ export default function Page() {
               </Grid>
               <Grid item xs={12}>
                 <Box sx={{ mb: 2 }}>
-                  <InputLabel id="roles-label" sx={{ fontSize: "0.875rem", color: "#666", mb: 1 }}>
+                  <InputLabel
+                    id="roles-label"
+                    sx={{ fontSize: "0.875rem", color: "#666", mb: 1 }}
+                  >
                     Roles
                   </InputLabel>
                   <Controller
@@ -565,14 +634,20 @@ export default function Page() {
                         error={!!errors.roles}
                         sx={{ mb: errors.roles ? 0 : 2 }}
                       >
-                        <MenuItem value="Property & Frontdesk">Property & Frontdesk</MenuItem>
+                        <MenuItem value="Property & Frontdesk">
+                          Property & Frontdesk
+                        </MenuItem>
                         <MenuItem value="Restaurant">Restaurant</MenuItem>
                         <MenuItem value="Inventory">Inventory</MenuItem>
                       </StyledSelect>
                     )}
                   />
                   {errors.roles && (
-                    <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
+                    <Typography
+                      variant="caption"
+                      color="error"
+                      sx={{ mt: 0.5 }}
+                    >
                       {errors.roles.message}
                     </Typography>
                   )}

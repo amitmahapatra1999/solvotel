@@ -833,7 +833,7 @@ export default function BookingForm() {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-blue-50">
+      <div className="min-h-screen bg-white">
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
             <div className="bg-white shadow rounded-lg p-6">
@@ -850,590 +850,438 @@ export default function BookingForm() {
               </Typography>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Booking Details Section */}
-                <Box
-                  sx={{
-                    mb: 6,
-                    p: 3,
-                    background: "linear-gradient(135deg, #f0f9ff, #cce7ff)",
-                    borderRadius: 2,
-                    borderLeft: "8px solid #0277bd",
-                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  <div className="mb-6">
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        mb: 2,
-                        color: "#0277bd",
-                        fontWeight: "bold",
-                        textTransform: "uppercase",
-                      }}
+                <Grid container spacing={2} mt={1}>
+                  {/* Booking ID - read-only */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Booking ID"
+                      name="bookingId"
+                      value={formData.bookingId}
+                      InputProps={{ readOnly: true }}
+                      error={!!errors.bookingId}
+                      helperText={errors.bookingId}
+                      variant="outlined"
+                      fullWidth
+                      disabled
+                    />
+                  </Grid>
+                  {/* Booking Type - select field */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Booking Type"
+                      name="bookingType"
+                      value={formData.bookingType}
+                      onChange={handleChange}
+                      error={!!errors.bookingType}
+                      helperText={errors.bookingType}
+                      fullWidth
+                      select
                     >
-                      Booking Details
-                    </Typography>
-                    <Grid container spacing={2} mt={1}>
-                      {/* Booking ID - read-only */}
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Booking ID"
-                          name="bookingId"
-                          value={formData.bookingId}
-                          InputProps={{ readOnly: true }}
-                          error={!!errors.bookingId}
-                          helperText={errors.bookingId}
-                          variant="outlined"
-                          fullWidth
-                          disabled
-                        />
-                      </Grid>
-                      {/* Booking Type - select field */}
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Booking Type"
-                          name="bookingType"
-                          value={formData.bookingType}
-                          onChange={handleChange}
-                          error={!!errors.bookingType}
-                          helperText={errors.bookingType}
-                          fullWidth
-                          select
-                        >
-                          {[
-                            "FIT",
-                            "Group",
-                            "Corporate",
-                            "Corporate Group",
-                            "Social Events",
-                            "Others",
-                          ].map((type) => (
-                            <MenuItem key={type} value={type}>
-                              {type}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </Grid>
-                      {/* Booking Reference */}
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Booking Reference"
-                          name="bookingReference"
-                          value={formData.bookingReference}
-                          onChange={handleChange}
-                          error={!!errors.bookingReference}
-                          helperText={errors.bookingReference}
-                          fullWidth
-                          variant="outlined"
-                        />
-                      </Grid>
-                      {/* Reference Number */}
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Reference Number"
-                          name="referenceno"
-                          value={formData.referenceno}
-                          onChange={handleChange}
-                          error={!!errors.referenceno}
-                          helperText={errors.referenceno}
-                          fullWidth
-                          variant="outlined"
-                        />
-                      </Grid>
-                      {/* Booking Status */}
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Booking Status"
-                          name="bookingStatus"
-                          value={formData.bookingStatus}
-                          onChange={handleChange}
-                          error={!!errors.bookingStatus}
-                          helperText={errors.bookingStatus}
-                          fullWidth
-                          select
-                          required
-                        >
-                          {["Confirm", "Block", "Pencil"].map((status) => (
-                            <MenuItem key={status} value={status}>
-                              {status}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </Grid>
-                    </Grid>
-                  </div>
-                </Box>
+                      {[
+                        "FIT",
+                        "Group",
+                        "Corporate",
+                        "Corporate Group",
+                        "Social Events",
+                        "Others",
+                      ].map((type) => (
+                        <MenuItem key={type} value={type}>
+                          {type}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  {/* Booking Reference */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Booking Reference"
+                      name="bookingReference"
+                      value={formData.bookingReference}
+                      onChange={handleChange}
+                      error={!!errors.bookingReference}
+                      helperText={errors.bookingReference}
+                      fullWidth
+                      variant="outlined"
+                    />
+                  </Grid>
+                  {/* Reference Number */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Reference Number"
+                      name="referenceno"
+                      value={formData.referenceno}
+                      onChange={handleChange}
+                      error={!!errors.referenceno}
+                      helperText={errors.referenceno}
+                      fullWidth
+                      variant="outlined"
+                    />
+                  </Grid>
+                  {/* Booking Status */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Booking Status"
+                      name="bookingStatus"
+                      value={formData.bookingStatus}
+                      onChange={handleChange}
+                      error={!!errors.bookingStatus}
+                      helperText={errors.bookingStatus}
+                      fullWidth
+                      select
+                      required
+                    >
+                      {["Confirm", "Block", "Pencil"].map((status) => (
+                        <MenuItem key={status} value={status}>
+                          {status}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                </Grid>
                 {/* Guest Details Section */}
-                <Box
-                  sx={{
-                    mb: 6,
-                    p: 3,
-                    background: "linear-gradient(135deg, #ffebf0, #ffb3c6)", // Pink Gradient
-                    borderRadius: 2,
-                    borderLeft: "8px solid #d81b60", // Deep Pink Accent
-                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  <div className="mb-6">
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        mb: 2,
-                        color: "#0277bd",
-                        fontWeight: "bold",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Guest Details
-                    </Typography>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Autocomplete
-                        freeSolo
-                        options={filteredMobileNumbers}
-                        value={formData.mobileNo}
-                        onChange={(event, newValue) =>
-                          handleMobileNumberChange(event, newValue)
-                        }
-                        onInputChange={(event, newValue) =>
-                          handleMobileNumberChange(event, newValue)
-                        }
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Mobile Number"
-                            required
-                            fullWidth
-                            error={!!errors.mobileNo}
-                            helperText={errors.mobileNo}
-                          />
-                        )}
-                      />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Autocomplete
+                    freeSolo
+                    options={filteredMobileNumbers}
+                    value={formData.mobileNo}
+                    onChange={(event, newValue) =>
+                      handleMobileNumberChange(event, newValue)
+                    }
+                    onInputChange={(event, newValue) =>
+                      handleMobileNumberChange(event, newValue)
+                    }
+                    renderInput={(params) => (
                       <TextField
-                        label="Guest Name"
-                        name="guestName"
-                        value={formData.guestName}
-                        onChange={handleChange}
-                        error={!!errors.guestName}
-                        helperText={errors.guestName}
-                        fullWidth
+                        {...params}
+                        label="Mobile Number"
                         required
+                        fullWidth
+                        error={!!errors.mobileNo}
+                        helperText={errors.mobileNo}
                       />
+                    )}
+                  />
+                  <TextField
+                    label="Guest Name"
+                    name="guestName"
+                    value={formData.guestName}
+                    onChange={handleChange}
+                    error={!!errors.guestName}
+                    helperText={errors.guestName}
+                    fullWidth
+                    required
+                  />
 
-                      <TextField
-                        label="Email ID"
-                        name="guestEmail"
-                        value={formData.guestEmail}
-                        onChange={handleChange}
-                        error={!!errors.guestEmail}
-                        helperText={errors.guestEmail}
-                        fullWidth
-                      />
-                      <TextField
-                        label="Date of Birth"
-                        type="date"
-                        name="dateofbirth"
-                        value={formData.dateofbirth}
-                        onChange={handleChange}
-                        error={errors.dateofbirth}
-                        helperText={errors.dateofbirth}
-                        InputLabelProps={{ shrink: true }}
-                        fullWidth
-                      />
-                      <TextField
-                        label="Date of Anniversary"
-                        type="date"
-                        name="dateofanniversary"
-                        value={formData.dateofanniversary}
-                        onChange={handleChange}
-                        error={!!errors.dateofanniversary}
-                        helperText={errors.dateofanniversary}
-                        InputLabelProps={{ shrink: true }}
-                        fullWidth
-                      />
-                    </div>
-                  </div>
-                </Box>
+                  <TextField
+                    label="Email ID"
+                    name="guestEmail"
+                    value={formData.guestEmail}
+                    onChange={handleChange}
+                    error={!!errors.guestEmail}
+                    helperText={errors.guestEmail}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Date of Birth"
+                    type="date"
+                    name="dateofbirth"
+                    value={formData.dateofbirth}
+                    onChange={handleChange}
+                    error={errors.dateofbirth}
+                    helperText={errors.dateofbirth}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Date of Anniversary"
+                    type="date"
+                    name="dateofanniversary"
+                    value={formData.dateofanniversary}
+                    onChange={handleChange}
+                    error={!!errors.dateofanniversary}
+                    helperText={errors.dateofanniversary}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                </div>
 
                 {/* Identity Section */}
-                <Box
-                  sx={{
-                    mb: 6,
-                    p: 3,
-                    background: "linear-gradient(135deg, #e3f9e5, #b3e6c8)", // Green Gradient
-                    borderRadius: 2,
-                    borderLeft: "8px solid #2e7d32", // Deep Green Accent
-                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  {/* Content here */}
-
-                  <div className="mb-6">
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        mb: 2,
-                        color: "#0277bd",
-                        fontWeight: "bold",
-                        textTransform: "uppercase",
-                      }}
+                <Grid container spacing={2}>
+                  {/* Guest ID - select the type */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Company Name"
+                      name="companyName"
+                      value={formData.companyName}
+                      onChange={handleChange}
+                      error={!!errors.companyName}
+                      helperText={errors.companyName}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="GSTIN"
+                      name="gstin"
+                      value={formData.gstin}
+                      onChange={handleChange}
+                      error={!!errors.gstin}
+                      helperText={errors.gstin}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      name="guestid"
+                      label="Guest ID"
+                      value={formData.guestid}
+                      onChange={handleChange}
+                      error={!!errors.guestid}
+                      helperText={errors.guestid}
+                      fullWidth
+                      select
                     >
-                      Identity
-                    </Typography>
-                    <Grid container spacing={2}>
-                      {/* Guest ID - select the type */}
+                      {[
+                        "Adhaar",
+                        "Driving License",
+                        "Voter ID Card",
+                        "Passport",
+                        "Others",
+                      ].map((idType) => (
+                        <MenuItem key={idType} value={idType}>
+                          {idType}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  {/* Guest ID Number */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Guest ID Number"
+                      name="guestidno"
+                      value={formData.guestidno}
+                      onChange={handleChange}
+                      error={!!errors.guestidno}
+                      helperText={errors.guestidno}
+                      fullWidth
+                    />
+                  </Grid>
+                  {/* Conditional Passport fields if "Passport" is selected */}
+                  {formData.guestid === "Passport" && (
+                    <>
                       <Grid item xs={12} md={6}>
                         <TextField
-                          label="Company Name"
-                          name="companyName"
-                          value={formData.companyName}
+                          label="Passport Issue Date"
+                          type="date"
+                          name="passportIssueDate"
+                          value={formData.passportIssueDate}
                           onChange={handleChange}
-                          error={!!errors.companyName}
-                          helperText={errors.companyName}
+                          error={!!errors.passportIssueDate}
+                          helperText={errors.passportIssueDate}
+                          InputLabelProps={{ shrink: true }}
                           fullWidth
+                          required
                         />
                       </Grid>
                       <Grid item xs={12} md={6}>
                         <TextField
-                          label="GSTIN"
-                          name="gstin"
-                          value={formData.gstin}
+                          label="Passport Expiry Date"
+                          type="date"
+                          name="passportExpireDate"
+                          value={formData.passportExpireDate}
                           onChange={handleChange}
-                          error={!!errors.gstin}
-                          helperText={errors.gstin}
+                          error={!!errors.passportExpireDate}
+                          helperText={errors.passportExpireDate}
+                          InputLabelProps={{ shrink: true }}
                           fullWidth
+                          required
                         />
                       </Grid>
                       <Grid item xs={12} md={6}>
                         <TextField
-                          name="guestid"
-                          label="Guest ID"
-                          value={formData.guestid}
+                          label="Visa Number"
+                          name="visaNumber"
+                          value={formData.visaNumber}
                           onChange={handleChange}
-                          error={!!errors.guestid}
-                          helperText={errors.guestid}
+                          error={!!errors.visaNumber}
+                          helperText={errors.visaNumber}
                           fullWidth
-                          select
-                        >
-                          {[
-                            "Adhaar",
-                            "Driving License",
-                            "Voter ID Card",
-                            "Passport",
-                            "Others",
-                          ].map((idType) => (
-                            <MenuItem key={idType} value={idType}>
-                              {idType}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </Grid>
-                      {/* Guest ID Number */}
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Guest ID Number"
-                          name="guestidno"
-                          value={formData.guestidno}
-                          onChange={handleChange}
-                          error={!!errors.guestidno}
-                          helperText={errors.guestidno}
-                          fullWidth
+                          required
                         />
                       </Grid>
-                      {/* Conditional Passport fields if "Passport" is selected */}
-                      {formData.guestid === "Passport" && (
-                        <>
-                          <Grid item xs={12} md={6}>
-                            <TextField
-                              label="Passport Issue Date"
-                              type="date"
-                              name="passportIssueDate"
-                              value={formData.passportIssueDate}
-                              onChange={handleChange}
-                              error={!!errors.passportIssueDate}
-                              helperText={errors.passportIssueDate}
-                              InputLabelProps={{ shrink: true }}
-                              fullWidth
-                              required
-                            />
-                          </Grid>
-                          <Grid item xs={12} md={6}>
-                            <TextField
-                              label="Passport Expiry Date"
-                              type="date"
-                              name="passportExpireDate"
-                              value={formData.passportExpireDate}
-                              onChange={handleChange}
-                              error={!!errors.passportExpireDate}
-                              helperText={errors.passportExpireDate}
-                              InputLabelProps={{ shrink: true }}
-                              fullWidth
-                              required
-                            />
-                          </Grid>
-                          <Grid item xs={12} md={6}>
-                            <TextField
-                              label="Visa Number"
-                              name="visaNumber"
-                              value={formData.visaNumber}
-                              onChange={handleChange}
-                              error={!!errors.visaNumber}
-                              helperText={errors.visaNumber}
-                              fullWidth
-                              required
-                            />
-                          </Grid>
-                          <Grid item xs={12} md={6}>
-                            <TextField
-                              label="Visa Issue Date"
-                              type="date"
-                              name="visaIssueDate"
-                              value={formData.visaIssueDate}
-                              onChange={handleChange}
-                              error={!!errors.visaIssueDate}
-                              helperText={errors.visaIssueDate}
-                              InputLabelProps={{ shrink: true }}
-                              fullWidth
-                              required
-                            />
-                          </Grid>
-                          <Grid item xs={12} md={6}>
-                            <TextField
-                              label="Visa Expiry Date"
-                              type="date"
-                              name="visaExpireDate"
-                              value={formData.visaExpireDate}
-                              onChange={handleChange}
-                              error={!!errors.visaExpireDate}
-                              helperText={errors.visaExpireDate}
-                              InputLabelProps={{ shrink: true }}
-                              fullWidth
-                              required
-                            />
-                          </Grid>
-                        </>
-                      )}
-                    </Grid>
-                  </div>
-                </Box>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          label="Visa Issue Date"
+                          type="date"
+                          name="visaIssueDate"
+                          value={formData.visaIssueDate}
+                          onChange={handleChange}
+                          error={!!errors.visaIssueDate}
+                          helperText={errors.visaIssueDate}
+                          InputLabelProps={{ shrink: true }}
+                          fullWidth
+                          required
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          label="Visa Expiry Date"
+                          type="date"
+                          name="visaExpireDate"
+                          value={formData.visaExpireDate}
+                          onChange={handleChange}
+                          error={!!errors.visaExpireDate}
+                          helperText={errors.visaExpireDate}
+                          InputLabelProps={{ shrink: true }}
+                          fullWidth
+                          required
+                        />
+                      </Grid>
+                    </>
+                  )}
+                </Grid>
                 {/* Reservation Accordion */}
-                <Box
-                  sx={{
-                    mb: 6,
-                    p: 3,
-                    background: "linear-gradient(135deg, #fff5cc, #ffd966)", // Yellow-Orange Gradient
-                    borderRadius: 2,
-                    borderLeft: "8px solid #ff9800", // Orange Accent
-                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  {/* Content here */}
-
-                  <div className="mb-6">
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        mb: 2,
-                        color: "#0277bd",
-                        fontWeight: "bold",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Reservation
-                    </Typography>
-                    <Grid container spacing={2} mt={1}>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Adults"
-                          type="number"
-                          name="adults"
-                          value={formData.adults}
-                          onChange={handleChange}
-                          error={!!errors.adults}
-                          helperText={errors.adults}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Children"
-                          type="number"
-                          name="children"
-                          value={formData.children}
-                          onChange={handleChange}
-                          error={!!errors.children}
-                          helperText={errors.children}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Check-in Date"
-                          type="date"
-                          name="checkIn"
-                          value={formData.checkIn}
-                          onChange={handleChange}
-                          error={!!errors.checkIn}
-                          helperText={errors.checkIn}
-                          InputLabelProps={{ shrink: true }}
-                          fullWidth
-                          required
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Check-out Date"
-                          type="date"
-                          name="checkOut"
-                          value={formData.checkOut}
-                          onChange={handleChange}
-                          error={!!errors.checkOut}
-                          helperText={errors.checkOut}
-                          InputLabelProps={{ shrink: true }}
-                          fullWidth
-                          required
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Check-in Time"
-                          type="time"
-                          name="expectedArrival"
-                          value={formData.expectedArrival}
-                          onChange={handleChange}
-                          error={!!errors.expectedArrival}
-                          helperText={errors.expectedArrival}
-                          InputLabelProps={{ shrink: true }}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Check-out Time"
-                          type="time"
-                          name="expectedDeparture"
-                          value={formData.expectedDeparture}
-                          onChange={handleChange}
-                          error={!!errors.expectedDeparture}
-                          helperText={errors.expectedDeparture}
-                          InputLabelProps={{ shrink: true }}
-                          fullWidth
-                        />
-                      </Grid>
-                    </Grid>
-                  </div>
-                </Box>
+                <Grid container spacing={2} mt={1}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Adults"
+                      type="number"
+                      name="adults"
+                      value={formData.adults}
+                      onChange={handleChange}
+                      error={!!errors.adults}
+                      helperText={errors.adults}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Children"
+                      type="number"
+                      name="children"
+                      value={formData.children}
+                      onChange={handleChange}
+                      error={!!errors.children}
+                      helperText={errors.children}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Check-in Date"
+                      type="date"
+                      name="checkIn"
+                      value={formData.checkIn}
+                      onChange={handleChange}
+                      error={!!errors.checkIn}
+                      helperText={errors.checkIn}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Check-out Date"
+                      type="date"
+                      name="checkOut"
+                      value={formData.checkOut}
+                      onChange={handleChange}
+                      error={!!errors.checkOut}
+                      helperText={errors.checkOut}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Check-in Time"
+                      type="time"
+                      name="expectedArrival"
+                      value={formData.expectedArrival}
+                      onChange={handleChange}
+                      error={!!errors.expectedArrival}
+                      helperText={errors.expectedArrival}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Check-out Time"
+                      type="time"
+                      name="expectedDeparture"
+                      value={formData.expectedDeparture}
+                      onChange={handleChange}
+                      error={!!errors.expectedDeparture}
+                      helperText={errors.expectedDeparture}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                    />
+                  </Grid>
+                </Grid>
 
                 {/* Guest Address Section */}
-                <Box
-                  sx={{
-                    mb: 6,
-                    p: 3,
-                    background: "linear-gradient(135deg, #e0ccff, #b380ff)", // Purple Gradient
-                    borderRadius: 2,
-                    borderLeft: "8px solid #7b1fa2", // Deep Purple Accent
-                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  {/* Content here */}
-
-                  <div className="mb-6">
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        mb: 2,
-                        color: "#0277bd",
-                        fontWeight: "bold",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Guest Address
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="State"
-                          name="state"
-                          value={formData.state}
-                          onChange={handleChange}
-                          error={!!errors.state}
-                          helperText={errors.state}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Address"
-                          name="address"
-                          value={formData.address}
-                          onChange={handleChange}
-                          error={!!errors.address}
-                          helperText={errors.address}
-                          fullWidth
-                          multiline
-                        />
-                      </Grid>
-                    </Grid>
-                  </div>
-                </Box>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="State"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleChange}
+                      error={!!errors.state}
+                      helperText={errors.state}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      error={!!errors.address}
+                      helperText={errors.address}
+                      fullWidth
+                      multiline
+                    />
+                  </Grid>
+                </Grid>
 
                 {/* Additional Details Section */}
-                <Box
-                  sx={{
-                    mb: 6,
-                    p: 3,
-                    background: "linear-gradient(135deg, #dcedc8, #aed581)", // Soft Lime Green Gradient
-                    borderRadius: 2,
-                    borderLeft: "8px solid #689f38", // Olive Green Accent
-                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-                  }}
-                >
-                  {/* Content here */}
-
-                  <div className="mb-6">
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        mb: 2,
-                        color: "#0277bd",
-                        fontWeight: "bold",
-                        textTransform: "uppercase",
-                      }}
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Meal Plan"
+                      name="mealPlan"
+                      select
+                      fullWidth
+                      value={formData.mealPlan}
+                      onChange={handleChange}
+                      error={!!errors.mealPlan}
+                      helperText={errors.mealPlan}
                     >
-                      Additional Details
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Meal Plan"
-                          name="mealPlan"
-                          select
-                          fullWidth
-                          value={formData.mealPlan}
-                          onChange={handleChange}
-                          error={!!errors.mealPlan}
-                          helperText={errors.mealPlan}
-                        >
-                          {["EP", "CP", "AP", "MAP"].map((plan) => (
-                            <MenuItem key={plan} value={plan}>
-                              {plan}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          label="Remarks"
-                          name="remarks"
-                          value={formData.remarks}
-                          onChange={handleChange}
-                          error={!!errors.remarks}
-                          helperText={errors.remarks}
-                          fullWidth
-                          multiline
-                        />
-                      </Grid>
-                    </Grid>
-                  </div>
-                </Box>
+                      {["EP", "CP", "AP", "MAP"].map((plan) => (
+                        <MenuItem key={plan} value={plan}>
+                          {plan}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Remarks"
+                      name="remarks"
+                      value={formData.remarks}
+                      onChange={handleChange}
+                      error={!!errors.remarks}
+                      helperText={errors.remarks}
+                      fullWidth
+                      multiline
+                    />
+                  </Grid>
+                </Grid>
 
                 <div className="flex items-center justify-end">
                   <Button

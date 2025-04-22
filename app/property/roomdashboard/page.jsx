@@ -102,8 +102,6 @@ const RoomCard = ({
 
   useEffect(() => {
     fetchGuestDetails();
-    console.log("Guest ID:", room.currentGuestId);
-    console.log("Billing ID:", room.currentBillingId);
   }, [room.occupied, room.currentGuestId]);
 
   // New function to handle toggle switch changes
@@ -261,18 +259,17 @@ const RoomCard = ({
           .find((row) => row.startsWith("authToken="))
           .split("=")[1];
         const headers = { Authorization: `Bearer ${token}` };
-        console.log(room.currentBillingId);
-        console.log("room total", room.total);
+
         const billingResponse = await fetch(
           `/api/Billing/${room.currentBillingId}`,
           { headers: headers }
         );
         const billingResponseData = await billingResponse.json();
         const billData = billingResponseData.data;
-        console.log("bill itemlist", billData.roomNo);
+
         const indexToRemove = billData.roomNo.indexOf(room.number);
         const priceToRemove = billData.priceList[indexToRemove][0];
-        console.log("price to remove", priceToRemove);
+
         if (billData.roomNo.length === 1) {
           await fetch(`/api/Billing/${room.currentBillingId}`, {
             method: "PUT",
@@ -286,10 +283,6 @@ const RoomCard = ({
             }),
           });
         } else {
-          console.log(
-            "bill itemlist",
-            billData.roomNo.filter((_, index) => index !== indexToRemove)
-          );
           const currentItemList = billData.itemList;
           const currentPriceList = billData.priceList;
           const currentQuantityList = billData.quantityList;
@@ -1004,7 +997,7 @@ export default function RoomDashboard() {
 
   return (
     <div>
-      <div className="min-h-screen bg-blue-50">
+      <div className="min-h-screen bg-white">
         {/* Navigation */}
         <Navbar />
         {isLoading && (

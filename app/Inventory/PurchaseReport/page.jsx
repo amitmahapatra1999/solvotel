@@ -379,7 +379,7 @@ const PurchaseReportPage = () => {
   return (
     <div>
       <Navbar />
-      <div className="bg-blue-50 min-h-screen">
+      <div className="bg-white min-h-screen">
         <ToastContainer //position
           position="top-right"
           autoClose={5000}
@@ -418,8 +418,8 @@ const PurchaseReportPage = () => {
           </div>
         )}
         <div className="container mx-auto p-4">
-          <div className="   bg-blue-50 mb-4 ">
-            <div className=" bg-blue-50 p-4  mb-4 ">
+          <div className="bg-white mb-4 ">
+            <div className=" bg-white p-4  mb-4 ">
               <h1
                 className="text-3xl font-bold text-cyan-900 "
                 style={{ maxWidth: "80%", margin: "0 auto" }}

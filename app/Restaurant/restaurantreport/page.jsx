@@ -15,6 +15,10 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import { getCookie } from "cookies-next";
+import { jwtVerify } from "jose";
+
+const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
 const InvoicePage = () => {
   const [invoices, setInvoices] = useState([]);
@@ -23,6 +27,7 @@ const InvoicePage = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const tableRef = useRef(null);
+  const [profileState, setProfileState] = useState(null);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -31,7 +36,46 @@ const InvoicePage = () => {
         const response = await fetch("/api/restaurantinvoice");
         const data = await response.json();
         setInvoices(data.invoices);
-        setFilteredInvoices(data.invoices);
+        // Fetch profile data
+        const token = getCookie("authToken");
+        const usertoken = getCookie("userAuthToken");
+        if (token) {
+          const decoded = await jwtVerify(
+            token,
+            new TextEncoder().encode(SECRET_KEY)
+          );
+          const userId = decoded.payload.id;
+          const profileResponse = await fetch(`/api/Profile/${userId}`);
+          const profileData = await profileResponse.json();
+          if (profileData.success) {
+            setProfileState(profileData.data.state || null);
+            // setFormData((prev) => ({
+            //   ...prev,
+            //   username: profileData.data.username || "",
+            // }));
+          } else {
+            toast.error("Failed to fetch profile data");
+          }
+        } else if (usertoken) {
+          const decoded = await jwtVerify(
+            usertoken,
+            new TextEncoder().encode(SECRET_KEY)
+          );
+          const userId = decoded.payload.profileId; // Use userId from the new token structure
+          const profileResponse = await fetch(`/api/Profile/${userId}`);
+          const profileData = await profileResponse.json();
+          if (profileData.success) {
+            setProfileState(profileData.data.state || null);
+            setFormData((prev) => ({
+              ...prev,
+              username: profileData.data.username || "",
+            }));
+          } else {
+            toast.error("Failed to fetch profile data");
+          }
+        } else {
+          toast.error("Authentication token missing");
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -84,7 +128,7 @@ const InvoicePage = () => {
   return (
     <div>
       <Navbar />
-      <div className="bg-blue-50 min-h-screen">
+      <div className="bg-white min-h-screen">
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -243,7 +287,25 @@ const InvoicePage = () => {
                           textAlign: "center",
                         }}
                       >
-                        GST
+                        SGST
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: "bold",
+                          color: "#28bfdb",
+                          textAlign: "center",
+                        }}
+                      >
+                        CGST
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: "bold",
+                          color: "#28bfdb",
+                          textAlign: "center",
+                        }}
+                      >
+                        IGST
                       </TableCell>
                       <TableCell
                         sx={{
@@ -259,28 +321,55 @@ const InvoicePage = () => {
                   <TableBody>
                     {filteredInvoices.length > 0 ? (
                       <>
-                        {filteredInvoices.map((invoice) => (
-                          <TableRow
-                            key={invoice._id}
-                            sx={{ backgroundColor: "white" }}
-                          >
-                            <TableCell sx={{ textAlign: "center" }}>
-                              {invoice.invoiceno}
-                            </TableCell>
-                            <TableCell sx={{ textAlign: "center" }}>
-                              {invoice.custname}
-                            </TableCell>
-                            <TableCell sx={{ textAlign: "center" }}>
-                              {invoice.totalamt.toFixed(2)}
-                            </TableCell>
-                            <TableCell sx={{ textAlign: "center" }}>
-                              {invoice.gst.toFixed(2)}
-                            </TableCell>
-                            <TableCell sx={{ textAlign: "center" }}>
-                              {invoice.payableamt.toFixed(2)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {filteredInvoices.map((invoice) => {
+                          let totalSgst = 0;
+                          let totalCgst = 0;
+                          let totalIgst = 0;
+
+                          let isSameState = invoice.state === profileState;
+                          if (isSameState) {
+                            totalSgst = invoice.sgstArray.reduce(
+                              (acc, num) => acc + num,
+                              0
+                            );
+                            totalCgst = invoice.cgstArray.reduce(
+                              (acc, num) => acc + num,
+                              0
+                            );
+                          } else {
+                            totalSgst = 0;
+                            totalCgst = 0;
+                            totalIgst = invoice.gst;
+                          }
+                          return (
+                            <TableRow
+                              key={invoice._id}
+                              sx={{ backgroundColor: "white" }}
+                            >
+                              <TableCell sx={{ textAlign: "center" }}>
+                                {invoice.invoiceno}
+                              </TableCell>
+                              <TableCell sx={{ textAlign: "center" }}>
+                                {invoice.custname}
+                              </TableCell>
+                              <TableCell sx={{ textAlign: "center" }}>
+                                {invoice.totalamt.toFixed(2)}
+                              </TableCell>
+                              <TableCell sx={{ textAlign: "center" }}>
+                                {totalSgst.toFixed(2)}
+                              </TableCell>
+                              <TableCell sx={{ textAlign: "center" }}>
+                                {totalCgst.toFixed(2)}
+                              </TableCell>
+                              <TableCell sx={{ textAlign: "center" }}>
+                                {totalIgst.toFixed(2)}
+                              </TableCell>
+                              <TableCell sx={{ textAlign: "center" }}>
+                                {invoice.payableamt.toFixed(2)}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                         <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                           <TableCell
                             colSpan={2}
@@ -302,6 +391,25 @@ const InvoicePage = () => {
                             sx={{ fontWeight: "bold", textAlign: "center" }}
                           >
                             {filteredInvoices
+                              .filter((item) => item.state === profileState)
+                              .flatMap((item) => item.sgstArray) // flatten all cgst arrays
+                              .reduce((sum, val) => sum + val, 0)
+                              .toFixed(2)}
+                          </TableCell>
+                          <TableCell
+                            sx={{ fontWeight: "bold", textAlign: "center" }}
+                          >
+                            {filteredInvoices
+                              .filter((item) => item.state === profileState)
+                              .flatMap((item) => item.cgstArray) // flatten all cgst arrays
+                              .reduce((sum, val) => sum + val, 0)
+                              .toFixed(2)}
+                          </TableCell>
+                          <TableCell
+                            sx={{ fontWeight: "bold", textAlign: "center" }}
+                          >
+                            {filteredInvoices
+                              .filter((item) => item.state !== profileState)
                               .reduce((sum, invoice) => sum + invoice.gst, 0)
                               .toFixed(2)}
                           </TableCell>

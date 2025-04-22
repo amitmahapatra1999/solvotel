@@ -384,7 +384,7 @@ const SalesReportPage = () => {
   return (
     <div>
       <Navbar />
-      <div className="bg-blue-50 min-h-screen">
+      <div className="bg-white min-h-screen">
         <ToastContainer
           position="top-right"
           autoClose={5000}

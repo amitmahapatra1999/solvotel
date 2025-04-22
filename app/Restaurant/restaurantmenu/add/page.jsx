@@ -87,7 +87,7 @@ export default function AddRestaurant() {
   };
 
   return (
-    <div className="bg-blue-50 min-h-screen">
+    <div className="bg-white min-h-screen">
       <Navbar />
       <ToastContainer
         position="top-right"

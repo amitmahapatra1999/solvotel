@@ -1,7 +1,22 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button, TextField, Grid, Typography, Paper, Box, Container, Chip, InputLabel, Select, MenuItem, CircularProgress, IconButton, InputAdornment } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Grid,
+  Typography,
+  Paper,
+  Box,
+  Container,
+  Chip,
+  InputLabel,
+  Select,
+  MenuItem,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+} from "@mui/material";
 import { styled } from "@mui/system";
 import { useForm, Controller } from "react-hook-form";
 import { Visibility, VisibilityOff } from "@mui/icons-material"; // Import visibility icons
@@ -33,18 +48,38 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   },
   "& .MuiOutlinedInput-root": {
     "& fieldset": {
-      borderColor: (theme && theme.palette && theme.palette.grey && theme.palette.grey[300]) || "#d9d9d9",
+      borderColor:
+        (theme &&
+          theme.palette &&
+          theme.palette.grey &&
+          theme.palette.grey[300]) ||
+        "#d9d9d9",
     },
     "&:hover fieldset": {
-      borderColor: (theme && theme.palette && theme.palette.primary && theme.palette.primary.main) || "#1976d2",
+      borderColor:
+        (theme &&
+          theme.palette &&
+          theme.palette.primary &&
+          theme.palette.primary.main) ||
+        "#1976d2",
     },
     "&.Mui-focused fieldset": {
-      borderColor: (theme && theme.palette && theme.palette.primary && theme.palette.primary.main) || "#1976d2",
+      borderColor:
+        (theme &&
+          theme.palette &&
+          theme.palette.primary &&
+          theme.palette.primary.main) ||
+        "#1976d2",
     },
   },
   "& .MuiInputLabel-root": {
     fontSize: "0.875rem",
-    color: (theme && theme.palette && theme.palette.grey && theme.palette.grey[700]) || "#666",
+    color:
+      (theme &&
+        theme.palette &&
+        theme.palette.grey &&
+        theme.palette.grey[700]) ||
+      "#666",
   },
 }));
 
@@ -54,13 +89,28 @@ const StyledSelect = styled(Select)(({ theme }) => ({
   },
   "& .MuiOutlinedInput-root": {
     "& fieldset": {
-      borderColor: (theme && theme.palette && theme.palette.grey && theme.palette.grey[300]) || "#d9d9d9",
+      borderColor:
+        (theme &&
+          theme.palette &&
+          theme.palette.grey &&
+          theme.palette.grey[300]) ||
+        "#d9d9d9",
     },
     "&:hover fieldset": {
-      borderColor: (theme && theme.palette && theme.palette.primary && theme.palette.primary.main) || "#1976d2",
+      borderColor:
+        (theme &&
+          theme.palette &&
+          theme.palette.primary &&
+          theme.palette.primary.main) ||
+        "#1976d2",
     },
     "&.Mui-focused fieldset": {
-      borderColor: (theme && theme.palette && theme.palette.primary && theme.palette.primary.main) || "#1976d2",
+      borderColor:
+        (theme &&
+          theme.palette &&
+          theme.palette.primary &&
+          theme.palette.primary.main) ||
+        "#1976d2",
     },
   },
 }));
@@ -71,7 +121,13 @@ export default function AddUser() {
   const [showPassword, setShowPassword] = useState(false); // State for password visibility
   const router = useRouter();
 
-  const { register, control, handleSubmit, formState: { errors }, setValue } = useForm({
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm({
     defaultValues: {
       name: "",
       hotelName: "",
@@ -93,7 +149,10 @@ export default function AddUser() {
           return;
         }
 
-        const decoded = await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET || "your_secret_key"));
+        const decoded = await jwtVerify(
+          token,
+          new TextEncoder().encode(process.env.JWT_SECRET || "your_secret_key")
+        );
         const userId = decoded.payload.id;
 
         const response = await fetch(`/api/Profile/${userId}`);
@@ -133,7 +192,9 @@ export default function AddUser() {
         toast.success("User added successfully!");
         router.push("/master/users"); // Navigate back to the user list page
       } else {
-        toast.error("Failed to create user: " + (result.error || "Unknown error"));
+        toast.error(
+          "Failed to create user: " + (result.error || "Unknown error")
+        );
       }
     } catch (error) {
       console.error(error);
@@ -166,7 +227,7 @@ export default function AddUser() {
   return (
     <div>
       <Navbar />
-      <div className="bg-amber-50 min-h-screen">
+      <div className="bg-white min-h-screen">
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -214,9 +275,10 @@ export default function AddUser() {
                       readOnly: true,
                       disabled: true,
                     }}
-                    {...register("hotelName", { 
-                      required: "Hotel Name is required", 
-                      validate: (value) => value.trim() !== "" || "Hotel Name cannot be empty" 
+                    {...register("hotelName", {
+                      required: "Hotel Name is required",
+                      validate: (value) =>
+                        value.trim() !== "" || "Hotel Name cannot be empty",
                     })}
                     error={!!errors.hotelName}
                     helperText={errors.hotelName?.message}
@@ -232,7 +294,8 @@ export default function AddUser() {
                     {...register("email", {
                       required: "Email is required",
                       pattern: {
-                        value: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/,
+                        value:
+                          /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/,
                         message: "Invalid email address",
                       },
                     })}
@@ -247,7 +310,9 @@ export default function AddUser() {
                     fullWidth
                     required
                     variant="outlined"
-                    {...register("phone", { required: "Phone number is required" })}
+                    {...register("phone", {
+                      required: "Phone number is required",
+                    })}
                     error={!!errors.phone}
                     helperText={errors.phone?.message}
                     sx={{ mb: 2 }}
@@ -288,7 +353,10 @@ export default function AddUser() {
                 </Grid>
                 <Grid item xs={12}>
                   <Box sx={{ mb: 2 }}>
-                    <InputLabel id="roles-label" sx={{ fontSize: "0.875rem", color: "#666", mb: 1 }}>
+                    <InputLabel
+                      id="roles-label"
+                      sx={{ fontSize: "0.875rem", color: "#666", mb: 1 }}
+                    >
                       Roles
                     </InputLabel>
                     <Controller
@@ -304,7 +372,11 @@ export default function AddUser() {
                           variant="outlined"
                           renderValue={(selected) =>
                             selected
-                              .map((value) => roleOptions.find((opt) => opt.value === value)?.label || value)
+                              .map(
+                                (value) =>
+                                  roleOptions.find((opt) => opt.value === value)
+                                    ?.label || value
+                              )
                               .join(", ")
                           }
                           error={!!errors.roles}
@@ -317,9 +389,17 @@ export default function AddUser() {
                                 <Chip
                                   label={role.label}
                                   size="small"
-                                  sx={{ ml: 1, backgroundColor: "#e0f7fa", color: "#00796b" }}
+                                  sx={{
+                                    ml: 1,
+                                    backgroundColor: "#e0f7fa",
+                                    color: "#00796b",
+                                  }}
                                   onDelete={() => {
-                                    field.onChange(field.value.filter((v) => v !== role.value));
+                                    field.onChange(
+                                      field.value.filter(
+                                        (v) => v !== role.value
+                                      )
+                                    );
                                   }}
                                   onMouseDown={(e) => e.stopPropagation()}
                                 />
@@ -330,7 +410,11 @@ export default function AddUser() {
                       )}
                     />
                     {errors.roles && (
-                      <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
+                      <Typography
+                        variant="caption"
+                        color="error"
+                        sx={{ mt: 0.5 }}
+                      >
                         {errors.roles.message}
                       </Typography>
                     )}
@@ -338,7 +422,10 @@ export default function AddUser() {
                 </Grid>
                 <Grid item xs={12}>
                   <Box sx={{ mb: 2 }}>
-                    <InputLabel id="userType-label" sx={{ fontSize: "0.875rem", color: "#666", mb: 1 }}>
+                    <InputLabel
+                      id="userType-label"
+                      sx={{ fontSize: "0.875rem", color: "#666", mb: 1 }}
+                    >
                       User Type
                     </InputLabel>
                     <Controller
@@ -364,7 +451,11 @@ export default function AddUser() {
                       )}
                     />
                     {errors.userType && (
-                      <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
+                      <Typography
+                        variant="caption"
+                        color="error"
+                        sx={{ mt: 0.5 }}
+                      >
                         {errors.userType.message}
                       </Typography>
                     )}
@@ -386,10 +477,15 @@ export default function AddUser() {
                         padding: "12px 24px",
                         borderRadius: "8px",
                         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                        transition: "background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+                        transition:
+                          "background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
                       }}
                     >
-                      {loading ? <CircularProgress size={24} color="inherit" /> : "Add User"}
+                      {loading ? (
+                        <CircularProgress size={24} color="inherit" />
+                      ) : (
+                        "Add User"
+                      )}
                     </Button>
                   </Box>
                 </Grid>

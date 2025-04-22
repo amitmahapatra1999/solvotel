@@ -87,7 +87,7 @@ export default function AddTable() {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-blue-50">
+      <div className="min-h-screen bg-white">
         <ToastContainer
           position="top-right"
           autoClose={5000}

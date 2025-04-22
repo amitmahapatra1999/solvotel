@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react";
 import { Footer } from "../../_components/Footer";
 import Navbar from "../../_components/Navbar";
@@ -11,11 +11,11 @@ import {
   CardContent,
   CardHeader,
 } from "@mui/material";
-import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
-import BookmarkAddedIcon from '@mui/icons-material/BookmarkAdded';
-import EventIcon from '@mui/icons-material/Event';
-import PersonIcon from '@mui/icons-material/Person';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
+import BookmarkAddedIcon from "@mui/icons-material/BookmarkAdded";
+import EventIcon from "@mui/icons-material/Event";
+import PersonIcon from "@mui/icons-material/Person";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("Today");
@@ -72,7 +72,9 @@ export default function Dashboard() {
     const day = String(currentDate.getDate()).padStart(2, "0");
     const selectedDate = `${year}-${month}-${day}`;
 
-    return bookings.filter((booking) => booking.date.split("T")[0] === selectedDate);
+    return bookings.filter(
+      (booking) => booking.date.split("T")[0] === selectedDate
+    );
   };
 
   const handleBookingDetails = (bookings) => {
@@ -88,8 +90,7 @@ export default function Dashboard() {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-blue-50">
-        
+      <div className="min-h-screen bg-white">
         {isLoading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
             <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
@@ -109,16 +110,18 @@ export default function Dashboard() {
                   fill="currentFill"
                 />
               </svg>
-              <span className="mt-4 text-gray-700">Loading Restaurant Dashboard...</span>
+              <span className="mt-4 text-gray-700">
+                Loading Restaurant Dashboard...
+              </span>
             </div>
           </div>
         )}
         <header>
           <div className="max-w-7xl mx-auto pt-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-cyan-900">Restaurant Dashboard</h1>
-            <div className="space-x-4">
-
-            </div>
+            <h1 className="text-3xl font-bold text-cyan-900">
+              Restaurant Dashboard
+            </h1>
+            <div className="space-x-4"></div>
           </div>
         </header>
 
@@ -130,10 +133,11 @@ export default function Dashboard() {
               {tabs.map((tab) => (
                 <button
                   key={tab}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${activeTab === tab
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    activeTab === tab
                       ? "bg-gray-200 text-gray-800"
                       : "text-gray-600 hover:bg-gray-200"
-                    }`}
+                  }`}
                   onClick={() => setActiveTab(tab)}
                 >
                   {tab}
@@ -146,13 +150,16 @@ export default function Dashboard() {
             {tables.length > 0 ? (
               tables.map((table) => {
                 const todayBookings = getBookingsForSelectedDay();
-                const bookingsForTable = todayBookings.filter((b) => b.tableNo === table.tableNo);
+                const bookingsForTable = todayBookings.filter(
+                  (b) => b.tableNo === table.tableNo
+                );
 
                 return (
                   <Card
                     key={table._id}
                     sx={{
-                      backgroundColor: bookingsForTable.length > 0 ? "#E3FCEF" : "#FFFFFF",
+                      backgroundColor:
+                        bookingsForTable.length > 0 ? "#E3FCEF" : "#FFFFFF",
                       boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
                       borderRadius: "16px",
                       overflow: "hidden",
@@ -163,7 +170,7 @@ export default function Dashboard() {
                     }}
                   >
                     <CardHeader
-                      avatar={<TableRestaurantIcon style={{color:"#fff"}} />}
+                      avatar={<TableRestaurantIcon style={{ color: "#fff" }} />}
                       title={`Table-${table.tableNo}`}
                       titleTypographyProps={{
                         variant: "h6",
@@ -175,7 +182,6 @@ export default function Dashboard() {
                         padding: "16px",
                         display: "flex",
                         alignItems: "center",
-                        
                       }}
                     />
                     <CardContent sx={{ padding: "16px" }}>
@@ -207,21 +213,19 @@ export default function Dashboard() {
                             gap: 1,
                           }}
                         >
-                          <TableRestaurantIcon fontSize="small" /> No bookings for this table.
+                          <TableRestaurantIcon fontSize="small" /> No bookings
+                          for this table.
                         </Typography>
                       )}
                     </CardContent>
                   </Card>
                 );
               })
-
             ) : (
               <p>No tables available.</p>
             )}
           </div>
         </main>
-
-
 
         {selectedBooking && (
           <Modal open={modalOpen} onClose={closeModal}>
@@ -263,23 +267,59 @@ export default function Dashboard() {
                   <BookmarkAddedIcon fontSize="large" /> Booking Details
                 </Typography>
                 {selectedBooking.map((booking, index) => (
-                  <Box key={index}
+                  <Box
+                    key={index}
                     sx={{
                       mb: 3, // Add spacing between booking details
                       // Optional: Add padding for better aesthetics
-
-                    }}>
-                    <Typography variant="body1" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1 }}>
-                      <TableRestaurantIcon /> <strong>Table:</strong> {booking.tableNo}
+                    }}
+                  >
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        mb: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <TableRestaurantIcon /> <strong>Table:</strong>{" "}
+                      {booking.tableNo}
                     </Typography>
-                    <Typography variant="body1" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1 }}>
-                      <EventIcon /> <strong>Date:</strong> {new Date(booking.date).toDateString()}
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        mb: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <EventIcon /> <strong>Date:</strong>{" "}
+                      {new Date(booking.date).toDateString()}
                     </Typography>
-                    <Typography variant="body1" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        mb: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
                       <AccessTimeIcon /> <strong>Time:</strong> {booking.time}
                     </Typography>
-                    <Typography variant="body1" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-                      <PersonIcon /> <strong>Guest Name:</strong> {booking.guestName}
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        mb: 2,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <PersonIcon /> <strong>Guest Name:</strong>{" "}
+                      {booking.guestName}
                     </Typography>
                     {index < selectedBooking.length - 1 && <hr />}
                   </Box>
@@ -288,7 +328,6 @@ export default function Dashboard() {
             </Box>
           </Modal>
         )}
-
       </div>
       <Footer />
     </div>

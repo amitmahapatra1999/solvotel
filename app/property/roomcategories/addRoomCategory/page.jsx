@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import TextField from '@mui/material/TextField';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import TextField from "@mui/material/TextField";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Navbar from "../../../_components/Navbar";
 import { Footer } from "../../../_components/Footer";
 
@@ -45,9 +45,15 @@ const RoomCategoryForm = () => {
         [name]: value,
       };
 
-      const gst = (parseFloat(updatedData.sgst || 0)+parseFloat(updatedData.cgst || 0));
+      const gst =
+        parseFloat(updatedData.sgst || 0) + parseFloat(updatedData.cgst || 0);
 
-      if (name === "gst" || name === "sgst" || name === "cgst" || name === "tariff") {
+      if (
+        name === "gst" ||
+        name === "sgst" ||
+        name === "cgst" ||
+        name === "tariff"
+      ) {
         // Calculate total when gst or tariff changes
         const tariff = parseInt(updatedData.tariff) || 0;
         updatedData.total = Math.ceil(((100 + gst) / 100) * tariff);
@@ -167,7 +173,7 @@ const RoomCategoryForm = () => {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-amber-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -204,18 +210,22 @@ const RoomCategoryForm = () => {
                   />
                 </div>
                 <div>
-                  <TextField id="Category" label="Category" variant="outlined"
+                  <TextField
+                    id="Category"
+                    label="Category"
+                    variant="outlined"
                     type="text"
                     name="category"
-
                     value={formData.category}
                     onChange={handleChange}
                     className="border rounded w-full "
                   />
                 </div>
                 <div className="sm:col-span-2">
-
-                  <TextField id="Description" label="Description" variant="outlined"
+                  <TextField
+                    id="Description"
+                    label="Description"
+                    variant="outlined"
                     name="description"
                     rows="3"
                     value={formData.description}
@@ -224,10 +234,12 @@ const RoomCategoryForm = () => {
                   />
                 </div>
                 <div>
-                  <TextField id="Bed type" label="Bed type" variant="outlined"
+                  <TextField
+                    id="Bed type"
+                    label="Bed type"
+                    variant="outlined"
                     type="text"
                     name="bedType"
-
                     value={formData.bedType}
                     onChange={handleChange}
                     className="border rounded w-full "
@@ -292,7 +304,10 @@ const RoomCategoryForm = () => {
                     type="number"
                     name="gst"
                     id="gst"
-                    value={parseFloat(formData.sgst||0)+parseFloat(formData.cgst||0)}
+                    value={
+                      parseFloat(formData.sgst || 0) +
+                      parseFloat(formData.cgst || 0)
+                    }
                     onChange={handleChange}
                     readOnly
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -432,7 +447,10 @@ const RoomCategoryForm = () => {
                   </label>
                   <div className="grid grid-cols-2 gap-4 mt-2">
                     <div>
-                      <label htmlFor="EP" className="block text-sm text-gray-600">
+                      <label
+                        htmlFor="EP"
+                        className="block text-sm text-gray-600"
+                      >
                         EP
                       </label>
                       <select
@@ -447,7 +465,10 @@ const RoomCategoryForm = () => {
                       </select>
                     </div>
                     <div>
-                      <label htmlFor="AP" className="block text-sm text-gray-600">
+                      <label
+                        htmlFor="AP"
+                        className="block text-sm text-gray-600"
+                      >
                         AP
                       </label>
                       <select
@@ -462,7 +483,10 @@ const RoomCategoryForm = () => {
                       </select>
                     </div>
                     <div>
-                      <label htmlFor="CP" className="block text-sm text-gray-600">
+                      <label
+                        htmlFor="CP"
+                        className="block text-sm text-gray-600"
+                      >
                         CP
                       </label>
                       <select
@@ -555,20 +579,17 @@ const RoomCategoryForm = () => {
                 <button
                   type="submit"
                   className="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  onClick={() => router.push('/property/roomcategories')}
+                  onClick={() => router.push("/property/roomcategories")}
                 >
                   Submit
                 </button>
-
               </div>
             </form>
-
           </div>
         </div>
       </div>
       <Footer />
     </div>
-
   );
 };
 

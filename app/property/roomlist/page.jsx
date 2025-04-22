@@ -19,11 +19,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  IconButton,
 } from "@mui/material";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { Delete, Edit } from "@mui/icons-material";
 
 export default function BookingManagement() {
   const [rooms, setRooms] = useState([]);
@@ -97,13 +97,13 @@ export default function BookingManagement() {
       const roomsResponse = await fetch("/api/rooms");
       const roomsData = await roomsResponse.json();
       const existingRooms = roomsData.data;
-      console.log("existingRooms",existingRooms)
+      console.log("existingRooms", existingRooms);
 
       // Check if room number already exists
       const roomExists = existingRooms.some(
         (room) => room.number === roomNumber
       );
-      console.log("room exist",roomExists)
+      console.log("room exist", roomExists);
 
       if (roomExists) {
         toast.error("Room number already exists!", {
@@ -130,7 +130,7 @@ export default function BookingManagement() {
       if (res.ok) {
         const data = await res.json();
         console.log("New room added:", data.data);
-        toast.success('New room added successfully!', {
+        toast.success("New room added successfully!", {
           position: "top-center",
           autoClose: 3000,
           hideProgressBar: false,
@@ -158,7 +158,7 @@ export default function BookingManagement() {
       } else {
         const errorData = await res.json();
         console.error("Failed to create new room:", errorData.error);
-        toast.error('Failed to add new room!', {
+        toast.error("Failed to add new room!", {
           position: "top-center",
           autoClose: 5000,
           hideProgressBar: false,
@@ -169,7 +169,7 @@ export default function BookingManagement() {
       }
     } catch (error) {
       console.error("An error occurred while creating the room:", error);
-      toast.error('Failed to add new room!', {
+      toast.error("Failed to add new room!", {
         position: "top-center",
         autoClose: 5000,
         hideProgressBar: false,
@@ -191,22 +191,67 @@ export default function BookingManagement() {
     borderRadius: 2,
   };
 
+  const deleteRoom = async (id) => {
+    if (!confirm("Are you sure you want to delete this room?")) return;
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/rooms/${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Room deleted successfully!", {
+          //success toaster
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+          onClose: () => window.location.reload(),
+        });
+
+        //fetchCategories();
+      } else {
+        toast.error("Failed to delete room.", {
+          //error toaster
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting room category:", error);
+      toast.error("An error occurred while trying to delete the category.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div>
       <Navbar />
       <ToastContainer
-      position="top-center"
-      autoClose={5000}
-      hideProgressBar={false}
-      newestOnTop={false}
-      closeOnClick
-      rtl={false}
-      pauseOnFocusLoss
-      draggable
-      pauseOnHover
-      theme="colored"
-    />
-      <div className="min-h-screen bg-amber-50">
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+      <div className="min-h-screen bg-white">
         {isLoading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
             <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
@@ -320,6 +365,16 @@ export default function BookingManagement() {
                   >
                     Billing Started
                   </TableCell>
+                  <TableCell
+                    align="center"
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Action
+                  </TableCell>
                 </TableRow>
               </TableHead>
 
@@ -418,6 +473,16 @@ export default function BookingManagement() {
                             No
                           </Typography>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-center items-center space-x-2">
+                          <IconButton
+                            color="secondary"
+                            onClick={() => deleteRoom(room._id)}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

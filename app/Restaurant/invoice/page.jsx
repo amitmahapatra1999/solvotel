@@ -23,6 +23,8 @@ import { IconButton } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import Typography from "@mui/material/Typography";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
+import { getCookie } from "cookies-next";
+import { jwtVerify } from "jose";
 
 const InvoicePage = () => {
   const [menu, setMenu] = useState();
@@ -33,6 +35,8 @@ const InvoicePage = () => {
   const [currentInvoice, setCurrentInvoice] = useState(null);
   const [printableInvoice, setPrintableInvoice] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [profileState, setProfileState] = useState(null);
+
   // Date filter states
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -71,6 +75,51 @@ const InvoicePage = () => {
       }
     };
     fetchInvoices();
+  }, []);
+
+  const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch profile data
+        const token = getCookie("authToken");
+        const usertoken = getCookie("userAuthToken");
+        if (token) {
+          const decoded = await jwtVerify(
+            token,
+            new TextEncoder().encode(SECRET_KEY)
+          );
+          const userId = decoded.payload.id;
+          const profileResponse = await fetch(`/api/Profile/${userId}`);
+          const profileData = await profileResponse.json();
+          if (profileData.success) {
+            setProfileState(profileData.data.state || null);
+          } else {
+            toast.error("Failed to fetch profile data");
+          }
+        } else if (usertoken) {
+          const decoded = await jwtVerify(
+            usertoken,
+            new TextEncoder().encode(SECRET_KEY)
+          );
+          const userId = decoded.payload.profileId; // Use userId from the new token structure
+          const profileResponse = await fetch(`/api/Profile/${userId}`);
+          const profileData = await profileResponse.json();
+          if (profileData.success) {
+            setProfileState(profileData.data.state || null);
+          } else {
+            toast.error("Failed to fetch profile data");
+          }
+        } else {
+          toast.error("Authentication token missing");
+        }
+      } catch (error) {
+        console.error("Failed to fetch data", error);
+        toast.error("Error fetching initial data");
+      }
+    };
+    fetchData();
   }, []);
 
   // Modify the filter function to maintain the sort order
@@ -114,7 +163,7 @@ const InvoicePage = () => {
 
   const handleEdit = (invoice) => {
     setCurrentInvoice(invoice);
-    console.log(invoice);
+
     setShowModal(true);
   };
 
@@ -174,7 +223,7 @@ const InvoicePage = () => {
   return (
     <div>
       <Navbar />
-      <div className="bg-blue-50 min-h-screen">
+      <div className="bg-white min-h-screen">
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -358,7 +407,25 @@ const InvoicePage = () => {
                         textAlign: "center",
                       }}
                     >
-                      GST
+                      SGST
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      CGST
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#28bfdb",
+                        textAlign: "center",
+                      }}
+                    >
+                      IGST
                     </TableCell>
                     <TableCell
                       sx={{
@@ -382,47 +449,75 @@ const InvoicePage = () => {
                 </TableHead>
                 <TableBody>
                   {filteredInvoices.length > 0 ? (
-                    filteredInvoices.map((invoice) => (
-                      <TableRow
-                        key={invoice._id}
-                        sx={{ backgroundColor: "white" }}
-                      >
-                        <TableCell sx={{ textAlign: "center" }}>
-                          {invoice.invoiceno}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: "center" }}>
-                          {(() => {
-                            const date = new Date(invoice.date);
-                            const day = String(date.getDate()).padStart(2, "0");
-                            const month = String(date.getMonth() + 1).padStart(
-                              2,
-                              "0"
-                            );
-                            const year = date.getFullYear();
-                            return `${day}/${month}/${year}`;
-                          })()}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: "center" }}>
-                          {invoice.custname}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: "center" }}>
-                          {invoice.totalamt.toFixed(2)}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: "center" }}>
-                          {invoice.gst.toFixed(2)}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: "center" }}>
-                          {invoice.payableamt.toFixed(2)}
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            textAlign: "center",
-                            display: "flex",
-                            gap: "8px",
-                            justifyContent: "center",
-                          }}
+                    filteredInvoices.map((invoice) => {
+                      let totalSgst = 0;
+                      let totalCgst = 0;
+                      let totalIgst = 0;
+
+                      let isSameState = invoice.state === profileState;
+                      if (isSameState) {
+                        totalSgst = invoice.sgstArray.reduce(
+                          (acc, num) => acc + num,
+                          0
+                        );
+                        totalCgst = invoice.cgstArray.reduce(
+                          (acc, num) => acc + num,
+                          0
+                        );
+                      } else {
+                        totalSgst = 0;
+                        totalCgst = 0;
+                        totalIgst = invoice.gst;
+                      }
+                      return (
+                        <TableRow
+                          key={invoice._id}
+                          sx={{ backgroundColor: "white" }}
                         >
-                          {/* <Button
+                          <TableCell sx={{ textAlign: "center" }}>
+                            {invoice.invoiceno}
+                          </TableCell>
+                          <TableCell sx={{ textAlign: "center" }}>
+                            {(() => {
+                              const date = new Date(invoice.date);
+                              const day = String(date.getDate()).padStart(
+                                2,
+                                "0"
+                              );
+                              const month = String(
+                                date.getMonth() + 1
+                              ).padStart(2, "0");
+                              const year = date.getFullYear();
+                              return `${day}/${month}/${year}`;
+                            })()}
+                          </TableCell>
+                          <TableCell sx={{ textAlign: "center" }}>
+                            {invoice.custname}
+                          </TableCell>
+                          <TableCell sx={{ textAlign: "center" }}>
+                            {invoice.totalamt.toFixed(2)}
+                          </TableCell>
+                          <TableCell sx={{ textAlign: "center" }}>
+                            {totalSgst.toFixed(2)}
+                          </TableCell>
+                          <TableCell sx={{ textAlign: "center" }}>
+                            {totalCgst.toFixed(2)}
+                          </TableCell>
+                          <TableCell sx={{ textAlign: "center" }}>
+                            {totalIgst.toFixed(2)}
+                          </TableCell>
+                          <TableCell sx={{ textAlign: "center" }}>
+                            {invoice.payableamt.toFixed(2)}
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              textAlign: "center",
+                              display: "flex",
+                              gap: "8px",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {/* <Button
                           variant="contained"
                           color="primary"
                           size="small"
@@ -430,13 +525,13 @@ const InvoicePage = () => {
                         >
                           Edit
                         </Button> */}
-                          <IconButton
-                            color="primary"
-                            onClick={() => handleEdit(invoice)}
-                          >
-                            <Edit />
-                          </IconButton>
-                          {/* <Button
+                            <IconButton
+                              color="primary"
+                              onClick={() => handleEdit(invoice)}
+                            >
+                              <Edit />
+                            </IconButton>
+                            {/* <Button
                           variant="contained"
                           color="error"
                           size="small"
@@ -444,13 +539,13 @@ const InvoicePage = () => {
                         >
                           Delete
                         </Button> */}
-                          <IconButton
-                            color="secondary"
-                            onClick={() => handleDelete(invoice._id)}
-                          >
-                            <Delete />
-                          </IconButton>
-                          {/* <Button
+                            <IconButton
+                              color="secondary"
+                              onClick={() => handleDelete(invoice._id)}
+                            >
+                              <Delete />
+                            </IconButton>
+                            {/* <Button
                           variant="contained"
                           color="secondary"
                           size="small"
@@ -458,15 +553,16 @@ const InvoicePage = () => {
                         >
                           Print
                         </Button> */}
-                          <IconButton
-                            color="secondary"
-                            onClick={() => handlePrintPreview(invoice)}
-                          >
-                            <PrintOutlinedIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                            <IconButton
+                              color="secondary"
+                              onClick={() => handlePrintPreview(invoice)}
+                            >
+                              <PrintOutlinedIcon />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   ) : (
                     <TableRow>
                       <TableCell colSpan={7} align="center">
