@@ -28,6 +28,7 @@ import {
   Monitor,
   Utensils,
   PaintBucket,
+  PartyPopper,
 } from "lucide-react";
 import { jwtVerify } from "jose"; // Import jwtVerify for token verification
 import { ToastContainer, toast } from "react-toastify";
@@ -232,6 +233,16 @@ export default function Navbar() {
                     <BedDouble className="w-4 h-4 text-blue-900" />
                     <Link href="/property/roomlist">Room List</Link>
                   </li>
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
+                    <Users2 className="w-4 h-4 text-blue-900" />
+                    <Link href="/property/guests">Guests</Link>
+                  </li>
+                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
+                    <PartyPopper className="w-4 h-4 text-blue-900" />
+                    <Link href="/property/event-report">
+                      Guest Event Report
+                    </Link>
+                  </li>
                 </ul>
               )}
             </li>
@@ -253,10 +264,7 @@ export default function Navbar() {
                     <LayoutDashboard className="w-4 h-4 text-blue-900" />
                     <Link href="/property/roomdashboard">Room Dashboard</Link>
                   </li>
-                  <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
-                    <Users2 className="w-4 h-4 text-blue-900" />
-                    <Link href="/property/guests">Guests</Link>
-                  </li>
+
                   <li className="px-4 py-2 hover:bg-blue-50 flex items-center space-x-2 transition-colors duration-200">
                     <BookOpen className="w-4 h-4 text-blue-900" />
                     <Link href="/property/billing">Booking</Link>
