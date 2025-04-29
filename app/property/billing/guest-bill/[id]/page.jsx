@@ -131,7 +131,6 @@ const BookingDashboard = () => {
           headers,
         });
         const billingData = billingResponse.data.data;
-        console.log("billingData", billingData.dueAmount);
         setRemainingDueAmount(billingData.dueAmount);
 
         // Process existing items
@@ -283,13 +282,6 @@ const BookingDashboard = () => {
     setShowPrintModal(true);
   };
 
-  const handleOpenRoomInvoiceModal = () => setOpenRoomInvoiceModal(true);
-  const handleCloseRoomInvoiceModal = () => setOpenRoomInvoiceModal(false);
-  const handleOpenServiceInvoiceModal = () => setOpenServiceInvoiceModal(true);
-  const handleCloseServiceInvoiceModal = () =>
-    setOpenServiceInvoiceModal(false);
-  const handleOpenFoodInvoiceModal = () => setOpenFoodInvoiceModal(true);
-  const handleCloseFoodInvoiceModal = () => setOpenFoodInvoiceModal(false);
   const handleOpenFoodModal = () => {
     setOpenFoodModal(true);
     setSelectedFoodItem([]);

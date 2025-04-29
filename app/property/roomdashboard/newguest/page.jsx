@@ -18,15 +18,17 @@ import {
   Button,
   Typography,
   Box,
+  Grid2,
 } from "@mui/material";
 import Navbar from "../../../_components/Navbar";
 import { Footer } from "../../../_components/Footer";
 import TextField from "@mui/material/TextField";
-import { Grid } from "@mui/material";
+
 import MenuItem from "@mui/material/MenuItem";
 import { Autocomplete } from "@mui/material";
 
 export default function BookingForm() {
+  const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [filteredRooms, setFilteredRooms] = useState([]);
@@ -368,12 +370,6 @@ export default function BookingForm() {
     }));
   };
 
-  const getLabel = (fieldName, defaultLabel) => {
-    if (focusedInput === fieldName && placeholders[fieldName]) {
-      return placeholders[fieldName];
-    }
-    return defaultLabel;
-  };
   const handleCheckAvailability = async () => {
     if (!validateForm()) {
       alert(
@@ -399,16 +395,14 @@ export default function BookingForm() {
       if (!result.success || !result.data) {
         throw new Error("No room data available");
       }
-      console.log("Fetched rooms:", result.data);
+
       const checkInDate = new Date(formData.checkIn);
       const checkOutDate = new Date(formData.checkOut);
 
       // Filter available rooms based on check-in and check-out date lists
       const availableRooms = result.data.filter((room) => {
         // If no existing bookings, room is available
-        console.log("Checking room:", room.number);
-        console.log("Check-in dates:", room.checkInDateList);
-        console.log("Check-out dates:", room.checkOutDateList);
+
         if (
           !room.checkInDateList ||
           !room.checkOutDateList ||
@@ -423,8 +417,7 @@ export default function BookingForm() {
         for (let i = 0; i < room.checkInDateList.length; i++) {
           const existingCheckIn = new Date(room.checkInDateList[i]);
           const existingCheckOut = new Date(room.checkOutDateList[i]);
-          console.log("Existing booking:", existingCheckIn, existingCheckOut);
-          console.log("New booking:", checkInDate, checkOutDate);
+
           // Check for overlap
           const hasOverlap = !(
             checkOutDate < existingCheckIn || checkInDate >= existingCheckOut
@@ -458,6 +451,7 @@ export default function BookingForm() {
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
     // Sort function for dates with corresponding arrays
     const sortDatesWithCorrespondingArrays = (dates, ...arrays) => {
       const indices = dates.map((_, index) => index);
@@ -468,7 +462,6 @@ export default function BookingForm() {
       ];
     };
     try {
-      console.log("Selected rooms:", selectedRooms);
       const bookingData = { ...formData, roomNumbers: selectedRooms };
 
       // Create booking
@@ -550,7 +543,7 @@ export default function BookingForm() {
       });
 
       const billingData = await billingResponse.json();
-      console.log("billing data", billingData);
+
       if (!billingData.success)
         throw new Error("Failed to create consolidated billing");
 
@@ -652,10 +645,11 @@ export default function BookingForm() {
       }
 
       alert("Booking created with consolidated billing!");
-
+      setLoading(false);
       setModalOpen(false);
       router.push("/property/roomdashboard");
     } catch (error) {
+      setLoading(false);
       console.error("Error in booking submission:", error);
       alert(`Failed to create booking: ${error.message}`);
     }
@@ -849,10 +843,8 @@ export default function BookingForm() {
                 Guest Reservation Form
               </Typography>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Booking Details Section */}
-                <Grid container spacing={2} mt={1}>
-                  {/* Booking ID - read-only */}
-                  <Grid item xs={12} md={6}>
+                <Grid2 container spacing={2} mt={1}>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Booking ID"
                       name="bookingId"
@@ -864,9 +856,8 @@ export default function BookingForm() {
                       fullWidth
                       disabled
                     />
-                  </Grid>
-                  {/* Booking Type - select field */}
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Booking Type"
                       name="bookingType"
@@ -890,9 +881,8 @@ export default function BookingForm() {
                         </MenuItem>
                       ))}
                     </TextField>
-                  </Grid>
-                  {/* Booking Reference */}
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Booking Reference"
                       name="bookingReference"
@@ -903,9 +893,8 @@ export default function BookingForm() {
                       fullWidth
                       variant="outlined"
                     />
-                  </Grid>
-                  {/* Reference Number */}
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Reference Number"
                       name="referenceno"
@@ -916,9 +905,8 @@ export default function BookingForm() {
                       fullWidth
                       variant="outlined"
                     />
-                  </Grid>
-                  {/* Booking Status */}
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Booking Status"
                       name="bookingStatus"
@@ -936,79 +924,86 @@ export default function BookingForm() {
                         </MenuItem>
                       ))}
                     </TextField>
-                  </Grid>
-                </Grid>
-                {/* Guest Details Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Autocomplete
-                    freeSolo
-                    options={filteredMobileNumbers}
-                    value={formData.mobileNo}
-                    onChange={(event, newValue) =>
-                      handleMobileNumberChange(event, newValue)
-                    }
-                    onInputChange={(event, newValue) =>
-                      handleMobileNumberChange(event, newValue)
-                    }
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Mobile Number"
-                        required
-                        fullWidth
-                        error={!!errors.mobileNo}
-                        helperText={errors.mobileNo}
-                      />
-                    )}
-                  />
-                  <TextField
-                    label="Guest Name"
-                    name="guestName"
-                    value={formData.guestName}
-                    onChange={handleChange}
-                    error={!!errors.guestName}
-                    helperText={errors.guestName}
-                    fullWidth
-                    required
-                  />
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
+                    <Autocomplete
+                      freeSolo
+                      options={filteredMobileNumbers}
+                      value={formData.mobileNo}
+                      onChange={(event, newValue) =>
+                        handleMobileNumberChange(event, newValue)
+                      }
+                      onInputChange={(event, newValue) =>
+                        handleMobileNumberChange(event, newValue)
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Mobile Number"
+                          required
+                          fullWidth
+                          error={!!errors.mobileNo}
+                          helperText={errors.mobileNo}
+                        />
+                      )}
+                    />
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
+                    {" "}
+                    <TextField
+                      label="Guest Name"
+                      name="guestName"
+                      value={formData.guestName}
+                      onChange={handleChange}
+                      error={!!errors.guestName}
+                      helperText={errors.guestName}
+                      fullWidth
+                      required
+                    />
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
+                    {" "}
+                    <TextField
+                      label="Email ID"
+                      name="guestEmail"
+                      value={formData.guestEmail}
+                      onChange={handleChange}
+                      error={!!errors.guestEmail}
+                      helperText={errors.guestEmail}
+                      fullWidth
+                    />
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
+                    {" "}
+                    <TextField
+                      label="Date of Birth"
+                      type="date"
+                      name="dateofbirth"
+                      value={formData.dateofbirth}
+                      onChange={handleChange}
+                      error={errors.dateofbirth}
+                      helperText={errors.dateofbirth}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                    />
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      label="Date of Anniversary"
+                      type="date"
+                      name="dateofanniversary"
+                      value={formData.dateofanniversary}
+                      onChange={handleChange}
+                      error={!!errors.dateofanniversary}
+                      helperText={errors.dateofanniversary}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                    />
+                  </Grid2>
 
-                  <TextField
-                    label="Email ID"
-                    name="guestEmail"
-                    value={formData.guestEmail}
-                    onChange={handleChange}
-                    error={!!errors.guestEmail}
-                    helperText={errors.guestEmail}
-                    fullWidth
-                  />
-                  <TextField
-                    label="Date of Birth"
-                    type="date"
-                    name="dateofbirth"
-                    value={formData.dateofbirth}
-                    onChange={handleChange}
-                    error={errors.dateofbirth}
-                    helperText={errors.dateofbirth}
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                  />
-                  <TextField
-                    label="Date of Anniversary"
-                    type="date"
-                    name="dateofanniversary"
-                    value={formData.dateofanniversary}
-                    onChange={handleChange}
-                    error={!!errors.dateofanniversary}
-                    helperText={errors.dateofanniversary}
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                  />
-                </div>
-
-                {/* Identity Section */}
-                <Grid container spacing={2}>
+                  {/* Identity Section */}
                   {/* Guest ID - select the type */}
-                  <Grid item xs={12} md={6}>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Company Name"
                       name="companyName"
@@ -1018,8 +1013,8 @@ export default function BookingForm() {
                       helperText={errors.companyName}
                       fullWidth
                     />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="GSTIN"
                       name="gstin"
@@ -1029,8 +1024,8 @@ export default function BookingForm() {
                       helperText={errors.gstin}
                       fullWidth
                     />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       name="guestid"
                       label="Guest ID"
@@ -1053,9 +1048,9 @@ export default function BookingForm() {
                         </MenuItem>
                       ))}
                     </TextField>
-                  </Grid>
+                  </Grid2>
                   {/* Guest ID Number */}
-                  <Grid item xs={12} md={6}>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Guest ID Number"
                       name="guestidno"
@@ -1065,11 +1060,11 @@ export default function BookingForm() {
                       helperText={errors.guestidno}
                       fullWidth
                     />
-                  </Grid>
+                  </Grid2>
                   {/* Conditional Passport fields if "Passport" is selected */}
                   {formData.guestid === "Passport" && (
                     <>
-                      <Grid item xs={12} md={6}>
+                      <Grid2 size={{ xs: 12, md: 6 }}>
                         <TextField
                           label="Passport Issue Date"
                           type="date"
@@ -1082,8 +1077,8 @@ export default function BookingForm() {
                           fullWidth
                           required
                         />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
+                      </Grid2>
+                      <Grid2 size={{ xs: 12, md: 6 }}>
                         <TextField
                           label="Passport Expiry Date"
                           type="date"
@@ -1096,8 +1091,8 @@ export default function BookingForm() {
                           fullWidth
                           required
                         />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
+                      </Grid2>
+                      <Grid2 size={{ xs: 12, md: 6 }}>
                         <TextField
                           label="Visa Number"
                           name="visaNumber"
@@ -1108,8 +1103,8 @@ export default function BookingForm() {
                           fullWidth
                           required
                         />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
+                      </Grid2>
+                      <Grid2 size={{ xs: 12, md: 6 }}>
                         <TextField
                           label="Visa Issue Date"
                           type="date"
@@ -1122,8 +1117,8 @@ export default function BookingForm() {
                           fullWidth
                           required
                         />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
+                      </Grid2>
+                      <Grid2 size={{ xs: 12, md: 6 }}>
                         <TextField
                           label="Visa Expiry Date"
                           type="date"
@@ -1136,13 +1131,10 @@ export default function BookingForm() {
                           fullWidth
                           required
                         />
-                      </Grid>
+                      </Grid2>
                     </>
                   )}
-                </Grid>
-                {/* Reservation Accordion */}
-                <Grid container spacing={2} mt={1}>
-                  <Grid item xs={12} md={6}>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Adults"
                       type="number"
@@ -1153,8 +1145,8 @@ export default function BookingForm() {
                       helperText={errors.adults}
                       fullWidth
                     />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Children"
                       type="number"
@@ -1165,8 +1157,8 @@ export default function BookingForm() {
                       helperText={errors.children}
                       fullWidth
                     />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Check-in Date"
                       type="date"
@@ -1179,8 +1171,8 @@ export default function BookingForm() {
                       fullWidth
                       required
                     />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Check-out Date"
                       type="date"
@@ -1193,8 +1185,8 @@ export default function BookingForm() {
                       fullWidth
                       required
                     />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Check-in Time"
                       type="time"
@@ -1206,8 +1198,8 @@ export default function BookingForm() {
                       InputLabelProps={{ shrink: true }}
                       fullWidth
                     />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Check-out Time"
                       type="time"
@@ -1219,12 +1211,9 @@ export default function BookingForm() {
                       InputLabelProps={{ shrink: true }}
                       fullWidth
                     />
-                  </Grid>
-                </Grid>
-
-                {/* Guest Address Section */}
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  {/* Guest Address Section */}
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="State"
                       name="state"
@@ -1234,8 +1223,8 @@ export default function BookingForm() {
                       helperText={errors.state}
                       fullWidth
                     />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Address"
                       name="address"
@@ -1246,12 +1235,9 @@ export default function BookingForm() {
                       fullWidth
                       multiline
                     />
-                  </Grid>
-                </Grid>
-
-                {/* Additional Details Section */}
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  {/* Additional Details Section */}
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Meal Plan"
                       name="mealPlan"
@@ -1268,8 +1254,8 @@ export default function BookingForm() {
                         </MenuItem>
                       ))}
                     </TextField>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
                       label="Remarks"
                       name="remarks"
@@ -1280,8 +1266,8 @@ export default function BookingForm() {
                       fullWidth
                       multiline
                     />
-                  </Grid>
-                </Grid>
+                  </Grid2>
+                </Grid2>
 
                 <div className="flex items-center justify-end">
                   <Button
@@ -1378,7 +1364,7 @@ export default function BookingForm() {
                   ))}
                 </motion.div>
 
-                {/* Room Grid */}
+                {/* Room Grid2 */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   <AnimatePresence mode="popLayout">
                     {filteredRooms.map((room, index) => (
@@ -1491,7 +1477,7 @@ export default function BookingForm() {
                     Cancel
                   </Button>
                   <Button
-                    disabled={selectedRooms.length === 0}
+                    disabled={selectedRooms.length === 0 || loading}
                     onClick={handleSubmit}
                     sx={{ fontWeight: "bold", color: "white" }}
                     className="bg-gradient-to-r from-blue-600 to-cyan-600

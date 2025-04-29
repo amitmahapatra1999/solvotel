@@ -1,55 +1,67 @@
 // Dynamic Route (api/billing/[id]/route.js)
-import mongoose from 'mongoose';
-import connectSTR from '../../../lib/dbConnect'
-import Billing from '../../../lib/models/Billing';
-import Profile from '../../../lib/models/Profile'; // Import Profile model
-import { NextResponse } from 'next/server';
-import { jwtVerify } from 'jose'; // Import jwtVerify for decoding JWT
-const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key';
+import mongoose from "mongoose";
+import connectSTR from "../../../lib/dbConnect";
+import Billing from "../../../lib/models/Billing";
+import Profile from "../../../lib/models/Profile"; // Import Profile model
+import { NextResponse } from "next/server";
+import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
+const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
 export async function GET(req, { params }) {
   const { id } = await params;
   try {
     await mongoose.connect(connectSTR);
     // Extract the token from cookies
-        const authToken = req.cookies.get('authToken')?.value;
-        const userAuthToken = req.cookies.get('userAuthToken')?.value;
-        if (!authToken && !userAuthToken) {
-          return NextResponse.json({
-            success: false,
-            error: 'Authentication token missing'
-          }, { status: 401 });
-        }
-    
-        let decoded, userId;
-        if (authToken) {
-          // Verify the authToken (legacy check)
-          decoded = await jwtVerify(authToken, new TextEncoder().encode(SECRET_KEY));
-          userId = decoded.payload.id;
-        } else if (userAuthToken) {
-          // Verify the userAuthToken
-          decoded = await jwtVerify(userAuthToken, new TextEncoder().encode(SECRET_KEY));
-          userId = decoded.payload.profileId; // Use userId from the new token structure
-        } else {
-          return NextResponse.json({
-            success: false,
-            error: 'Invalid token structure'
-          }, { status: 400 });
-        }
+    const authToken = req.cookies.get("authToken")?.value;
+    const userAuthToken = req.cookies.get("userAuthToken")?.value;
+    if (!authToken && !userAuthToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Authentication token missing",
+        },
+        { status: 401 }
+      );
+    }
+
+    let decoded, userId;
+    if (authToken) {
+      // Verify the authToken (legacy check)
+      decoded = await jwtVerify(
+        authToken,
+        new TextEncoder().encode(SECRET_KEY)
+      );
+      userId = decoded.payload.id;
+    } else if (userAuthToken) {
+      // Verify the userAuthToken
+      decoded = await jwtVerify(
+        userAuthToken,
+        new TextEncoder().encode(SECRET_KEY)
+      );
+      userId = decoded.payload.profileId; // Use userId from the new token structure
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid token structure",
+        },
+        { status: 400 }
+      );
+    }
     const profile = await Profile.findById(userId);
     const bill = await Billing.findById(id);
-    console.log('Bill:', bill);
+
     if (!bill || bill.username !== profile.username) {
       return NextResponse.json(
-        { success: false, error: 'Bill not found' },
+        { success: false, error: "Bill not found" },
         { status: 404 }
       );
     }
     return NextResponse.json({ success: true, data: bill }, { status: 200 });
   } catch (error) {
-    console.error('Error fetching bill:', error);
+    console.error("Error fetching bill:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch bill' },
+      { success: false, error: "Failed to fetch bill" },
       { status: 400 }
     );
   }
@@ -61,38 +73,48 @@ export async function PATCH(req, { params }) {
     await mongoose.connect(connectSTR);
     const data = await req.json();
     // Extract the token from cookies
-        const authToken = req.cookies.get('authToken')?.value;
-        const userAuthToken = req.cookies.get('userAuthToken')?.value;
-        if (!authToken && !userAuthToken) {
-          return NextResponse.json({
-            success: false,
-            error: 'Authentication token missing'
-          }, { status: 401 });
-        }
-    
-        let decoded, userId;
-        if (authToken) {
-          // Verify the authToken (legacy check)
-          decoded = await jwtVerify(authToken, new TextEncoder().encode(SECRET_KEY));
-          userId = decoded.payload.id;
-        } else if (userAuthToken) {
-          // Verify the userAuthToken
-          decoded = await jwtVerify(userAuthToken, new TextEncoder().encode(SECRET_KEY));
-          userId = decoded.payload.profileId; // Use userId from the new token structure
-        } else {
-          return NextResponse.json({
-            success: false,
-            error: 'Invalid token structure'
-          }, { status: 400 });
-        }
+    const authToken = req.cookies.get("authToken")?.value;
+    const userAuthToken = req.cookies.get("userAuthToken")?.value;
+    if (!authToken && !userAuthToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Authentication token missing",
+        },
+        { status: 401 }
+      );
+    }
+
+    let decoded, userId;
+    if (authToken) {
+      // Verify the authToken (legacy check)
+      decoded = await jwtVerify(
+        authToken,
+        new TextEncoder().encode(SECRET_KEY)
+      );
+      userId = decoded.payload.id;
+    } else if (userAuthToken) {
+      // Verify the userAuthToken
+      decoded = await jwtVerify(
+        userAuthToken,
+        new TextEncoder().encode(SECRET_KEY)
+      );
+      userId = decoded.payload.profileId; // Use userId from the new token structure
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid token structure",
+        },
+        { status: 400 }
+      );
+    }
     const profile = await Profile.findById(userId);
     const billingData = await Billing.findById(id);
 
-    console.log('Data:', data);
-
     if (!billingData || billingData.username !== profile.username) {
       return NextResponse.json(
-        { success: false, error: 'Bill not found' },
+        { success: false, error: "Bill not found" },
         { status: 404 }
       );
     }
@@ -134,7 +156,6 @@ export async function PATCH(req, { params }) {
     // const newTotalAmount = newSubTotal;
     // const newDueAmount = newTotalAmount - billingData.amountAdvanced;
 
-
     // billingData.totalAmount = billingData.priceList.flatMap((roomPrices, i) =>
     //   roomPrices.map((price, j) =>
     //     price + (price * (billingData.taxList[i][j] || 0) / 100)
@@ -148,16 +169,19 @@ export async function PATCH(req, { params }) {
     billingData.priceList = updatedPriceList;
     billingData.quantityList = updatedQuantityList;
     billingData.taxList = updatedTaxList;
-    billingData.totalAmount = billingData.totalAmount ||data.totalAmount;
+    billingData.totalAmount = billingData.totalAmount || data.totalAmount;
 
     billingData.dueAmount = billingData.totalAmount || data.dueAmount;
 
     await billingData.save();
-    return NextResponse.json({ success: true, data: billingData }, { status: 200 });
-  } catch (error) {
-    console.error('Error updating bill:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to update bill' },
+      { success: true, data: billingData },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error updating bill:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to update bill" },
       { status: 400 }
     );
   }
@@ -171,30 +195,42 @@ export async function PUT(req, { params }) {
 
     // Authentication and authorization
     // Extract the token from cookies
-        const authToken = req.cookies.get('authToken')?.value;
-        const userAuthToken = req.cookies.get('userAuthToken')?.value;
-        if (!authToken && !userAuthToken) {
-          return NextResponse.json({
-            success: false,
-            error: 'Authentication token missing'
-          }, { status: 401 });
-        }
-    
-        let decoded, userId;
-        if (authToken) {
-          // Verify the authToken (legacy check)
-          decoded = await jwtVerify(authToken, new TextEncoder().encode(SECRET_KEY));
-          userId = decoded.payload.id;
-        } else if (userAuthToken) {
-          // Verify the userAuthToken
-          decoded = await jwtVerify(userAuthToken, new TextEncoder().encode(SECRET_KEY));
-          userId = decoded.payload.profileId; // Use userId from the new token structure
-        } else {
-          return NextResponse.json({
-            success: false,
-            error: 'Invalid token structure'
-          }, { status: 400 });
-        }
+    const authToken = req.cookies.get("authToken")?.value;
+    const userAuthToken = req.cookies.get("userAuthToken")?.value;
+    if (!authToken && !userAuthToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Authentication token missing",
+        },
+        { status: 401 }
+      );
+    }
+
+    let decoded, userId;
+    if (authToken) {
+      // Verify the authToken (legacy check)
+      decoded = await jwtVerify(
+        authToken,
+        new TextEncoder().encode(SECRET_KEY)
+      );
+      userId = decoded.payload.id;
+    } else if (userAuthToken) {
+      // Verify the userAuthToken
+      decoded = await jwtVerify(
+        userAuthToken,
+        new TextEncoder().encode(SECRET_KEY)
+      );
+      userId = decoded.payload.profileId; // Use userId from the new token structure
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid token structure",
+        },
+        { status: 400 }
+      );
+    }
     const profile = await Profile.findById(userId);
 
     // Get existing bill
@@ -216,18 +252,14 @@ export async function PUT(req, { params }) {
       target[index].push(...source);
       return target;
     };
-    console.log("data.dueAmount", data);
-    if(data.dueAmount) {
+
+    if (data.dueAmount) {
       bill.dueAmount = data.dueAmount;
     }
     // Handle itemList, priceList, quantityList, and taxList updates
     // Modified array update logic
     if (data.itemList && data.priceList && data.quantityList && data.taxList) {
       const roomIndex = data.roomIndex || 0;
-      console.log("data whooooooo", data.itemList[roomIndex]);
-      console.log("room index", roomIndex);
-      console.log("before");
-      console.log(bill.itemList);
 
       // Initialize arrays if empty
       if (!bill.itemList[roomIndex]) bill.itemList[roomIndex] = [];
@@ -235,22 +267,17 @@ export async function PUT(req, { params }) {
       if (!bill.quantityList[roomIndex]) bill.quantityList[roomIndex] = [];
       if (!bill.taxList[roomIndex]) bill.taxList[roomIndex] = [];
 
-
       // Append new items correctly
 
       bill.itemList[roomIndex] = data.itemList[roomIndex];
       bill.priceList[roomIndex] = data.priceList[roomIndex];
       bill.quantityList[roomIndex] = data.quantityList[roomIndex];
       bill.taxList[roomIndex] = data.taxList[roomIndex];
-      console.log("after");
-      console.log(bill.itemList);
 
       // Recalculate totals correctly
-      bill.totalAmount = bill.priceList.flatMap((roomPrices, i) =>
-        roomPrices.map((price, j) =>
-          price 
-        )
-      ).reduce((sum, price) => sum + price, 0);
+      bill.totalAmount = bill.priceList
+        .flatMap((roomPrices, i) => roomPrices.map((price, j) => price))
+        .reduce((sum, price) => sum + price, 0);
 
       bill.dueAmount = bill.totalAmount - bill.amountAdvanced;
     }
@@ -264,9 +291,9 @@ export async function PUT(req, { params }) {
       }
     };
 
-    updateRemarks('FoodRemarks', data.FoodRemarks);
-    updateRemarks('ServiceRemarks', data.ServiceRemarks);
-    updateRemarks('RoomRemarks', data.RoomRemarks);
+    updateRemarks("FoodRemarks", data.FoodRemarks);
+    updateRemarks("ServiceRemarks", data.ServiceRemarks);
+    updateRemarks("RoomRemarks", data.RoomRemarks);
 
     // Handle payment updates
     if (data.amountAdvanced !== undefined) {
@@ -283,8 +310,7 @@ export async function PUT(req, { params }) {
       // Add payment details
       const now = new Date();
       bill.DateOfPayment.push(now);
-      console.log("data.ModeOfPayment", data.ModeOfPayment);
-      bill.ModeOfPayment.push(data.ModeOfPayment.toString() || 'Cash');
+      bill.ModeOfPayment.push(data.ModeOfPayment.toString() || "Cash");
       bill.AmountOfPayment.push(newPayment);
     }
 
@@ -294,16 +320,17 @@ export async function PUT(req, { params }) {
       if (data.Bill_Paid === "yes") bill.dueAmount = 0;
     }
 
-  // Handle status updates
-  if (typeof data.Cancelled !== "undefined") {
-    bill.Cancelled = data.Cancelled;
-    if (data.Cancelled === "yes") bill.dueAmount = 0;
-  }
-    
-    const updatedBill = await bill.save();
-    console.log("bill", updatedBill);
-    return NextResponse.json({ success: true, data: updatedBill }, { status: 200 });
+    // Handle status updates
+    if (typeof data.Cancelled !== "undefined") {
+      bill.Cancelled = data.Cancelled;
+      if (data.Cancelled === "yes") bill.dueAmount = 0;
+    }
 
+    const updatedBill = await bill.save();
+    return NextResponse.json(
+      { success: true, data: updatedBill },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error updating bill:", error);
     return NextResponse.json(
@@ -313,53 +340,64 @@ export async function PUT(req, { params }) {
   }
 }
 
-
 export async function DELETE(req, { params }) {
   const { id } = params;
   try {
     await mongoose.connect(connectSTR);
     // Extract the token from cookies
-        const authToken = req.cookies.get('authToken')?.value;
-        const userAuthToken = req.cookies.get('userAuthToken')?.value;
-        if (!authToken && !userAuthToken) {
-          return NextResponse.json({
-            success: false,
-            error: 'Authentication token missing'
-          }, { status: 401 });
-        }
-    
-        let decoded, userId;
-        if (authToken) {
-          // Verify the authToken (legacy check)
-          decoded = await jwtVerify(authToken, new TextEncoder().encode(SECRET_KEY));
-          userId = decoded.payload.id;
-        } else if (userAuthToken) {
-          // Verify the userAuthToken
-          decoded = await jwtVerify(userAuthToken, new TextEncoder().encode(SECRET_KEY));
-          userId = decoded.payload.profileId; // Use userId from the new token structure
-        } else {
-          return NextResponse.json({
-            success: false,
-            error: 'Invalid token structure'
-          }, { status: 400 });
-        }
+    const authToken = req.cookies.get("authToken")?.value;
+    const userAuthToken = req.cookies.get("userAuthToken")?.value;
+    if (!authToken && !userAuthToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Authentication token missing",
+        },
+        { status: 401 }
+      );
+    }
+
+    let decoded, userId;
+    if (authToken) {
+      // Verify the authToken (legacy check)
+      decoded = await jwtVerify(
+        authToken,
+        new TextEncoder().encode(SECRET_KEY)
+      );
+      userId = decoded.payload.id;
+    } else if (userAuthToken) {
+      // Verify the userAuthToken
+      decoded = await jwtVerify(
+        userAuthToken,
+        new TextEncoder().encode(SECRET_KEY)
+      );
+      userId = decoded.payload.profileId; // Use userId from the new token structure
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid token structure",
+        },
+        { status: 400 }
+      );
+    }
     const profile = await Profile.findById(userId);
     const bill = await Billing.findById(id);
     if (!bill || bill.username !== profile.username) {
       return NextResponse.json(
-        { success: false, error: 'Bill not found' },
+        { success: false, error: "Bill not found" },
         { status: 404 }
       );
     }
     const deletedBill = await Billing.findByIdAndDelete(id);
     if (!deletedBill) {
       return NextResponse.json(
-        { success: false, error: 'Bill not found' },
+        { success: false, error: "Bill not found" },
         { status: 404 }
       );
     }
     return NextResponse.json(
-      { success: true, message: 'Bill deleted successfully' },
+      { success: true, message: "Bill deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
