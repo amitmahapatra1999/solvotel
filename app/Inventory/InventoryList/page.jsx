@@ -13,7 +13,7 @@ import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
 import MenuItem from "@mui/material/MenuItem";
-import { IconButton } from "@mui/material";
+import { Grid2, IconButton } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import { getCookie } from "cookies-next"; // Import getCookie from cookies-next
 import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
@@ -484,134 +484,142 @@ const ItemModal = ({ onClose, onSubmit, initialData, categories }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 rounded shadow-lg w-96">
+      <div
+        className="bg-white p-6 rounded shadow-lg"
+        style={{ width: "80%", maxWidth: "600px" }}
+      >
         <h2 className="text-xl font-bold mb-4">
           {initialData ? "Edit" : "Add"} Item
         </h2>
-        <div className="mb-4">
-          <TextField
-            id="itemCode"
-            label="Item Code"
-            variant="outlined"
-            type="text"
-            value={formData.itemCode}
-            onChange={(e) =>
-              setFormData({ ...formData, itemCode: e.target.value })
-            }
-            className="w-full"
-            fullWidth
-          />
-        </div>
-        <div className="mb-4">
-          <TextField
-            id="name"
-            label="Name"
-            variant="outlined"
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full"
-            fullWidth
-          />
-        </div>
-        <div className="mb-4">
-          <TextField
-            id="group"
-            label="Group"
-            variant="outlined"
-            type="text"
-            value={formData.group}
-            onChange={(e) =>
-              setFormData({ ...formData, group: e.target.value })
-            }
-            className="w-full"
-            fullWidth
-          />
-        </div>
-        <div className="mb-4">
-          <TextField
-            id="segment"
-            label="Segment"
-            variant="outlined"
-            select
-            value={formData.segment}
-            onChange={(e) =>
-              setFormData({ ...formData, segment: e.target.value })
-            }
-            className="w-full"
-            fullWidth
-          >
-            {categories.map((category) => (
-              <MenuItem key={category._id} value={category._id}>
-                {category.itemName}
-              </MenuItem>
-            ))}
-          </TextField>
-        </div>
-        <div className="mb-4">
-          <TextField
-            id="auditable"
-            label="Auditable"
-            variant="outlined"
-            select
-            value={formData.auditable}
-            onChange={(e) =>
-              setFormData({ ...formData, auditable: e.target.value })
-            }
-            className="w-full"
-            fullWidth
-          >
-            <MenuItem value="yes">Yes</MenuItem>
-            <MenuItem value="no">No</MenuItem>
-          </TextField>
-        </div>
-        <div className="mb-4">
-          <TextField
-            id="tax"
-            label="Tax (%)"
-            variant="outlined"
-            type="number"
-            value={formData.tax}
-            onChange={(e) =>
-              setFormData({ ...formData, tax: parseFloat(e.target.value) })
-            }
-            className="w-full"
-            fullWidth
-          />
-        </div>
-        <div className="mb-4">
-          <TextField
-            id="stock"
-            label="Initial Stock"
-            variant="outlined"
-            type="number"
-            value={formData.stock}
-            onChange={(e) =>
-              setFormData({ ...formData, stock: parseInt(e.target.value) })
-            }
-            className="w-full"
-            fullWidth
-          />
-        </div>
-        <div className="mb-4">
-          <TextField
-            id="quantityUnit"
-            label="Quantity Unit"
-            variant="outlined"
-            select
-            value={formData.quantityUnit}
-            onChange={(e) =>
-              setFormData({ ...formData, quantityUnit: e.target.value })
-            }
-            className="w-full"
-            fullWidth
-          >
-            <MenuItem value="pieces">Pieces</MenuItem>
-            <MenuItem value="kgs">Kgs</MenuItem>
-            <MenuItem value="grams">Grams</MenuItem>
-            <MenuItem value="litres">Litres</MenuItem>
-          </TextField>
-        </div>
+        <Grid2 container spacing={2}>
+          <Grid2 size={6}>
+            <TextField
+              id="itemCode"
+              label="Item Code"
+              variant="outlined"
+              type="text"
+              value={formData.itemCode}
+              onChange={(e) =>
+                setFormData({ ...formData, itemCode: e.target.value })
+              }
+              className="w-full"
+              fullWidth
+            />
+          </Grid2>
+          <Grid2 size={6}>
+            <TextField
+              id="name"
+              label="Name"
+              variant="outlined"
+              type="text"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="w-full"
+              fullWidth
+            />
+          </Grid2>
+          <Grid2 size={6}>
+            <TextField
+              id="group"
+              label="Group"
+              variant="outlined"
+              type="text"
+              value={formData.group}
+              onChange={(e) =>
+                setFormData({ ...formData, group: e.target.value })
+              }
+              className="w-full"
+              fullWidth
+            />
+          </Grid2>
+          <Grid2 size={6}>
+            <TextField
+              id="segment"
+              label="Segment"
+              variant="outlined"
+              select
+              value={formData.segment}
+              onChange={(e) =>
+                setFormData({ ...formData, segment: e.target.value })
+              }
+              className="w-full"
+              fullWidth
+            >
+              {categories.map((category) => (
+                <MenuItem key={category._id} value={category._id}>
+                  {category.itemName}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid2>
+          <Grid2 size={6}>
+            <TextField
+              id="auditable"
+              label="Auditable"
+              variant="outlined"
+              select
+              value={formData.auditable}
+              onChange={(e) =>
+                setFormData({ ...formData, auditable: e.target.value })
+              }
+              className="w-full"
+              fullWidth
+            >
+              <MenuItem value="yes">Yes</MenuItem>
+              <MenuItem value="no">No</MenuItem>
+            </TextField>
+          </Grid2>
+          <Grid2 size={6}>
+            <TextField
+              id="tax"
+              label="Tax (%)"
+              variant="outlined"
+              type="number"
+              value={formData.tax}
+              onChange={(e) =>
+                setFormData({ ...formData, tax: parseFloat(e.target.value) })
+              }
+              className="w-full"
+              fullWidth
+            />
+          </Grid2>
+          <Grid2 size={6}>
+            <TextField
+              id="stock"
+              label="Initial Stock"
+              variant="outlined"
+              type="number"
+              value={formData.stock}
+              onChange={(e) =>
+                setFormData({ ...formData, stock: parseInt(e.target.value) })
+              }
+              className="w-full"
+              fullWidth
+            />
+          </Grid2>
+          <Grid2 size={6}>
+            <TextField
+              fullWidth
+              id="quantityUnit"
+              label="Quantity Unit"
+              variant="outlined"
+              select
+              value={formData.quantityUnit}
+              onChange={(e) =>
+                setFormData({ ...formData, quantityUnit: e.target.value })
+              }
+              className="w-full"
+            >
+              <MenuItem value="pieces">Pieces</MenuItem>
+              <MenuItem value="kgs">Kgs</MenuItem>
+              <MenuItem value="grams">Grams</MenuItem>
+              <MenuItem value="litres">Litres</MenuItem>
+            </TextField>
+          </Grid2>
+        </Grid2>
+
         <div className="flex justify-end space-x-2 mt-6">
           <button
             onClick={onClose}

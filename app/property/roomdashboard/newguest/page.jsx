@@ -26,6 +26,7 @@ import TextField from "@mui/material/TextField";
 
 import MenuItem from "@mui/material/MenuItem";
 import { Autocomplete } from "@mui/material";
+import { indianStatesAndUTs } from "../../../../data/states_districts.js";
 
 export default function BookingForm() {
   const [loading, setLoading] = useState(false);
@@ -1215,6 +1216,25 @@ export default function BookingForm() {
                   {/* Guest Address Section */}
                   <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField
+                      fullWidth
+                      select
+                      label="State"
+                      variant="outlined"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleChange}
+                      error={!!errors.state}
+                      helperText={errors.state}
+                    >
+                      <MenuItem value="">Select State</MenuItem>
+
+                      {indianStatesAndUTs.map((state) => (
+                        <MenuItem key={state} value={state}>
+                          {state}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                    {/* <TextField
                       label="State"
                       name="state"
                       value={formData.state}
@@ -1222,7 +1242,7 @@ export default function BookingForm() {
                       error={!!errors.state}
                       helperText={errors.state}
                       fullWidth
-                    />
+                    /> */}
                   </Grid2>
                   <Grid2 size={{ xs: 12, md: 6 }}>
                     <TextField

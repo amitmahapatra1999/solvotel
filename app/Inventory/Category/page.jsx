@@ -30,7 +30,6 @@ export default function InventoryCategory() {
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
-  //const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -137,7 +136,7 @@ export default function InventoryCategory() {
         }),
       });
       const data = await response.json();
-      console.log(data);
+
       if (method === "POST") setProducts((prev) => [...prev, data.product]);
       else
         setProducts((prev) =>
@@ -151,62 +150,6 @@ export default function InventoryCategory() {
     } catch (error) {
       console.error("Error saving product", error);
       toast.error("Error saving product");
-    }
-  };
-
-  const toggleActiveStatus = async (id) => {
-    try {
-      const product = products.find((p) => p._id === id);
-      if (!product) return;
-      const token = getCookie("authToken");
-      const usertoken = getCookie("userAuthToken");
-      if (!token && !usertoken) {
-        router.push("/"); // Redirect to login if no token is found
-        return;
-      }
-
-      let decoded, userId;
-      if (token) {
-        // Verify the authToken (legacy check)
-        decoded = await jwtVerify(token, new TextEncoder().encode(SECRET_KEY));
-        userId = decoded.payload.id;
-      }
-      if (usertoken) {
-        // Verify the userAuthToken
-        decoded = await jwtVerify(
-          usertoken,
-          new TextEncoder().encode(SECRET_KEY)
-        );
-        userId = decoded.payload.profileId; // Use userId from the new token structure
-      }
-      // Fetch the profile by userId to get the username
-      const profileResponse = await fetch(`/api/Profile/${userId}`);
-      const profileData = await profileResponse.json();
-      if (!profileData.success || !profileData.data) {
-        router.push("/"); // Redirect to login if profile not found
-        return;
-      }
-      const username = profileData.data.username;
-      const response = await fetch(`/api/InventoryCategory/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          isActive: !product.isActive,
-          username: username,
-        }), // Include username in the request body
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to update status: ${response.statusText}`);
-      }
-      const data = await response.json();
-      if (!data.product || !data.product.itemName) {
-        throw new Error("Invalid product data returned from the API");
-      }
-      setProducts((prev) => prev.map((p) => (p._id === id ? data.product : p)));
-      toast.success("");
-    } catch (error) {
-      console.error("Error toggling status:", error);
-      toast.error("Error toggling status:");
     }
   };
 
@@ -251,7 +194,7 @@ export default function InventoryCategory() {
         throw new Error(`Failed to delete: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log(data.message);
+
       // Remove the deleted product from the state
       setProducts((prev) => prev.filter((product) => product._id !== id));
       toast.success("Product deleted successfully");
@@ -416,23 +359,6 @@ export default function InventoryCategory() {
               </TableBody>
             </Table>
           </TableContainer>
-
-          {/* Delete Confirmation Dialog */}
-          {/* <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-            <DialogTitle>Delete Item</DialogTitle>
-            <DialogContent>
-              Are you sure you want to delete this item? This action cannot be undone.
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
-              <Button onClick={() => openDeleteDialogForProduct(product._id)} color="error">
-                Delete
-              </Button>
-
-            </DialogActions>
-          </Dialog> */}
-
-          {/* <button onClick={() => setOpenDeleteDialog(true)}>Delete</button> */}
         </div>
         {/* Delete Confirmation Dialog */}
         <Dialog
@@ -461,20 +387,6 @@ export default function InventoryCategory() {
         )}
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      {/* <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-        <DialogTitle>Delete Item</DialogTitle>
-        <DialogContent>
-          Are you sure you want to delete this item? This action cannot be undone.
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
-          <Button onClick={() => openDeleteDialogForProduct(product._id)} color="error">
-            Delete
-          </Button>
-
-        </DialogActions>
-      </Dialog> */}
       <Footer />
     </div>
   );
