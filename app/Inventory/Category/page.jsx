@@ -213,7 +213,7 @@ export default function InventoryCategory() {
   };
 
   return (
-    <div>
+    <>
       <Navbar />
       <div className="bg-white min-h-screen">
         <ToastContainer
@@ -253,11 +253,8 @@ export default function InventoryCategory() {
             </div>
           </div>
         )}
-        <div className="container mx-auto py-10">
-          <div
-            className="flex justify-between"
-            style={{ maxWidth: "85%", margin: "0 auto" }}
-          >
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <div className="flex justify-between">
             <h1 className="text-3xl font-bold mb-4 text-cyan-900">
               Inventory Category
             </h1>
@@ -271,11 +268,7 @@ export default function InventoryCategory() {
               Add New +
             </button>
           </div>
-
-          <TableContainer
-            component={Paper}
-            style={{ maxWidth: "85%", margin: "0 auto" }}
-          >
+          <TableContainer component={Paper}>
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
@@ -388,7 +381,7 @@ export default function InventoryCategory() {
       </div>
 
       <Footer />
-    </div>
+    </>
   );
 }
 

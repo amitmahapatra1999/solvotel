@@ -237,7 +237,7 @@ export default function BookingManagement() {
   };
 
   return (
-    <div>
+    <>
       <Navbar />
       <ToastContainer
         position="top-center"
@@ -275,18 +275,11 @@ export default function BookingManagement() {
             </div>
           </div>
         )}
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div
-            className="flex justify-between mb-6"
-            style={{ maxWidth: "80%", margin: "0 auto" }}
-          >
-            <Typography
-              variant="h4"
-              component="h2"
-              className="font-bold text-cyan-900 mb-4"
-            >
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <div className="flex justify-between">
+            <h1 className="text-3xl font-bold mb-4 text-cyan-900">
               Room Management
-            </Typography>
+            </h1>
             <Button
               variant="contained"
               color="primary"
@@ -297,11 +290,7 @@ export default function BookingManagement() {
               Add Room
             </Button>
           </div>
-
-          <TableContainer
-            component={Paper}
-            style={{ maxWidth: "80%", margin: "0 auto" }}
-          >
+          <TableContainer component={Paper}>
             <Table>
               <TableHead sx={{ bgcolor: "#f5f5f5" }}>
                 <TableRow>
@@ -496,91 +485,91 @@ export default function BookingManagement() {
               </TableBody>
             </Table>
           </TableContainer>
-
-          <Modal
-            open={openModal}
-            onClose={handleCloseModal}
-            aria-labelledby="add-room-modal-title"
-          >
-            <Box sx={modalStyle}>
-              <Typography
-                id="add-room-modal-title"
-                variant="h6"
-                component="h2"
-                className="mb-4"
-              >
-                Add New Room
-              </Typography>
-              <form onSubmit={handleSubmit}>
-                <div className="mb-4">
-                  <TextField
-                    fullWidth
-                    label="Room Number"
-                    variant="outlined"
-                    value={roomNumber}
-                    onChange={(e) => setRoomNumber(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="mb-4">
-                  <FormControl fullWidth variant="outlined">
-                    <InputLabel>Room Category</InputLabel>
-                    <Select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      label="Room Category"
-                      required
-                    >
-                      {categories.map((cat) => (
-                        <MenuItem key={cat._id} value={cat._id}>
-                          {cat.category}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </div>
-                <div className="mb-4">
-                  <TextField
-                    fullWidth
-                    label="Floor Number"
-                    variant="outlined"
-                    value={floorNumber}
-                    onChange={(e) => setFloorNumber(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="mb-4">
-                  <FormControl fullWidth variant="outlined">
-                    <InputLabel>Clean Status</InputLabel>
-                    <Select
-                      value={clean}
-                      onChange={(e) => setClean(e.target.value)}
-                      label="Clean Status"
-                      required
-                    >
-                      <MenuItem value="Yes">Yes</MenuItem>
-                      <MenuItem value="No">No</MenuItem>
-                    </Select>
-                  </FormControl>
-                </div>
-                <div className="flex justify-between">
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    onClick={handleCloseModal}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" variant="contained" color="primary">
-                    Add Room
-                  </Button>
-                </div>
-              </form>
-            </Box>
-          </Modal>
         </div>
+
+        <Modal
+          open={openModal}
+          onClose={handleCloseModal}
+          aria-labelledby="add-room-modal-title"
+        >
+          <Box sx={modalStyle}>
+            <Typography
+              id="add-room-modal-title"
+              variant="h6"
+              component="h2"
+              className="mb-4"
+            >
+              Add New Room
+            </Typography>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <TextField
+                  fullWidth
+                  label="Room Number"
+                  variant="outlined"
+                  value={roomNumber}
+                  onChange={(e) => setRoomNumber(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <FormControl fullWidth variant="outlined">
+                  <InputLabel>Room Category</InputLabel>
+                  <Select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    label="Room Category"
+                    required
+                  >
+                    {categories.map((cat) => (
+                      <MenuItem key={cat._id} value={cat._id}>
+                        {cat.category}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </div>
+              <div className="mb-4">
+                <TextField
+                  fullWidth
+                  label="Floor Number"
+                  variant="outlined"
+                  value={floorNumber}
+                  onChange={(e) => setFloorNumber(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <FormControl fullWidth variant="outlined">
+                  <InputLabel>Clean Status</InputLabel>
+                  <Select
+                    value={clean}
+                    onChange={(e) => setClean(e.target.value)}
+                    label="Clean Status"
+                    required
+                  >
+                    <MenuItem value="Yes">Yes</MenuItem>
+                    <MenuItem value="No">No</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
+              <div className="flex justify-between">
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleCloseModal}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" variant="contained" color="primary">
+                  Add Room
+                </Button>
+              </div>
+            </form>
+          </Box>
+        </Modal>
       </div>
       <Footer />
-    </div>
+    </>
   );
 }

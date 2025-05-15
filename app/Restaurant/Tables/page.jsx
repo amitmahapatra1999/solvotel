@@ -235,89 +235,78 @@ export default function BookingMasterControlPanel() {
           </div>
         </div>
       )}
-      <main className="py-6 ">
-        <div className="rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div
-              className=" flex justify-between mb-3"
-              style={{ maxWidth: "85%", margin: "0 auto" }}
-            >
-              <h2 className="text-3xl font-semibold text-cyan-900 ">
-                Table List
-              </h2>
-              <button
-                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4"
-                onClick={() => router.push("/Restaurant/Tables/add")}
-              >
-                Add New +
-              </button>
-            </div>
+      <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+        <div className="flex justify-between mb-4">
+          <h2 className="text-3xl font-bold  text-cyan-900">Table List</h2>
+          <button
+            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+            onClick={() => router.push("/Restaurant/Tables/add")}
+          >
+            Add New +
+          </button>
+        </div>
 
-            <div>
-              <TableContainer
-                component={Paper}
-                style={{ maxWidth: "85%", margin: "0 auto" }}
-              >
-                <Table>
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                      {["Table No.", "POS", "Action"].map((header) => (
-                        <TableCell
-                          key={header}
-                          sx={{
-                            fontWeight: "bold",
-                            color: "#28bfdb",
-                            textAlign: "center",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => handleSort(header.toLowerCase())}
-                        >
-                          <div
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                {["Table No.", "POS", "Action"].map((header) => (
+                  <TableCell
+                    key={header}
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => handleSort(header.toLowerCase())}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {header}
+                      {sortColumn === header.toLowerCase() &&
+                        (sortDirection === "asc" ? (
+                          <ChevronUpIcon
                             style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
+                              marginLeft: "5px",
+                              width: "16px",
+                              height: "16px",
                             }}
-                          >
-                            {header}
-                            {sortColumn === header.toLowerCase() &&
-                              (sortDirection === "asc" ? (
-                                <ChevronUpIcon
-                                  style={{
-                                    marginLeft: "5px",
-                                    width: "16px",
-                                    height: "16px",
-                                  }}
-                                />
-                              ) : (
-                                <ChevronDownIcon
-                                  style={{
-                                    marginLeft: "5px",
-                                    width: "16px",
-                                    height: "16px",
-                                  }}
-                                />
-                              ))}
-                          </div>
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {sortedData.slice(0, displayCount).length > 0 ? (
-                      sortedData.slice(0, displayCount).map((item) => (
-                        <TableRow
-                          key={item._id}
-                          sx={{ borderBottom: "1px solid #e5e5e5" }}
-                        >
-                          <TableCell sx={{ textAlign: "center" }}>
-                            {item.tableNo}
-                          </TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            {item.pos}
-                          </TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            {/* <span
+                          />
+                        ) : (
+                          <ChevronDownIcon
+                            style={{
+                              marginLeft: "5px",
+                              width: "16px",
+                              height: "16px",
+                            }}
+                          />
+                        ))}
+                    </div>
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sortedData.slice(0, displayCount).length > 0 ? (
+                sortedData.slice(0, displayCount).map((item) => (
+                  <TableRow
+                    key={item._id}
+                    sx={{ borderBottom: "1px solid #e5e5e5" }}
+                  >
+                    <TableCell sx={{ textAlign: "center" }}>
+                      {item.tableNo}
+                    </TableCell>
+                    <TableCell sx={{ textAlign: "center" }}>
+                      {item.pos}
+                    </TableCell>
+                    <TableCell sx={{ textAlign: "center" }}>
+                      {/* <span
                               style={{
                                 display: "inline-block",
                                 padding: "4px 8px",
@@ -332,70 +321,65 @@ export default function BookingMasterControlPanel() {
                             >
                               {item.active === "yes" ? "Active" : "Inactive"}
                             </span> */}
-                            <IconButton
-                              style={{ marginLeft: "10px", color: "#2563eb" }}
-                              onClick={() => {
-                                setSelectedTable(item); // Set the selected table data
-                                setIsModalOpen(true); // Open the modal
-                              }}
-                            >
-                              <PencilIcon
-                                style={{ width: "16px", height: "16px" }}
-                              />
-                            </IconButton>
-                            <IconButton
-                              onClick={() => handleDelete(item._id)}
-                              sx={{ color: "#D32F2F" }}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={3}
-                          sx={{
-                            textAlign: "center",
-                            padding: "20px",
-                            color: "#666",
-                          }}
-                        >
-                          No data available.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </div>
-            <EditTableModal
-              open={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-              tableData={selectedTable}
-              onSave={(updatedTable) => {
-                // Update the table data
-                const updatedData = tableData.map((table) =>
-                  table._id === updatedTable._id ? updatedTable : table
-                );
-                setTableData(updatedData);
+                      <IconButton
+                        style={{ marginLeft: "10px", color: "#2563eb" }}
+                        onClick={() => {
+                          setSelectedTable(item); // Set the selected table data
+                          setIsModalOpen(true); // Open the modal
+                        }}
+                      >
+                        <PencilIcon style={{ width: "16px", height: "16px" }} />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDelete(item._id)}
+                        sx={{ color: "#D32F2F" }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={3}
+                    sx={{
+                      textAlign: "center",
+                      padding: "20px",
+                      color: "#666",
+                    }}
+                  >
+                    No data available.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-                // Optionally, send the updated data to the backend
-                fetch(`/api/tables/${updatedTable._id}`, {
-                  method: "PUT",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(updatedTable),
-                }).catch((error) =>
-                  console.error("Error updating table:", error)
-                );
-              }}
-            />
-          </div>
-        </div>
-      </main>
+        <EditTableModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          tableData={selectedTable}
+          onSave={(updatedTable) => {
+            // Update the table data
+            const updatedData = tableData.map((table) =>
+              table._id === updatedTable._id ? updatedTable : table
+            );
+            setTableData(updatedData);
+
+            // Optionally, send the updated data to the backend
+            fetch(`/api/tables/${updatedTable._id}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(updatedTable),
+            }).catch((error) => console.error("Error updating table:", error));
+          }}
+        />
+      </div>
+
       <Footer />
     </div>
   );

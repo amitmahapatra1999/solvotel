@@ -88,7 +88,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div>
+    <>
       <Navbar />
       <div className="min-h-screen bg-white">
         {isLoading && (
@@ -116,18 +116,11 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-        <header>
-          <div className="max-w-7xl mx-auto pt-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <h1 className="text-3xl font-bold text-cyan-900">
-              Restaurant Dashboard
-            </h1>
-            <div className="space-x-4"></div>
-          </div>
-        </header>
 
-        <main className="max-w-7xl mx-auto pb-6 sm:px-6 lg:px-8">
-          <div className="flex space-x-4 mb-6"></div>
-
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <h1 className="text-3xl font-bold text-cyan-900 mb-4">
+            Restaurant Dashboard
+          </h1>
           <div className="mb-6">
             <nav className="flex space-x-4">
               {tabs.map((tab) => (
@@ -225,7 +218,7 @@ export default function Dashboard() {
               <p>No tables available.</p>
             )}
           </div>
-        </main>
+        </div>
 
         {selectedBooking && (
           <Modal open={modalOpen} onClose={closeModal}>
@@ -330,6 +323,6 @@ export default function Dashboard() {
         )}
       </div>
       <Footer />
-    </div>
+    </>
   );
 }

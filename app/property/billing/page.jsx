@@ -230,7 +230,7 @@ export default function Billing() {
   };
 
   return (
-    <div>
+    <>
       <Navbar />
       <div className="min-h-screen bg-white">
         {isLoading && (
@@ -256,106 +256,79 @@ export default function Billing() {
             </div>
           </div>
         )}
-
-        {/* Filter and Search Controls */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            mb: 2,
-            justifyContent: "center",
-            pt: 4,
-          }}
-        >
-          <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-            <Button
-              variant={filterStatus === "all" ? "contained" : "outlined"}
-              color="primary"
-              onClick={() => setFilterStatus("all")}
-            >
-              All
-            </Button>
-            <Button
-              variant={filterStatus === "yes" ? "contained" : "outlined"}
-              color="primary"
-              onClick={() => setFilterStatus("yes")}
-            >
-              Paid
-            </Button>
-            <Button
-              variant={filterStatus === "no" ? "contained" : "outlined"}
-              color="primary"
-              onClick={() => setFilterStatus("no")}
-            >
-              UnPaid
-            </Button>
-            <Button
-              variant={filterStatus === "Booked" ? "contained" : "outlined"}
-              color="primary"
-              onClick={() => setFilterStatus("Booked")}
-            >
-              Booked
-            </Button>
-            <Button
-              variant={filterStatus === "Checked In" ? "contained" : "outlined"}
-              color="primary"
-              onClick={() => setFilterStatus("Checked In")}
-            >
-              Checked In
-            </Button>
-            <Button
-              variant={
-                filterStatus === "Checked Out" ? "contained" : "outlined"
-              }
-              color="primary"
-              onClick={() => setFilterStatus("Checked Out")}
-            >
-              Checked Out
-            </Button>
-            <Button
-              variant={filterStatus === "Cancelled" ? "contained" : "outlined"}
-              color="primary"
-              onClick={() => setFilterStatus("Cancelled")}
-            >
-              Cancelled
-            </Button>
-          </Box>
-        </Box>
-
-        {/* Main Content */}
-        <div className="container mx-auto py-4 px-4">
-          {/* New Reservation Button */}
-          <Box
-            sx={{
-              maxWidth: "80%",
-              margin: "0 auto",
-              display: "flex",
-              justifyContent: "flex-end",
-              mb: 2,
-              paddingRight: 2, // Added padding to ensure alignment within the container
-            }}
-          >
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <div className="flex justify-between items-center mb-4">
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Button
+                variant={filterStatus === "all" ? "contained" : "outlined"}
+                color="primary"
+                onClick={() => setFilterStatus("all")}
+              >
+                All
+              </Button>
+              <Button
+                variant={filterStatus === "yes" ? "contained" : "outlined"}
+                color="primary"
+                onClick={() => setFilterStatus("yes")}
+              >
+                Paid
+              </Button>
+              <Button
+                variant={filterStatus === "no" ? "contained" : "outlined"}
+                color="primary"
+                onClick={() => setFilterStatus("no")}
+              >
+                UnPaid
+              </Button>
+              <Button
+                variant={filterStatus === "Booked" ? "contained" : "outlined"}
+                color="primary"
+                onClick={() => setFilterStatus("Booked")}
+              >
+                Booked
+              </Button>
+              <Button
+                variant={
+                  filterStatus === "Checked In" ? "contained" : "outlined"
+                }
+                color="primary"
+                onClick={() => setFilterStatus("Checked In")}
+              >
+                Checked In
+              </Button>
+              <Button
+                variant={
+                  filterStatus === "Checked Out" ? "contained" : "outlined"
+                }
+                color="primary"
+                onClick={() => setFilterStatus("Checked Out")}
+              >
+                Checked Out
+              </Button>
+              <Button
+                variant={
+                  filterStatus === "Cancelled" ? "contained" : "outlined"
+                }
+                color="primary"
+                onClick={() => setFilterStatus("Cancelled")}
+              >
+                Cancelled
+              </Button>
+            </Box>
             <Link href="roomdashboard/newguest">
               <Button
                 variant="contained"
-                color="primary"
+                color="success"
                 startIcon={<Add />}
                 sx={{
-                  backgroundColor: "#006bb3",
-                  "&:hover": { backgroundColor: "#004d9e" }, // Darkened blue for hover
-                  minWidth: 160, // Fixed width for consistency
+                  textTransform: "none",
                 }}
               >
                 New Reservation
               </Button>
             </Link>
-          </Box>
-
-          {/* Billing Table */}
-          <TableContainer
-            component={Paper}
-            sx={{ maxWidth: "80%", margin: "0 auto" }}
-          >
+          </div>
+          <TableContainer component={Paper}>
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
@@ -480,6 +453,7 @@ export default function Billing() {
                           sx={{
                             backgroundColor: "#28bfdb",
                             "&:hover": { backgroundColor: "#1e9ab8" },
+                            textTransform: "none",
                           }}
                         >
                           View Bill
@@ -500,6 +474,6 @@ export default function Billing() {
         </div>
       </div>
       <Footer />
-    </div>
+    </>
   );
 }

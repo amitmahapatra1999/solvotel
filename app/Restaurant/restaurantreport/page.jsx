@@ -126,7 +126,7 @@ const InvoicePage = () => {
   };
 
   return (
-    <div>
+    <>
       <Navbar />
       <div className="bg-white min-h-screen">
         <ToastContainer
@@ -166,88 +166,59 @@ const InvoicePage = () => {
             </div>
           </div>
         )}
-        <div className="py-5">
-          <h1
-            className="text-3xl font-bold text-cyan-900 mb-4"
-            style={{ maxWidth: "85%", margin: "0 auto" }}
-          >
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <h1 className="text-3xl font-bold text-cyan-900 mb-4">
             Restaurant Report
           </h1>
-
-          <Box
-            sx={{
-              maxWidth: "85%",
-              margin: "0 auto",
-              mb: 3,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                gap: 2,
-                alignItems: "center",
-                justifyContent: "center",
-                mt: 2,
+          <div className="space-x-3 flex  mb-4 ">
+            <TextField
+              label="Start Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-1/4 "
+              size="small"
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-1/4 "
+              size="small"
+            />
+            <Button variant="contained" color="primary" onClick={filterByDate}>
+              Filter
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => {
+                setStartDate("");
+                setEndDate("");
+                setFilteredInvoices(invoices);
               }}
             >
-              <TextField
-                label="Start Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                sx={{ width: "160px" }}
-                size="small"
-              />
-              <TextField
-                label="End Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                sx={{ width: "160px" }}
-                size="small"
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={filterByDate}
-                sx={{ height: "40px" }}
-              >
-                Filter
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={() => {
-                  setStartDate("");
-                  setEndDate("");
-                  setFilteredInvoices(invoices);
-                }}
-                sx={{ height: "40px" }}
-              >
-                Reset
-              </Button>
-              <Button
-                variant="contained"
-                onClick={printTable}
-                size="small"
-                sx={{
-                  backgroundColor: "orange",
-                  "&:hover": {
-                    backgroundColor: "darkorange",
-                  },
-                }}
-              >
-                Download/Export
-              </Button>
-            </Box>
-          </Box>
+              Reset
+            </Button>
+            <Button
+              variant="contained"
+              onClick={printTable}
+              size="small"
+              sx={{
+                backgroundColor: "orange",
+                "&:hover": {
+                  backgroundColor: "darkorange",
+                },
+              }}
+            >
+              Download/Export
+            </Button>
+          </div>
 
-          <Box sx={{ maxWidth: "85%", margin: "0 auto", overflowX: "auto" }}>
+          <Box>
             {startDate && endDate ? (
               <TableContainer component={Paper}>
                 <Table ref={tableRef}>
@@ -447,7 +418,7 @@ const InvoicePage = () => {
         </div>
       </div>
       <Footer />
-    </div>
+    </>
   );
 };
 

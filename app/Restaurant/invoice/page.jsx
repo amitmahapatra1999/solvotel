@@ -221,7 +221,7 @@ const InvoicePage = () => {
   };
 
   return (
-    <div>
+    <>
       <Navbar />
       <div className="bg-white min-h-screen">
         <ToastContainer
@@ -261,263 +261,216 @@ const InvoicePage = () => {
             </div>
           </div>
         )}
-        <div className="p-4 ">
-          {/* Header */}
-          <h1
-            className="text-3xl font-bold text-cyan-900 mb-4"
-            style={{ maxWidth: "80%", margin: "0 auto" }}
-          >
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <h1 className="text-3xl font-bold text-cyan-900 mb-4">
             Restaurant Invoices
           </h1>
 
-          {/* Controls Container */}
-          <Box
-            sx={{
-              maxWidth: "80%",
-              margin: "0 auto",
-              mb: 3,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            {/* Empty div for left alignment */}
-            <div style={{ flex: 1 }}></div>
-
-            {/* Center - Date filters */}
-            <Box
-              sx={{
-                display: "flex",
-                gap: 2,
-                alignItems: "center",
-                flex: "2",
-                justifyContent: "center",
+          <div className="space-x-3 flex mb-4 ">
+            <TextField
+              label="Start Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-1/4 "
+              size="small"
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-1/4 "
+              size="small"
+            />
+            <Button variant="contained" color="primary" onClick={filterByDate}>
+              Filter
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => {
+                setStartDate("");
+                setEndDate("");
+                setFilteredInvoices(invoices);
               }}
             >
-              <TextField
-                label="Start Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                sx={{ width: "160px" }}
-                size="small"
-              />
-              <TextField
-                label="End Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                sx={{ width: "160px" }}
-                size="small"
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={filterByDate}
-                sx={{ height: "40px" }}
-              >
-                Filter
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={() => {
-                  setStartDate("");
-                  setEndDate("");
-                  setFilteredInvoices(invoices);
-                }}
-                sx={{ height: "40px" }}
-              >
-                Reset
-              </Button>
-            </Box>
-
-            {/* Right - Create Invoice button */}
-            <Box
+              Reset
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={() => {
+                setCurrentInvoice(null);
+                setShowModal(true);
+              }}
               sx={{
-                display: "flex",
-                justifyContent: "flex-end",
-                flex: 1,
+                minWidth: "150px",
+                height: "40px",
               }}
             >
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  setCurrentInvoice(null);
-                  setShowModal(true);
-                }}
-                sx={{
-                  minWidth: "150px",
-                  height: "40px",
-                }}
-              >
-                Create Invoice
-              </Button>
-            </Box>
-          </Box>
+              Create Invoice
+            </Button>
+          </div>
 
-          <Box sx={{ maxWidth: "80%", margin: "0 auto", overflowX: "auto" }}>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Invoice ID.
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Date
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Customer Name
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Total Amount
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      SGST
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      CGST
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      IGST
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Payable Amount
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Action
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredInvoices.length > 0 ? (
-                    filteredInvoices.map((invoice) => {
-                      let totalSgst = 0;
-                      let totalCgst = 0;
-                      let totalIgst = 0;
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Invoice ID.
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Date
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Customer Name
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Total Amount
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    SGST
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    CGST
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    IGST
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Payable Amount
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Action
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredInvoices.length > 0 ? (
+                  filteredInvoices.map((invoice) => {
+                    let totalSgst = 0;
+                    let totalCgst = 0;
+                    let totalIgst = 0;
 
-                      let isSameState = invoice.state === profileState;
-                      if (isSameState) {
-                        totalSgst = invoice.sgstArray.reduce(
-                          (acc, num) => acc + num,
-                          0
-                        );
-                        totalCgst = invoice.cgstArray.reduce(
-                          (acc, num) => acc + num,
-                          0
-                        );
-                      } else {
-                        totalSgst = 0;
-                        totalCgst = 0;
-                        totalIgst = invoice.gst;
-                      }
-                      return (
-                        <TableRow
-                          key={invoice._id}
-                          sx={{ backgroundColor: "white" }}
+                    let isSameState = invoice.state === profileState;
+                    if (isSameState) {
+                      totalSgst = invoice.sgstArray.reduce(
+                        (acc, num) => acc + num,
+                        0
+                      );
+                      totalCgst = invoice.cgstArray.reduce(
+                        (acc, num) => acc + num,
+                        0
+                      );
+                    } else {
+                      totalSgst = 0;
+                      totalCgst = 0;
+                      totalIgst = invoice.gst;
+                    }
+                    return (
+                      <TableRow
+                        key={invoice._id}
+                        sx={{ backgroundColor: "white" }}
+                      >
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {invoice.invoiceno}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {(() => {
+                            const date = new Date(invoice.date);
+                            const day = String(date.getDate()).padStart(2, "0");
+                            const month = String(date.getMonth() + 1).padStart(
+                              2,
+                              "0"
+                            );
+                            const year = date.getFullYear();
+                            return `${day}/${month}/${year}`;
+                          })()}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {invoice.custname}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {invoice.totalamt.toFixed(2)}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {totalSgst.toFixed(2)}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {totalCgst.toFixed(2)}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {totalIgst.toFixed(2)}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {invoice.payableamt.toFixed(2)}
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            textAlign: "center",
+                            display: "flex",
+                            gap: "8px",
+                            justifyContent: "center",
+                          }}
                         >
-                          <TableCell sx={{ textAlign: "center" }}>
-                            {invoice.invoiceno}
-                          </TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            {(() => {
-                              const date = new Date(invoice.date);
-                              const day = String(date.getDate()).padStart(
-                                2,
-                                "0"
-                              );
-                              const month = String(
-                                date.getMonth() + 1
-                              ).padStart(2, "0");
-                              const year = date.getFullYear();
-                              return `${day}/${month}/${year}`;
-                            })()}
-                          </TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            {invoice.custname}
-                          </TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            {invoice.totalamt.toFixed(2)}
-                          </TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            {totalSgst.toFixed(2)}
-                          </TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            {totalCgst.toFixed(2)}
-                          </TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            {totalIgst.toFixed(2)}
-                          </TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            {invoice.payableamt.toFixed(2)}
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              textAlign: "center",
-                              display: "flex",
-                              gap: "8px",
-                              justifyContent: "center",
-                            }}
-                          >
-                            {/* <Button
+                          {/* <Button
                           variant="contained"
                           color="primary"
                           size="small"
@@ -525,13 +478,13 @@ const InvoicePage = () => {
                         >
                           Edit
                         </Button> */}
-                            <IconButton
-                              color="primary"
-                              onClick={() => handleEdit(invoice)}
-                            >
-                              <Edit />
-                            </IconButton>
-                            {/* <Button
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleEdit(invoice)}
+                          >
+                            <Edit />
+                          </IconButton>
+                          {/* <Button
                           variant="contained"
                           color="error"
                           size="small"
@@ -539,13 +492,13 @@ const InvoicePage = () => {
                         >
                           Delete
                         </Button> */}
-                            <IconButton
-                              color="secondary"
-                              onClick={() => handleDelete(invoice._id)}
-                            >
-                              <Delete />
-                            </IconButton>
-                            {/* <Button
+                          <IconButton
+                            color="secondary"
+                            onClick={() => handleDelete(invoice._id)}
+                          >
+                            <Delete />
+                          </IconButton>
+                          {/* <Button
                           variant="contained"
                           color="secondary"
                           size="small"
@@ -553,27 +506,26 @@ const InvoicePage = () => {
                         >
                           Print
                         </Button> */}
-                            <IconButton
-                              color="secondary"
-                              onClick={() => handlePrintPreview(invoice)}
-                            >
-                              <PrintOutlinedIcon />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={7} align="center">
-                        No invoices available.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
+                          <IconButton
+                            color="secondary"
+                            onClick={() => handlePrintPreview(invoice)}
+                          >
+                            <PrintOutlinedIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      No invoices available.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
 
           {/* Modal for Create/Edit Invoice */}
           {showModal && (
@@ -607,7 +559,7 @@ const InvoicePage = () => {
         </div>
       </div>
       <Footer />
-    </div>
+    </>
   );
 };
 

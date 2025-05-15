@@ -184,7 +184,7 @@ const RestaurantBooking = () => {
     }
   };
   return (
-    <div>
+    <>
       <Navbar />
       <ToastContainer
         position="top-right"
@@ -225,8 +225,8 @@ const RestaurantBooking = () => {
             </div>
           </div>
         )}
-        <Box sx={{ py: 5 }}>
-          <Box sx={{ maxWidth: "85%", margin: "0 auto", mb: 3 }}>
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <Box sx={{ mb: 3 }}>
             <Box
               sx={{
                 display: "flex",
@@ -263,10 +263,7 @@ const RestaurantBooking = () => {
               </Button>
             </Box>
           </Box>
-          <TableContainer
-            component={Paper}
-            sx={{ maxWidth: "85%", margin: "0 auto" }}
-          >
+          <TableContainer component={Paper}>
             <Table size="small">
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
@@ -517,10 +514,10 @@ const RestaurantBooking = () => {
               <AddNewBookingForm onSubmit={addBooking} />
             </Box>
           </Modal>
-        </Box>
+        </div>
       </div>
       <Footer />
-    </div>
+    </>
   );
 };
 

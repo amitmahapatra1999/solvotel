@@ -537,7 +537,7 @@ export default function GuestList() {
   if (error) return <p>{error}</p>;
 
   return (
-    <div>
+    <>
       <Navbar />
       <div className="min-h-screen bg-white">
         {isLoading && (
@@ -563,82 +563,78 @@ export default function GuestList() {
             </div>
           </div>
         )}
-        <main className="max-w-7xl mx-auto py-6 ">
-          <div className="px-4 py-6 sm:px-0">
-            <div className="rounded-lg p-6">
-              <h1 className="text-3xl font-semibold text-cyan-900 mb-4">
-                Guest List
-              </h1>
-              <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="guest list">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
-                        Name
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
-                        Mobile
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
-                        Email
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
-                        Address
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
-                        Actions
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {guests.map((guest) => (
-                      <TableRow key={guest._id}>
-                        <TableCell component="th">{guest.guestName}</TableCell>
-                        <TableCell>{guest.mobileNo}</TableCell>
-                        <TableCell>{guest.guestEmail || "N/A"}</TableCell>
-                        <TableCell>{guest.address}</TableCell>
-                        <TableCell>
-                          <Tooltip
-                            title={
-                              guest.disableActions
-                                ? "Actions disabled for checked-out or cancelled bookings"
-                                : "Edit guest"
-                            }
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <h1 className="text-3xl font-semibold text-cyan-900 mb-4">
+            Guest List
+          </h1>
+          <TableContainer component={Paper}>
+            <Table aria-label="guest list">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
+                    Name
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
+                    Mobile
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
+                    Email
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
+                    Address
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
+                    Actions
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {guests.map((guest) => (
+                  <TableRow key={guest._id}>
+                    <TableCell component="th">{guest.guestName}</TableCell>
+                    <TableCell>{guest.mobileNo}</TableCell>
+                    <TableCell>{guest.guestEmail || "N/A"}</TableCell>
+                    <TableCell>{guest.address}</TableCell>
+                    <TableCell>
+                      <Tooltip
+                        title={
+                          guest.disableActions
+                            ? "Actions disabled for checked-out or cancelled bookings"
+                            : "Edit guest"
+                        }
+                      >
+                        <span>
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleEditClick(guest)}
                           >
-                            <span>
-                              <IconButton
-                                color="primary"
-                                onClick={() => handleEditClick(guest)}
-                              >
-                                <Edit />
-                              </IconButton>
-                            </span>
-                          </Tooltip>
-                          <Tooltip
-                            title={
-                              guest.disableActions
-                                ? "Actions disabled for checked-out or cancelled bookings"
-                                : "Delete guest"
-                            }
+                            <Edit />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                      <Tooltip
+                        title={
+                          guest.disableActions
+                            ? "Actions disabled for checked-out or cancelled bookings"
+                            : "Delete guest"
+                        }
+                      >
+                        <span>
+                          <IconButton
+                            color="secondary"
+                            onClick={() => handleDeleteClick(guest._id)}
                           >
-                            <span>
-                              <IconButton
-                                color="secondary"
-                                onClick={() => handleDeleteClick(guest._id)}
-                              >
-                                <Delete />
-                              </IconButton>
-                            </span>
-                          </Tooltip>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </div>
-          </div>
-        </main>
+                            <Delete />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
 
         {/* Delete Confirmation Dialog */}
         <Dialog
@@ -941,6 +937,6 @@ export default function GuestList() {
         )}
       </div>
       <Footer />
-    </div>
+    </>
   );
 }

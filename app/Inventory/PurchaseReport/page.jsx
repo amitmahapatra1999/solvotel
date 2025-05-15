@@ -417,89 +417,73 @@ const PurchaseReportPage = () => {
             </div>
           </div>
         )}
-        <div className="container mx-auto p-4">
-          <div className="bg-white mb-4 ">
-            <div className=" bg-white p-4  mb-4 ">
-              <h1
-                className="text-3xl font-bold text-cyan-900 "
-                style={{ maxWidth: "80%", margin: "0 auto" }}
-              >
-                Purchase Report
-              </h1>
-            </div>
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <h1 className="text-3xl font-bold text-cyan-900 mb-4">
+            Purchase Report
+          </h1>
 
-            <div
-              className=" space-x-3  justify-center "
-              style={{ maxWidth: "80%", margin: "0 auto" }}
+          <div className="space-x-3 flex  mb-4 ">
+            <TextField
+              label="Start Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-1/4 "
+              size="small"
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-1/4"
+              size="small"
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={filterByDate}
+              className="ml-2"
             >
-              <TextField
-                label="Start Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-1/4 "
-                size="small"
-              />
-              <TextField
-                label="End Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-1/4"
-                size="small"
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={filterByDate}
-                className="ml-2"
-                size="small"
-              >
-                Filter
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={() => {
-                  setStartDate("");
-                  setEndDate("");
-                  setFilteredReports(purchaseReports); // Reset to show all reports
-                }}
-                className="ml-2"
-                size="small"
-              >
-                Reset
-              </Button>
-              <Button
-                variant="contained"
-                onClick={printTable}
-                className="ml-2"
-                size="small"
-                sx={{
-                  backgroundColor: "orange",
-                  "&:hover": {
-                    backgroundColor: "darkorange",
-                  },
-                }}
-              >
-                Download/Export
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={() => setIsModalOpen(true)}
-              >
-                Purchase Stock
-              </Button>
-            </div>
+              Filter
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => {
+                setStartDate("");
+                setEndDate("");
+                setFilteredReports(purchaseReports); // Reset to show all reports
+              }}
+              className="ml-2"
+            >
+              Reset
+            </Button>
+            <Button
+              variant="contained"
+              onClick={printTable}
+              className="ml-2"
+              sx={{
+                backgroundColor: "orange",
+                "&:hover": {
+                  backgroundColor: "darkorange",
+                },
+              }}
+            >
+              Download/Export
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Purchase Stock
+            </Button>
           </div>
 
-          <TableContainer
-            component={Paper}
-            style={{ maxWidth: "80%", margin: "0 auto" }}
-          >
+          <TableContainer component={Paper}>
             <Table ref={tableRef}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#f5f5f5" }}>

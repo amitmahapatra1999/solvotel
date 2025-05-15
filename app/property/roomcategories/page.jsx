@@ -13,7 +13,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
-import { IconButton } from "@mui/material";
+import { IconButton, TextField } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -100,7 +100,7 @@ export default function RoomCategories() {
   );
 
   return (
-    <div>
+    <>
       <Navbar />
       <div className="min-h-screen bg-white">
         <ToastContainer
@@ -140,219 +140,185 @@ export default function RoomCategories() {
             </div>
           </div>
         )}
-        <div className="p-4">
-          <div className="p-4">
-            {/* Header container */}
-            <div
-              style={{
-                maxWidth: "80%",
-                margin: "0 auto",
-                marginBottom: "2rem",
-              }}
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <h1 className="text-3xl font-bold text-cyan-900 mb-4">
+            Category List
+          </h1>
+          <div className="space-x-3 flex justify-between mb-4">
+            <TextField
+              label="Search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-1/4 "
+              size="small"
+            />
+
+            <Button
+              variant="contained"
+              color="success"
+              onClick={() =>
+                router.push("/property/roomcategories/addRoomCategory")
+              }
             >
-              {/* First row - Title and Display records */}
-              <div className="flex justify-between items-center mb-6">
-                <h2
-                  style={{
-                    color: "#082930",
-                    fontWeight: "bold",
-                    fontSize: "1.75rem",
-                  }}
-                >
-                  Category List
-                </h2>
-
-                <div className="flex items-center space-x-2">
-                  <span>Display</span>
-                  <select className="border p-1 rounded">
-                    <option>15</option>
-                  </select>
-                  <span>records</span>
-                </div>
-              </div>
-
-              {/* Second row - Search and Add New button */}
-              <div className="flex justify-between items-center">
-                <input
-                  type="search"
-                  placeholder="Search..."
-                  className="border rounded p-2 w-64"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={() =>
-                    router.push("/property/roomcategories/addRoomCategory")
-                  }
-                >
-                  Add New +
-                </Button>
-              </div>
-            </div>
-
-            <TableContainer
-              component={Paper}
-              style={{ maxWidth: "80%", margin: "0 auto" }}
-            >
-              <Table>
-                <TableHead>
-                  <TableRow style={{ backgroundColor: "#f5f5f5" }}>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Image
+              Add New +
+            </Button>
+          </div>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow style={{ backgroundColor: "#f5f5f5" }}>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Image
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Category
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Description
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Tariff (INR)
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    CGST (%)
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    SGST (%)
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    IGST (%)
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Total (incl. GST)
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Booking Eng.
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Conf. Room
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
+                    Action
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredCategories.map((room) => (
+                  <TableRow
+                    key={room._id}
+                    style={{ backgroundColor: "#f8f9fa" }}
+                  >
+                    <TableCell>
+                      <Image
+                        src={room.image}
+                        alt={room.category}
+                        width={50}
+                        height={50}
+                      />
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Category
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Description
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Tariff (INR)
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      CGST (%)
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      SGST (%)
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      IGST (%)
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Total (incl. GST)
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Booking Eng.
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Conf. Room
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: "bold",
-                        color: "#28bfdb",
-                        textAlign: "center",
-                      }}
-                    >
-                      Action
+                    <TableCell>{room.category}</TableCell>
+                    <TableCell>{room.description}</TableCell>
+                    <TableCell>{room.tariff}</TableCell>
+                    <TableCell>{room.gst / 2}</TableCell>
+                    <TableCell>{room.gst / 2}</TableCell>
+                    <TableCell>{room.gst}</TableCell>
+                    <TableCell>{room.total}</TableCell>
+                    <TableCell>{room.bookingEng}</TableCell>
+                    <TableCell>{room.confRoom}</TableCell>
+                    <TableCell>
+                      <div className="flex justify-center items-center space-x-2">
+                        <IconButton
+                          color="primary"
+                          onClick={() =>
+                            router.push(
+                              `/property/roomcategories/editRoomCategory/${room._id}`
+                            )
+                          }
+                        >
+                          <Edit />
+                        </IconButton>
+                        <IconButton
+                          color="secondary"
+                          onClick={() => deleteCategory(room._id)}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </div>
                     </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredCategories.map((room) => (
-                    <TableRow
-                      key={room._id}
-                      style={{ backgroundColor: "#f8f9fa" }}
-                    >
-                      <TableCell>
-                        <Image
-                          src={room.image}
-                          alt={room.category}
-                          width={100}
-                          height={100}
-                        />
-                      </TableCell>
-                      <TableCell>{room.category}</TableCell>
-                      <TableCell>{room.description}</TableCell>
-                      <TableCell>{room.tariff}</TableCell>
-                      <TableCell>{room.gst / 2}</TableCell>
-                      <TableCell>{room.gst / 2}</TableCell>
-                      <TableCell>{room.gst}</TableCell>
-                      <TableCell>{room.total}</TableCell>
-                      <TableCell>{room.bookingEng}</TableCell>
-                      <TableCell>{room.confRoom}</TableCell>
-                      <TableCell>
-                        <div className="flex justify-center items-center space-x-2">
-                          <IconButton
-                            color="primary"
-                            onClick={() =>
-                              router.push(
-                                `/property/roomcategories/editRoomCategory/${room._id}`
-                              )
-                            }
-                          >
-                            <Edit />
-                          </IconButton>
-                          <IconButton
-                            color="secondary"
-                            onClick={() => deleteCategory(room._id)}
-                          >
-                            <Delete />
-                          </IconButton>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </div>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </div>
       </div>
       <Footer />
-    </div>
+    </>
   );
 }

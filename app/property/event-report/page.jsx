@@ -170,7 +170,7 @@ export default function EventReport() {
   if (error) return <p>{error}</p>;
 
   return (
-    <div>
+    <>
       <Navbar />
       <div className="min-h-screen bg-white">
         {isLoading && (
@@ -196,95 +196,88 @@ export default function EventReport() {
             </div>
           </div>
         )}
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            <div className="rounded-lg p-6">
-              <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="h5" gutterBottom>
-                    Birthday and Anniversary Report
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel id="demo-simple-select-label">
-                      Select Month
-                    </InputLabel>
-                    <Select
-                      labelId="demo-simple-select-label"
-                      id="demo-simple-select"
-                      label="Select Month"
-                      onChange={(e) => setMonth(e.target.value)}
-                      value={month}
-                    >
-                      {MONTHS.map((item, index) => (
-                        <MenuItem key={index} value={index}>
-                          {item}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={2}>
-                  <Button variant="contained" onClick={handleSearch}>
-                    Search
-                  </Button>
-                </Grid>
-              </Grid>
-
-              <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="guest list">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
-                        Name
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
-                        Mobile
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
-                        Email
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
-                        Birth Date
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
-                        Anniversary Date
-                      </TableCell>
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={12} md={6}>
+              <h1 className="text-3xl font-bold text-cyan-900 mb-4">
+                Birthday and Anniversary Report
+              </h1>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="demo-simple-select-label">
+                  Select Month
+                </InputLabel>
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  label="Select Month"
+                  onChange={(e) => setMonth(e.target.value)}
+                  value={month}
+                >
+                  {MONTHS.map((item, index) => (
+                    <MenuItem key={index} value={index}>
+                      {item}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <Button variant="contained" onClick={handleSearch}>
+                Search
+              </Button>
+            </Grid>
+          </Grid>
+          <TableContainer component={Paper}>
+            <Table aria-label="guest list">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
+                    Name
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
+                    Mobile
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
+                    Email
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
+                    Birth Date
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
+                    Anniversary Date
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredGuests.map((guest) => {
+                  let dob = GetCustomDate(guest.dateofbirth);
+                  let doa = GetCustomDate(guest.dateofanniversary);
+                  if (dob === "NaN-NaN-NaN") {
+                    dob = "N/A";
+                  }
+                  if (doa === "NaN-NaN-NaN") {
+                    doa = "N/A";
+                  }
+                  guest.dateofbirth = dob;
+                  guest.dateofanniversary = doa;
+                  return (
+                    <TableRow key={guest._id}>
+                      <TableCell component="th">{guest.guestName}</TableCell>
+                      <TableCell>{guest.mobileNo}</TableCell>
+                      <TableCell>{guest.guestEmail || "N/A"}</TableCell>
+                      <TableCell>{dob}</TableCell>
+                      <TableCell>{doa}</TableCell>
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredGuests.map((guest) => {
-                      let dob = GetCustomDate(guest.dateofbirth);
-                      let doa = GetCustomDate(guest.dateofanniversary);
-                      if (dob === "NaN-NaN-NaN") {
-                        dob = "N/A";
-                      }
-                      if (doa === "NaN-NaN-NaN") {
-                        doa = "N/A";
-                      }
-                      guest.dateofbirth = dob;
-                      guest.dateofanniversary = doa;
-                      return (
-                        <TableRow key={guest._id}>
-                          <TableCell component="th">
-                            {guest.guestName}
-                          </TableCell>
-                          <TableCell>{guest.mobileNo}</TableCell>
-                          <TableCell>{guest.guestEmail || "N/A"}</TableCell>
-                          <TableCell>{dob}</TableCell>
-                          <TableCell>{doa}</TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </div>
-          </div>
-        </main>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
       </div>
       <Footer />
-    </div>
+    </>
   );
 }

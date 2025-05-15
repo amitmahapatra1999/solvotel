@@ -108,7 +108,7 @@ const RoomDashboard = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <div className="p-8">
+      <div className="bg-white min-h-screen">
         {isLoading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
             <div className="bg-white/90 p-8 rounded-2xl shadow-2xl flex flex-col items-center animate-bounce-slow">
@@ -134,43 +134,45 @@ const RoomDashboard = () => {
             </div>
           </div>
         )}
-        <h1 className="text-4xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 animate-fade-in">
-          Room Classic Layout
-        </h1>
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <h1 className="text-3xl font-bold text-cyan-900 mb-4">
+            Room Classic Layout
+          </h1>
 
-        {Object.keys(rooms)
-          .sort()
-          .map((floor, index) => (
-            <div
-              key={floor}
-              className="mb-8 animate-fade-in"
-              style={{ animationDelay: `${index * 150}ms` }}
-            >
-              <div className="transform transition-all duration-500 hover:translate-x-2">
-                <div
-                  className="text-2xl font-semibold mb-4 p-4 rounded-lg shadow-md
+          {Object.keys(rooms)
+            .sort()
+            .map((floor, index) => (
+              <div
+                key={floor}
+                className="mb-8 animate-fade-in"
+                style={{ animationDelay: `${index * 150}ms` }}
+              >
+                <div className="transform transition-all duration-500 hover:translate-x-2">
+                  <div
+                    className=" font-semibold mb-4 p-4 rounded-lg shadow-md
                                 bg-gradient-to-r from-purple-100 via-indigo-100 to-blue-100
                                 border-l-4 border-indigo-500
                                 hover:shadow-lg hover:from-purple-200 hover:via-indigo-200 hover:to-blue-200
                                 transition-all duration-300 display flex items-center justify-between"
-                >
-                  <p>Floor No: {floor}</p>
-                  <p> {rooms[floor].length}</p>
+                  >
+                    <p>Floor No: {floor}</p>
+                    <p> {rooms[floor].length}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  {rooms[floor].map((room, roomIndex) => (
+                    <div
+                      key={room._id}
+                      style={{ animationDelay: `${roomIndex * 100}ms` }}
+                    >
+                      <RoomBlock room={room} />
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {rooms[floor].map((room, roomIndex) => (
-                  <div
-                    key={room._id}
-                    style={{ animationDelay: `${roomIndex * 100}ms` }}
-                  >
-                    <RoomBlock room={room} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))}
+        </div>
       </div>
       <Footer />
     </div>

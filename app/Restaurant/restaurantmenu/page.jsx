@@ -122,7 +122,7 @@ export default function RestaurantList() {
   };
 
   return (
-    <div>
+    <>
       <Navbar />
       <ToastContainer
         position="top-right"
@@ -163,26 +163,20 @@ export default function RestaurantList() {
               </div>
             </div>
           )}
-          <Box sx={{ py: 10, justifyItems: "flex-end" }}>
-            <div
-              className=" flex justify-between mb-3"
-              style={{ maxWidth: "85%", margin: "0 auto" }}
-            >
-              <h2 className="text-3xl font-semibold text-cyan-900 ">
+          <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+            <div className="flex justify-between mb-4">
+              <h2 className="text-3xl font-bold  text-cyan-900">
                 Restaurant Menu
               </h2>
               <button
-                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4"
+                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
                 onClick={() => router.push("/Restaurant/restaurantmenu/add")}
               >
                 Add New +
               </button>
             </div>
 
-            <TableContainer
-              component={Paper}
-              style={{ maxWidth: "85%", margin: "0 auto" }}
-            >
+            <TableContainer component={Paper}>
               <Table>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
@@ -238,7 +232,7 @@ export default function RestaurantList() {
                 </TableBody>
               </Table>
             </TableContainer>
-          </Box>
+          </div>
 
           {/* Edit Modal */}
           <Dialog open={openEditModal} onClose={() => setOpenEditModal(false)}>
@@ -484,6 +478,6 @@ export default function RestaurantList() {
         </Box>
       </div>
       <Footer />
-    </div>
+    </>
   );
 }

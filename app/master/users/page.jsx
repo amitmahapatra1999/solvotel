@@ -353,7 +353,7 @@ export default function Page() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="min-h-screen bg-white">
       <Navbar />
       <ToastContainer
         position="top-right"
@@ -375,104 +375,69 @@ export default function Page() {
           </div>
         </div>
       )}
-      <main className="flex-grow p-8">
-        <h1 className="text-3xl font-semibold mb-6 text-cyan-900 ml-4">
-          Booking Master Control Panel
-        </h1>
-        <StyledContainer>
-          <div className="p-4 rounded-t-lg">
-            <h2 className="text-2xl font-semibold text-cyan-900 mb-4">Users</h2>
-          </div>
-          <div className="p-4">
-            <div className="flex justify-between items-center mb-6">
-              <Button
-                variant="contained"
-                color="success"
-                onClick={handleAddNew}
-                startIcon={<AddIcon />}
-                sx={{
-                  backgroundColor: "#4caf50",
-                  "&:hover": { backgroundColor: "#45a049" },
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                }}
-              >
-                Add New
-              </Button>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <span className="text-sm text-gray-600">Display</span>
-                <Select
-                  defaultValue="All"
-                  size="small"
-                  variant="outlined"
-                  sx={{ minWidth: 100 }}
-                >
-                  <MenuItem value="All">All</MenuItem>
-                </Select>
-                <span className="text-sm text-gray-600">records</span>
-                <TextField
-                  variant="outlined"
-                  size="small"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  sx={{ width: 200 }}
-                />
-              </Box>
-            </div>
-            <TableContainer component={Paper}>
-              <Table>
-                <StyledTableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Hotel Name</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Phone</TableCell>
-                    <TableCell>User Type</TableCell>
-                    <TableCell>Roles</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </StyledTableHead>
-                <TableBody>
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => (
-                      <StyledTableRow key={user._id}>
-                        <TableCell>{user.name}</TableCell>
-                        <TableCell>{user.hotelName}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.phone}</TableCell>
-                        <TableCell>{user.userType}</TableCell>
-                        <TableCell>{user.roles?.join(", ") || "N/A"}</TableCell>
-                        <TableCell>
-                          <IconButton
-                            color="primary"
-                            onClick={() => handleOpenEdit(user)}
-                            sx={{ mr: 1 }}
-                          >
-                            <Edit />
-                          </IconButton>
-                          <IconButton
-                            color="secondary"
-                            onClick={() => handleOpenDialog(user._id)}
-                          >
-                            <Delete />
-                          </IconButton>
-                        </TableCell>
-                      </StyledTableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={7} align="center">
-                        No users found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </div>
-        </StyledContainer>
-      </main>
+      <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+        <div className="flex justify-between mb-4">
+          <h1 className="text-3xl font-bold  text-cyan-900">Users</h1>
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<AddIcon />}
+            onClick={handleAddNew}
+          >
+            Add New
+          </Button>
+        </div>
+        <TableContainer component={Paper}>
+          <Table>
+            <StyledTableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Hotel Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Phone</TableCell>
+                <TableCell>User Type</TableCell>
+                <TableCell>Roles</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </StyledTableHead>
+            <TableBody>
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user) => (
+                  <StyledTableRow key={user._id}>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.hotelName}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.phone}</TableCell>
+                    <TableCell>{user.userType}</TableCell>
+                    <TableCell>{user.roles?.join(", ") || "N/A"}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleOpenEdit(user)}
+                        sx={{ mr: 1 }}
+                      >
+                        <Edit />
+                      </IconButton>
+                      <IconButton
+                        color="secondary"
+                        onClick={() => handleOpenDialog(user._id)}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </StyledTableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} align="center">
+                    No users found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>

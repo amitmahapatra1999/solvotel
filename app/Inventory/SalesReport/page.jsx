@@ -382,7 +382,7 @@ const SalesReportPage = () => {
   }
 
   return (
-    <div>
+    <>
       <Navbar />
       <div className="bg-white min-h-screen">
         <ToastContainer
@@ -422,17 +422,12 @@ const SalesReportPage = () => {
             </div>
           </div>
         )}
-        <div className="container mx-auto py-5 ">
-          <div className="mb-4">
-            <h1
-              className="text-3xl font-bold text-cyan-900 "
-              style={{ maxWidth: "85%", margin: "0 auto" }}
-            >
-              Sales Report
-            </h1>
-          </div>
+        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+          <h1 className="text-3xl font-bold text-cyan-900 mb-4">
+            Sales Report
+          </h1>
 
-          <div className="flex space-x-2 mb-4 justify-center">
+          <div className="space-x-3 flex justify-between mb-4">
             <TextField
               label="Start Date"
               type="date"
@@ -451,13 +446,7 @@ const SalesReportPage = () => {
               className="w-1/4 flex justify-center "
               size="small"
             />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={filterByDate}
-              className="ml-2 flex justify-center"
-              size="small"
-            >
+            <Button variant="contained" color="primary" onClick={filterByDate}>
               Filter
             </Button>
             <Button
@@ -468,15 +457,12 @@ const SalesReportPage = () => {
                 setEndDate("");
                 setFilteredReports(purchaseReports); // Reset to show all reports
               }}
-              className="ml-2 flex justify-center"
-              size="small"
             >
               Reset
             </Button>
             <Button
               variant="contained"
               onClick={printTable}
-              className="ml-2 flex justify-center"
               size="small"
               sx={{
                 backgroundColor: "orange",
@@ -489,7 +475,6 @@ const SalesReportPage = () => {
             </Button>
             <Button
               variant="contained"
-              className="ml-2 flex justify-center  "
               color="error"
               onClick={() => setIsModalOpen(true)}
             >
@@ -497,10 +482,7 @@ const SalesReportPage = () => {
             </Button>
           </div>
 
-          <TableContainer
-            component={Paper}
-            style={{ maxWidth: "85%", margin: "0 auto" }}
-          >
+          <TableContainer component={Paper}>
             <Table ref={tableRef}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
@@ -859,7 +841,7 @@ const SalesReportPage = () => {
         </Modal>
       </div>
       <Footer />
-    </div>
+    </>
   );
 };
 
