@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Hotel, Users, DollarSign, AlertCircle } from "lucide-react";
 import Navbar from "../../../_components/Navbar";
 import { Footer } from "../../../_components/Footer";
+import { Typography } from "@mui/material";
 
 const RoomDashboard = () => {
   const [rooms, setRooms] = useState([]);
@@ -135,9 +136,18 @@ const RoomDashboard = () => {
           </div>
         )}
         <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
-          <h1 className="text-3xl font-bold text-cyan-900 mb-4">
-            Room Classic Layout
-          </h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold text-cyan-900 ">
+              Room Classic Layout
+            </h1>
+            <Typography variant="h6">
+              Total Rooms:{" "}
+              {Object.values(rooms).reduce(
+                (acc, rooms) => acc + rooms.length,
+                0
+              )}
+            </Typography>
+          </div>
 
           {Object.keys(rooms)
             .sort()

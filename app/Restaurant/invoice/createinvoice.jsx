@@ -20,24 +20,53 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import DeleteIcon from '@mui/icons-material/Delete';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { getCookie } from 'cookies-next';
-import { jwtVerify } from 'jose';
+import DeleteIcon from "@mui/icons-material/Delete";
+import SaveIcon from "@mui/icons-material/Save";
+import CancelIcon from "@mui/icons-material/Cancel";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { getCookie } from "cookies-next";
+import { jwtVerify } from "jose";
 
 // List of Indian states and union territories (same as in restaurantinvoice.js)
 const indianStatesAndUTs = [
-  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa',
-  'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
-  'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland',
-  'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
-  'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
-  'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
-  'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
 ];
 
 const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
@@ -64,7 +93,7 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
     payableamt: 0,
     username: "", // Added to match schema
   });
-  const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key';
+  const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,16 +103,19 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
         const menuData = await menuResponse.json();
         setMenu(menuData.data);
         // Fetch profile data
-        const token = getCookie('authToken');
+        const token = getCookie("authToken");
         const usertoken = getCookie("userAuthToken");
         if (token) {
-          const decoded = await jwtVerify(token, new TextEncoder().encode(SECRET_KEY));
+          const decoded = await jwtVerify(
+            token,
+            new TextEncoder().encode(SECRET_KEY)
+          );
           const userId = decoded.payload.id;
           const profileResponse = await fetch(`/api/Profile/${userId}`);
           const profileData = await profileResponse.json();
           if (profileData.success) {
             setProfileState(profileData.data.state || null);
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               username: profileData.data.username || "",
             }));
@@ -91,13 +123,16 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
             toast.error("Failed to fetch profile data");
           }
         } else if (usertoken) {
-          const decoded = await jwtVerify(usertoken, new TextEncoder().encode(SECRET_KEY));
+          const decoded = await jwtVerify(
+            usertoken,
+            new TextEncoder().encode(SECRET_KEY)
+          );
           const userId = decoded.payload.profileId; // Use userId from the new token structure
           const profileResponse = await fetch(`/api/Profile/${userId}`);
           const profileData = await profileResponse.json();
           if (profileData.success) {
             setProfileState(profileData.data.state || null);
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               username: profileData.data.username || "",
             }));
@@ -110,7 +145,7 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
 
         // Generate invoice number only if there's no existing invoice
         if (!existingInvoice) {
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             invoiceno: generateInvoiceNumber(),
           }));
@@ -125,48 +160,62 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
 
   useEffect(() => {
     if (existingInvoice && menu.length > 0) {
-      const processedItems = existingInvoice.menuitem?.map((item, index) => {
-        const menuItem = menu.find(menuMenuItem => menuMenuItem.itemName === item);
-        if (!menuItem) return null;
+      const processedItems = existingInvoice.menuitem
+        ?.map((item, index) => {
+          const menuItem = menu.find(
+            (menuMenuItem) => menuMenuItem.itemName === item
+          );
+          if (!menuItem) return null;
 
-        const price = existingInvoice.price[index];
-        const quantity = existingInvoice.quantity[index] || 1;
-        const cgstRate = menuItem.cgst || 0;
-        const sgstRate = menuItem.sgst || 0;
+          const price = existingInvoice.price[index];
+          const quantity = existingInvoice.quantity[index] || 1;
+          const cgstRate = menuItem.cgst || 0;
+          const sgstRate = menuItem.sgst || 0;
 
-        const cgstAmount = price * (cgstRate / 100) * quantity;
-        const sgstAmount = price * (sgstRate / 100) * quantity;
-        const totalWithGst = (price * quantity) + cgstAmount + sgstAmount;
+          const cgstAmount = price * (cgstRate / 100) * quantity;
+          const sgstAmount = price * (sgstRate / 100) * quantity;
+          const totalWithGst = price * quantity + cgstAmount + sgstAmount;
 
-        return {
-          name: item,
-          price: price,
-          quantity: quantity,
-          cgst: cgstAmount / quantity,
-          sgst: sgstAmount / quantity,
-          totalWithGst: totalWithGst,
-        };
-      }).filter(item => item !== null);
+          return {
+            name: item,
+            price: price,
+            quantity: quantity,
+            cgst: cgstAmount / quantity,
+            sgst: sgstAmount / quantity,
+            totalWithGst: totalWithGst,
+          };
+        })
+        .filter((item) => item !== null);
 
-      const cgstArray = processedItems.map(item => item.cgst * item.quantity);
-      const sgstArray = processedItems.map(item => item.sgst * item.quantity);
-      const amountWithGstArray = processedItems.map(item => item.totalWithGst);
+      const cgstArray = processedItems.map((item) => item.cgst * item.quantity);
+      const sgstArray = processedItems.map((item) => item.sgst * item.quantity);
+      const amountWithGstArray = processedItems.map(
+        (item) => item.totalWithGst
+      );
 
-      const totalAmount = processedItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-      const payableAmount = amountWithGstArray.reduce((total, amt) => total + amt, 0);
+      const totalAmount = processedItems.reduce(
+        (total, item) => total + item.price * item.quantity,
+        0
+      );
+      const payableAmount = amountWithGstArray.reduce(
+        (total, amt) => total + amt,
+        0
+      );
 
       setFormData({
         invoiceno: existingInvoice.invoiceno || "",
-        date: existingInvoice.date ? new Date(existingInvoice.date).toISOString().split("T")[0] : "",
+        date: existingInvoice.date
+          ? new Date(existingInvoice.date).toISOString().split("T")[0]
+          : "",
         time: existingInvoice.time || "",
         custname: existingInvoice.custname || "",
         custphone: existingInvoice.custphone || "",
         custaddress: existingInvoice.custaddress || "",
         custgst: existingInvoice.custgst || "",
         state: existingInvoice.state || "",
-        menuitem: processedItems.map(item => item.name),
-        quantity: processedItems.map(item => item.quantity),
-        price: processedItems.map(item => item.price),
+        menuitem: processedItems.map((item) => item.name),
+        quantity: processedItems.map((item) => item.quantity),
+        price: processedItems.map((item) => item.price),
         totalamt: totalAmount,
         gst: payableAmount - totalAmount,
         payableamt: payableAmount,
@@ -188,14 +237,17 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
     const selectedItemName = e.target.value;
     if (!selectedItemName) return;
 
-    const selectedMenuItem = menu.find(item => item.itemName === selectedItemName);
+    const selectedMenuItem = menu.find(
+      (item) => item.itemName === selectedItemName
+    );
     const cgstRate = selectedMenuItem.cgst || 0;
     const sgstRate = selectedMenuItem.sgst || 0;
     const quantity = 1;
 
     const cgstAmount = selectedMenuItem.price * (cgstRate / 100) * quantity;
     const sgstAmount = selectedMenuItem.price * (sgstRate / 100) * quantity;
-    const totalWithGst = (selectedMenuItem.price * quantity) + cgstAmount + sgstAmount;
+    const totalWithGst =
+      selectedMenuItem.price * quantity + cgstAmount + sgstAmount;
 
     const newItem = {
       name: selectedItemName,
@@ -211,7 +263,10 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
 
     const updatedSgstArray = [...formData.sgstArray, newItem.sgst * quantity];
     const updatedCgstArray = [...formData.cgstArray, newItem.cgst * quantity];
-    const updatedAmountWithGstArray = [...formData.amountWithGstArray, totalWithGst];
+    const updatedAmountWithGstArray = [
+      ...formData.amountWithGstArray,
+      totalWithGst,
+    ];
 
     const totalAmount = calculateTotal(updatedSelectedItems);
     const payableAmount = calculatePayableAmount(updatedAmountWithGstArray);
@@ -234,9 +289,16 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
     const updatedItems = [...selectedItems];
     updatedItems[index].quantity = newQuantity || 1;
 
-    const updatedSgstArray = updatedItems.map(item => item.sgst * item.quantity);
-    const updatedCgstArray = updatedItems.map(item => item.cgst * item.quantity);
-    const updatedAmountWithGstArray = updatedItems.map(item => item.quantity * (item.cgst + item.sgst) + item.quantity * item.price);
+    const updatedSgstArray = updatedItems.map(
+      (item) => item.sgst * item.quantity
+    );
+    const updatedCgstArray = updatedItems.map(
+      (item) => item.cgst * item.quantity
+    );
+    const updatedAmountWithGstArray = updatedItems.map(
+      (item) =>
+        item.quantity * (item.cgst + item.sgst) + item.quantity * item.price
+    );
 
     setSelectedItems(updatedItems);
 
@@ -259,7 +321,9 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
     const updatedItems = selectedItems.filter((_, i) => i !== index);
     const updatedSgstArray = formData.sgstArray.filter((_, i) => i !== index);
     const updatedCgstArray = formData.cgstArray.filter((_, i) => i !== index);
-    const updatedAmountWithGstArray = formData.amountWithGstArray.filter((_, i) => i !== index);
+    const updatedAmountWithGstArray = formData.amountWithGstArray.filter(
+      (_, i) => i !== index
+    );
 
     setSelectedItems(updatedItems);
 
@@ -318,7 +382,7 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
 
         resetForm();
 
-        toast.success('👍 Item Saved Successfully!', {
+        toast.success("👍 Item Saved Successfully!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -330,7 +394,7 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
         });
       } else {
         console.error("Error saving invoice:", data.error);
-        toast.error('👎 Failed to save invoice: ' + data.error, {
+        toast.error("👎 Failed to save invoice: " + data.error, {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -343,7 +407,7 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
       }
     } catch (error) {
       console.error("Error during invoice save:", error);
-      toast.error('👎 Error during invoice save', {
+      toast.error("👎 Error during invoice save", {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -386,8 +450,8 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
   };
 
   const generateRandomString = (length) => {
-    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let result = '';
+    const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let result = "";
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
@@ -398,17 +462,33 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
     return `INV-${generateRandomString(6)}`;
   };
 
-  const isSameState = formData.state && profileState && formData.state === profileState;
+  const isSameState =
+    formData.state && profileState && formData.state === profileState;
 
   return (
-    <Container maxWidth="md" sx={{ height: '100vh', overflowY: 'auto', paddingY: 2 }}>
-      <Paper elevation={3} sx={{ p: 3, mt: 3, maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
-        <Typography variant="h4" gutterBottom align="center">
+    <Container
+      maxWidth="md"
+      sx={{ height: "100vh", overflowY: "auto", paddingY: 2 }}
+    >
+      <Paper
+        elevation={3}
+        sx={{
+          p: 2,
+
+          maxHeight: "100vh",
+          overflowY: "auto",
+        }}
+      >
+        <Typography variant="h6" gutterBottom align="center">
           Create Invoice
         </Typography>
         <form onSubmit={handleSubmit}>
-          <Grid container spacing={2} sx={{ maxHeight: '70vh', overflowY: 'auto' }}>
-            <Grid item xs={6}>
+          <Grid
+            container
+            spacing={2}
+            sx={{ height: "80vh", overflowY: "auto" }}
+          >
+            <Grid item xs={4}>
               <TextField
                 fullWidth
                 disabled
@@ -418,28 +498,35 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
                 variant="outlined"
                 InputProps={{ readOnly: true }}
                 required
+                size="small"
               />
             </Grid>
-            {[{ label: "Date", name: "date", type: "date" }].map(({ label, name, type }) => (
-              <Grid item xs={6} key={name}>
-                <TextField
-                  fullWidth
-                  label={label}
-                  name={name}
-                  type={type}
-                  value={formData[name]}
-                  onChange={handleChange}
-                  variant="outlined"
-                  required
-                  InputLabelProps={{ shrink: type === "date" || type === "time" || !!formData[name] }}
-                />
-              </Grid>
-            ))}
+            {[{ label: "Date", name: "date", type: "date" }].map(
+              ({ label, name, type }) => (
+                <Grid item xs={4} key={name}>
+                  <TextField
+                    fullWidth
+                    label={label}
+                    name={name}
+                    type={type}
+                    value={formData[name]}
+                    onChange={handleChange}
+                    variant="outlined"
+                    required
+                    InputLabelProps={{
+                      shrink:
+                        type === "date" || type === "time" || !!formData[name],
+                    }}
+                    size="small"
+                  />
+                </Grid>
+              )
+            )}
             {[
               { label: "Time", name: "time", type: "time" },
               { label: "Customer Name", name: "custname", type: "text" },
             ].map(({ label, name, type }) => (
-              <Grid item xs={6} key={name}>
+              <Grid item xs={4} key={name}>
                 <TextField
                   fullWidth
                   label={label}
@@ -449,38 +536,47 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
                   onChange={handleChange}
                   variant="outlined"
                   required
-                  InputLabelProps={{ shrink: type === "date" || type === "time" || !!formData[name] }}
+                  InputLabelProps={{
+                    shrink:
+                      type === "date" || type === "time" || !!formData[name],
+                  }}
+                  size="small"
                 />
               </Grid>
             ))}
-            {[{ label: "Customer Phone", name: "custphone", type: "tel" }].map(({ label, name, type }) => (
-              <Grid item xs={6} key={name}>
-                <TextField
-                  fullWidth
-                  label={label}
-                  name={name}
-                  type={type}
-                  value={formData[name]}
-                  onChange={handleChange}
-                  variant="outlined"
-                  
-                />
-              </Grid>
-            ))}
-            {[{ label: "Customer GST No.", name: "custgst", type: "text" }].map(({ label, name, type }) => (
-              <Grid item xs={6} key={name}>
-                <TextField
-                  fullWidth
-                  label={label}
-                  name={name}
-                  type={type}
-                  value={formData[name]}
-                  onChange={handleChange}
-                  variant="outlined"
-                />
-              </Grid>
-            ))}
-            <Grid item xs={6}>
+            {[{ label: "Customer Phone", name: "custphone", type: "tel" }].map(
+              ({ label, name, type }) => (
+                <Grid item xs={4} key={name}>
+                  <TextField
+                    fullWidth
+                    label={label}
+                    name={name}
+                    type={type}
+                    value={formData[name]}
+                    onChange={handleChange}
+                    variant="outlined"
+                    size="small"
+                  />
+                </Grid>
+              )
+            )}
+            {[{ label: "Customer GST No.", name: "custgst", type: "text" }].map(
+              ({ label, name, type }) => (
+                <Grid item xs={4} key={name}>
+                  <TextField
+                    fullWidth
+                    label={label}
+                    name={name}
+                    type={type}
+                    value={formData[name]}
+                    onChange={handleChange}
+                    variant="outlined"
+                    size="small"
+                  />
+                </Grid>
+              )
+            )}
+            <Grid item xs={4}>
               <TextField
                 fullWidth
                 select
@@ -489,6 +585,7 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
                 value={formData.state}
                 onChange={handleChange}
                 variant="outlined"
+                size="small"
               >
                 <MenuItem value="">Select State</MenuItem>
                 {indianStatesAndUTs.map((state) => (
@@ -498,8 +595,10 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
                 ))}
               </TextField>
             </Grid>
-            {[{ label: "Customer Address", name: "custaddress", type: "text" }].map(({ label, name, type }) => (
-              <Grid item xs={12} key={name}>
+            {[
+              { label: "Customer Address", name: "custaddress", type: "text" },
+            ].map(({ label, name, type }) => (
+              <Grid item xs={8} key={name}>
                 <TextField
                   fullWidth
                   label={label}
@@ -508,17 +607,18 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
                   value={formData[name]}
                   onChange={handleChange}
                   variant="outlined"
+                  size="small"
                 />
               </Grid>
             ))}
             <Grid item xs={12}>
-              <FormControl fullWidth variant="outlined">
+              <FormControl fullWidth variant="outlined" size="small">
                 <InputLabel>Select Menu Items</InputLabel>
                 <Select
                   label="Select Menu Items"
                   onChange={addMenuItem}
                   value=""
-                  sx={{ maxHeight: 200, overflowY: 'auto' }}
+                  size="small"
                 >
                   {menu.map((item) => (
                     <MenuItem key={item._id} value={item.itemName}>
@@ -533,11 +633,14 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
                 component={Paper}
                 sx={{
                   maxHeight: 300,
-                  overflow: 'auto',
-                  '&::-webkit-scrollbar': { width: '8px' },
-                  '&::-webkit-scrollbar-track': { background: '#f1f1f1' },
-                  '&::-webkit-scrollbar-thumb': { background: '#888', borderRadius: '4px' },
-                  '&::-webkit-scrollbar-thumb:hover': { background: '#555' },
+                  overflow: "auto",
+                  "&::-webkit-scrollbar": { width: "8px" },
+                  "&::-webkit-scrollbar-track": { background: "#f1f1f1" },
+                  "&::-webkit-scrollbar-thumb": {
+                    background: "#888",
+                    borderRadius: "4px",
+                  },
+                  "&::-webkit-scrollbar-thumb:hover": { background: "#555" },
                 }}
               >
                 <Table stickyHeader>
@@ -568,12 +671,16 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
                       selectedItems.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell>{item.name}</TableCell>
-                          <TableCell align="right">₹{item.price * item.quantity}</TableCell>
+                          <TableCell align="right">
+                            ₹{item.price * item.quantity}
+                          </TableCell>
                           <TableCell align="right">
                             <TextField
                               type="number"
                               value={item.quantity}
-                              onChange={(e) => updateQuantity(index, parseInt(e.target.value))}
+                              onChange={(e) =>
+                                updateQuantity(index, parseInt(e.target.value))
+                              }
                               inputProps={{ min: 1 }}
                               variant="standard"
                               sx={{ width: 60 }}
@@ -585,7 +692,7 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
                                 <TextField
                                   disabled
                                   readOnly
-                                  value={(item.sgst * item.quantity)}
+                                  value={item.sgst * item.quantity}
                                   variant="standard"
                                   sx={{ width: 60 }}
                                 />
@@ -594,7 +701,7 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
                                 <TextField
                                   disabled
                                   readOnly
-                                  value={(item.cgst * item.quantity)}
+                                  value={item.cgst * item.quantity}
                                   variant="standard"
                                   sx={{ width: 60 }}
                                 />
@@ -605,14 +712,17 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
                               <TextField
                                 disabled
                                 readOnly
-                                value={((item.cgst + item.sgst) * item.quantity)}
+                                value={(item.cgst + item.sgst) * item.quantity}
                                 variant="standard"
                                 sx={{ width: 60 }}
                               />
                             </TableCell>
                           )}
                           <TableCell align="right">
-                            <IconButton color="error" onClick={() => removeMenuItem(index)}>
+                            <IconButton
+                              color="error"
+                              onClick={() => removeMenuItem(index)}
+                            >
                               <DeleteIcon />
                             </IconButton>
                           </TableCell>
@@ -624,27 +734,91 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
               </TableContainer>
             </Grid>
             <Grid item xs={12}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'left', flexWrap: 'wrap', gap: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  alignItems: "left",
+                  flexWrap: "wrap",
+                  gap: 2,
+                }}
+              >
                 <Box>
-                  <Typography variant="h6">Total Amount: ₹{formData.totalamt.toFixed(2)}</Typography>
+                  <Typography variant="h6">
+                    Total Amount: ₹{formData.totalamt.toFixed(2)}
+                  </Typography>
                   {isSameState ? (
                     <>
-                      <Typography variant="h6">SGST: ₹{formData.sgstArray?.reduce((sum, value) => sum + value, 0).toFixed(2)} ({(formData.sgstArray?.reduce((sum, value) => sum + value, 0) * 100 / formData.totalamt || 0).toFixed(2)}%)</Typography>
-                      <Typography variant="h6">CGST: ₹{formData.cgstArray?.reduce((sum, value) => sum + value, 0).toFixed(2)} ({(formData.cgstArray?.reduce((sum, value) => sum + value, 0) * 100 / formData.totalamt || 0).toFixed(2)}%)</Typography>
+                      <Typography variant="h6">
+                        SGST: ₹
+                        {formData.sgstArray
+                          ?.reduce((sum, value) => sum + value, 0)
+                          .toFixed(2)}{" "}
+                        (
+                        {(
+                          (formData.sgstArray?.reduce(
+                            (sum, value) => sum + value,
+                            0
+                          ) *
+                            100) /
+                            formData.totalamt || 0
+                        ).toFixed(2)}
+                        %)
+                      </Typography>
+                      <Typography variant="h6">
+                        CGST: ₹
+                        {formData.cgstArray
+                          ?.reduce((sum, value) => sum + value, 0)
+                          .toFixed(2)}{" "}
+                        (
+                        {(
+                          (formData.cgstArray?.reduce(
+                            (sum, value) => sum + value,
+                            0
+                          ) *
+                            100) /
+                            formData.totalamt || 0
+                        ).toFixed(2)}
+                        %)
+                      </Typography>
                     </>
                   ) : (
-                    <Typography variant="h6">IGST: ₹{formData.gst.toFixed(2)} ({((formData.gst * 100 || 0) / formData.totalamt || 0).toFixed(2)}%)</Typography>
+                    <Typography variant="h6">
+                      IGST: ₹{formData.gst.toFixed(2)} (
+                      {(
+                        (formData.gst * 100 || 0) / formData.totalamt || 0
+                      ).toFixed(2)}
+                      %)
+                    </Typography>
                   )}
-                  <Typography variant="h6">Payable Amount: ₹{formData.payableamt.toFixed(2)}</Typography>
+                  <Typography variant="h6">
+                    Payable Amount: ₹{formData.payableamt.toFixed(2)}
+                  </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                  <Button variant="contained" color="primary" type="submit" startIcon={<SaveIcon />}>
+                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    type="submit"
+                    startIcon={<SaveIcon />}
+                  >
                     Save
                   </Button>
-                  <Button variant="outlined" color="secondary" onClick={resetForm} startIcon={<RestartAltIcon />}>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={resetForm}
+                    startIcon={<RestartAltIcon />}
+                  >
                     Reset
                   </Button>
-                  <Button variant="outlined" color="error" onClick={handleCancel} startIcon={<CancelIcon />}>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={handleCancel}
+                    startIcon={<CancelIcon />}
+                  >
                     Cancel
                   </Button>
                 </Box>
