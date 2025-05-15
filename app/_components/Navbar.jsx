@@ -29,6 +29,7 @@ import {
   Utensils,
   PaintBucket,
   PartyPopper,
+  Calculator,
 } from "lucide-react";
 import { jwtVerify } from "jose"; // Import jwtVerify for token verification
 import { ToastContainer, toast } from "react-toastify";
@@ -193,8 +194,8 @@ export default function Navbar() {
               onMouseEnter={() => handleMouseEnter(1)}
               onMouseLeave={handleMouseLeave}
             >
-              <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
-                <User className="w-5 h-5" />
+              <button className="px-1 py-2 rounded-t-sm flex items-center space-x-1 hover:bg-cyan-800 transition-colors duration-300">
+                <User className="w-4 h-4" />
                 <span>Admin</span>
               </button>
               {openDropdown === 1 && (
@@ -223,8 +224,8 @@ export default function Navbar() {
               onMouseEnter={() => handleMouseEnter(2)}
               onMouseLeave={handleMouseLeave}
             >
-              <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
-                <Building2 className="w-5 h-5" />
+              <button className="px-1 py-2 rounded-t-sm flex items-center space-x-1 hover:bg-cyan-800 transition-colors duration-300">
+                <Building2 className="w-4 h-4" />
                 <span>Property</span>
               </button>
               {openDropdown === 2 && (
@@ -264,8 +265,8 @@ export default function Navbar() {
               onMouseEnter={() => handleMouseEnter(3)}
               onMouseLeave={handleMouseLeave}
             >
-              <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
-                <Monitor className="w-5 h-5" />
+              <button className="px-1 py-2 rounded-t-sm flex items-center space-x-1 hover:bg-cyan-800 transition-colors duration-300">
+                <Monitor className="w-4 h-4" />
                 <span>Frontoffice</span>
               </button>
               {openDropdown === 3 && (
@@ -299,8 +300,8 @@ export default function Navbar() {
               onMouseEnter={() => handleMouseEnter(4)}
               onMouseLeave={handleMouseLeave}
             >
-              <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
-                <PaintBucket className="w-5 h-5" />
+              <button className="px-1 py-2 rounded-t-sm flex items-center space-x-1 hover:bg-cyan-800 transition-colors duration-300">
+                <PaintBucket className="w-4 h-4" />
                 <span>Housekeeping</span>
               </button>
               {openDropdown === 4 && (
@@ -323,8 +324,8 @@ export default function Navbar() {
               onMouseEnter={() => handleMouseEnter(5)}
               onMouseLeave={handleMouseLeave}
             >
-              <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
-                <Utensils className="w-5 h-5" />
+              <button className="px-1 py-2 rounded-t-sm flex items-center space-x-1 hover:bg-cyan-800 transition-colors duration-300">
+                <Utensils className="w-4 h-4" />
                 <span>Restaurant</span>
               </button>
               {openDropdown === 5 && (
@@ -377,8 +378,8 @@ export default function Navbar() {
               onMouseEnter={() => handleMouseEnter(6)}
               onMouseLeave={handleMouseLeave}
             >
-              <button className="px-3 py-2 rounded-t-lg flex items-center space-x-2 hover:bg-cyan-800 transition-colors duration-300">
-                <ShoppingCart className="w-5 h-5" />
+              <button className="px-1 py-2 rounded-t-sm flex items-center space-x-1 hover:bg-cyan-800 transition-colors duration-300">
+                <ShoppingCart className="w-4 h-4" />
                 <span>Inventory</span>
               </button>
               {openDropdown === 6 && (
@@ -417,6 +418,40 @@ export default function Navbar() {
               )}
             </li>
           )}
+          {showMaster && (
+            <li
+              className="relative group"
+              onMouseEnter={() => handleMouseEnter(7)}
+              onMouseLeave={handleMouseLeave}
+            >
+              <button className="px-1 py-2 rounded-t-sm flex items-center space-x-1 hover:bg-cyan-800 transition-colors duration-300">
+                <Calculator className="w-4 h-4" />
+                <span>Accounts</span>
+              </button>
+              {openDropdown === 7 && (
+                <ul className="absolute top-[100%] left-0 w-48 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
+                  <Link href="/Inventory/StockReport">
+                    <li className="px-4 py-2 hover:text-blue-900 flex items-center space-x-2 transition-colors duration-200">
+                      <ShoppingCart className="w-4 h-4 hover:text-blue-900 " />
+                      <span>Stock Report</span>
+                    </li>
+                  </Link>
+                  <Link href="/Restaurant/restaurantreport">
+                    <li className="px-4 py-2 hover:text-blue-900 flex items-center space-x-2 transition-colors duration-200">
+                      <Utensils className="w-4 h-4 hover:text-blue-900" />
+                      <span>Restaurant Invoice Report</span>
+                    </li>
+                  </Link>
+                  <Link href="/Restaurant/restaurantreport">
+                    <li className="px-4 py-2 hover:text-blue-900 flex items-center space-x-2 transition-colors duration-200">
+                      <ClipboardList className="w-4 h-4 hover:text-blue-900" />
+                      <span>Room Invoice Report</span>
+                    </li>
+                  </Link>
+                </ul>
+              )}
+            </li>
+          )}
 
           {/* Logout Button (shown if either token exists) */}
           {(userAuthToken || authToken || roles.length > 0) && (
@@ -433,7 +468,7 @@ export default function Navbar() {
                 `}
               >
                 <LogOut
-                  className={`w-5 h-5 transform transition-transform duration-500 ${
+                  className={`w-4 h-4 transform transition-transform duration-500 ${
                     isLoggingOut ? "rotate-90" : ""
                   }`}
                 />
