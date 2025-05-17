@@ -47,6 +47,7 @@ const RoomCategoryForm = () => {
 
       const gst =
         parseFloat(updatedData.sgst || 0) + parseFloat(updatedData.cgst || 0);
+    updatedData.gst = gst;
 
       if (
         name === "gst" ||
