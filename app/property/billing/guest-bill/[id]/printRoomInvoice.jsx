@@ -1,13 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  Box, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Button, Divider, Grid
-} from '@mui/material';
-import PrintIcon from '@mui/icons-material/Print';
-import HotelIcon from '@mui/icons-material/Hotel';
-import axios from 'axios';
+  Box,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  Divider,
+  Grid,
+  styled,
+  Tab,
+} from "@mui/material";
+import PrintIcon from "@mui/icons-material/Print";
+import HotelIcon from "@mui/icons-material/Hotel";
+import axios from "axios";
 import { getCookie } from "cookies-next"; // Import getCookie from cookies-next
 import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
+import { GetCustomDate, GetTodaysDate } from "../../../../../utils/DateFetcher";
 
 // Add print-specific styles
 const printStyles = `
@@ -36,7 +49,16 @@ const printStyles = `
   }
 `;
 
+const CustomTableCell = styled(TableCell)`
+  border: 1px solid black;
+  padding: 2px;
+  & > p {
+    font-size: 14px;
+  }
+`;
+
 const PrintableRoomInvoice = ({ billId }) => {
+  const todaysDate = GetTodaysDate();
   const [bookingData, setBookingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -51,12 +73,15 @@ const PrintableRoomInvoice = ({ billId }) => {
       try {
         const token = document.cookie
           .split("; ")
-          .find((row) => row.startsWith("authToken=") || row.startsWith("userAuthToken="))
+          .find(
+            (row) =>
+              row.startsWith("authToken=") || row.startsWith("userAuthToken=")
+          )
           .split("=")[1];
         const headers = { Authorization: `Bearer ${token}` };
-        console.log('billId', billId);
+        console.log("billId", billId);
         // 1. First fetch billing details
-        const authtoken = getCookie('authToken');
+        const authtoken = getCookie("authToken");
         const usertoken = getCookie("userAuthToken");
         if (!authtoken && !usertoken) {
           router.push("/"); // Redirect to login if no token is found
@@ -66,42 +91,48 @@ const PrintableRoomInvoice = ({ billId }) => {
         let decoded, userId;
         if (authtoken) {
           // Verify the authToken (legacy check)
-          decoded = await jwtVerify(authtoken, new TextEncoder().encode(SECRET_KEY));
+          decoded = await jwtVerify(
+            authtoken,
+            new TextEncoder().encode(SECRET_KEY)
+          );
           userId = decoded.payload.id;
         }
         if (usertoken) {
           // Verify the userAuthToken
-          decoded = await jwtVerify(usertoken, new TextEncoder().encode(SECRET_KEY));
+          decoded = await jwtVerify(
+            usertoken,
+            new TextEncoder().encode(SECRET_KEY)
+          );
           userId = decoded.payload.profileId; // Use userId from the new token structure
         }
 
         const [billingResponse, profileResponse] = await Promise.all([
           fetch(`/api/Billing/${billId}`),
-          fetch(`/api/Profile/${userId}`)
+          fetch(`/api/Profile/${userId}`),
         ]);
-        console.log('billingResponse', billingResponse);
+        console.log("billingResponse", billingResponse);
         if (!billingResponse.ok || !profileResponse.ok) {
-          throw new Error('Failed to fetch data');
+          throw new Error("Failed to fetch data");
         }
         const [billing, profileData] = await Promise.all([
           billingResponse.json(),
-          profileResponse.json()
+          profileResponse.json(),
         ]);
         const billingData = billing.data;
-        console.log('billingData', billingData);
+        console.log("billingData", billingData);
         // Set payment status
-        setIsPaid(billingData.Bill_Paid?.toLowerCase() === 'yes');
+        setIsPaid(billingData.Bill_Paid?.toLowerCase() === "yes");
         // Set cancellation status
-        setIsCancelled(billingData.Cancelled?.toLowerCase() === 'yes');
+        setIsCancelled(billingData.Cancelled?.toLowerCase() === "yes");
         // 2. Fetch and find matched room
         const roomsResponse = await fetch("/api/rooms");
         const roomsData = await roomsResponse.json();
-        console.log('roomsData', roomsData.data);
+        console.log("roomsData", roomsData.data);
         const matchedRooms = roomsData.data.filter((room) =>
           billingData.roomNo.includes(String(room.number))
         );
 
-        console.log('matchedRooms', matchedRooms);
+        console.log("matchedRooms", matchedRooms);
 
         if (!matchedRooms) {
           throw new Error("No matching room found");
@@ -112,28 +143,33 @@ const PrintableRoomInvoice = ({ billId }) => {
           headers,
         });
         // Find bookings for all rooms
-        const matchedBookings = await Promise.all(matchedRooms.map(async (room) => {
-          if (billingData.Bill_Paid === "yes" || billingData.Cancelled === "yes") {
-            const currentBillIndex = room.billWaitlist.findIndex(
-              (billId) => billId._id.toString() === billingData._id.toString()
-            );
+        const matchedBookings = await Promise.all(
+          matchedRooms.map(async (room) => {
+            if (
+              billingData.Bill_Paid === "yes" ||
+              billingData.Cancelled === "yes"
+            ) {
+              const currentBillIndex = room.billWaitlist.findIndex(
+                (billId) => billId._id.toString() === billingData._id.toString()
+              );
 
-            if (currentBillIndex === -1) {
-              return null;
+              if (currentBillIndex === -1) {
+                return null;
+              }
+
+              const correspondingGuestId = room.guestWaitlist[currentBillIndex];
+              return newBookingsResponse.data.data.find(
+                (booking) => booking._id === correspondingGuestId._id.toString()
+              );
+            } else {
+              return newBookingsResponse.data.data.find(
+                (booking) => booking._id === room.currentGuestId
+              );
             }
+          })
+        );
 
-            const correspondingGuestId = room.guestWaitlist[currentBillIndex];
-            return newBookingsResponse.data.data.find(
-              (booking) => booking._id === correspondingGuestId._id.toString()
-            );
-          } else {
-            return newBookingsResponse.data.data.find(
-              (booking) => booking._id === room.currentGuestId
-            );
-          }
-        }));
-
-        console.log('matchedBookings', matchedBookings);
+        console.log("matchedBookings", matchedBookings);
 
         if (!matchedBookings) {
           throw new Error("No matching booking found");
@@ -141,7 +177,9 @@ const PrintableRoomInvoice = ({ billId }) => {
 
         // Filter out duplicates and null values
         const uniqueBookings = Array.from(
-          new Set(matchedBookings.filter(booking => booking).map(JSON.stringify))
+          new Set(
+            matchedBookings.filter((booking) => booking).map(JSON.stringify)
+          )
         ).map(JSON.parse);
         console.log("uniqueBookings", uniqueBookings);
 
@@ -151,9 +189,9 @@ const PrintableRoomInvoice = ({ billId }) => {
         });
 
         // Get categories for all matched rooms
-        const matchedCategories = matchedRooms.map(room =>
+        const matchedCategories = matchedRooms.map((room) =>
           roomCategoriesResponse.data.data.find(
-            category => category._id === room.category._id
+            (category) => category._id === room.category._id
           )
         );
 
@@ -243,15 +281,31 @@ const PrintableRoomInvoice = ({ billId }) => {
 
   if (error) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <Typography variant="h6" color="error">Error: {error}</Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+        }}
+      >
+        <Typography variant="h6" color="error">
+          Error: {error}
+        </Typography>
       </Box>
     );
   }
 
   if (!bookingData) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+        }}
+      >
         <Typography variant="h6">No invoice found</Typography>
       </Box>
     );
@@ -259,182 +313,220 @@ const PrintableRoomInvoice = ({ billId }) => {
 
   const { booking, billing, room, category, services } = bookingData;
   const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString('en-GB');
+  const formattedDate = currentDate.toLocaleDateString("en-GB");
   const formattedTime = currentDate.toLocaleTimeString();
 
-  const totalServicesAmount = serviceItems.reduce((total, service) => total + service.price, 0);
-  console.log('totalServicesAmount', totalServicesAmount);
-  const serviceTax = serviceItems.reduce((tax, service) => tax + service.tax, 0);
-  console.log('serviceTax', serviceTax);
+  const totalServicesAmount = serviceItems.reduce(
+    (total, service) => total + service.price,
+    0
+  );
+
+  const serviceTax = serviceItems.reduce(
+    (tax, service) => tax + service.tax,
+    0
+  );
 
   return (
     <>
       <style>{printStyles}</style>
-      <Box id="printable-invoice" sx={{ p: 4, maxWidth: '800px', margin: 'auto', bgcolor: '#f5f5f5', borderRadius: 2, maxHeight: '90vh', overflowY: 'auto', overflowX: 'hidden' }}>
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-          <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={6}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <HotelIcon sx={{ fontSize: 40, mr: 2, color: '#00bcd4' }} />
-                <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#00bcd4' }}>
-                  {profile.hotelName}
-                </Typography>
-              </Box>
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                {profile.addressLine1 || 'N/A'}
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                {profile.addressLine2 || 'N/A'}
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                {profile.district || 'N/A'}, {profile.country} - {profile.pincode || 'N/A'}
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                Phone: {profile.mobileNo}
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                Email: {profile.email}
-              </Typography>
-              {profile.website && (
-                <Typography variant="body2" color="textSecondary">
-                  Website: {profile.website}
-                </Typography>
-              )}
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                GST No: {profile.gstNo || 'N/A'}
-              </Typography>
-            </Grid>
-            <Grid item xs={6} sx={{ textAlign: 'right' }}>
-              <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#00bcd4' }}>
-                Room Invoice
-              </Typography>
-              <Typography variant="body1" color="textSecondary">
-                #{booking.bookingId}
-              </Typography>
-            </Grid>
-          </Grid>
+      <Box
+        id="printable-invoice"
+        sx={{
+          maxWidth: "800px",
+          margin: "auto",
 
-          <Divider sx={{ my: 3 }} />
-
-          {/* Guest Details */}
-          <Grid container spacing={2} sx={{ mb: 4 }}>
-            <Grid item xs={6}>
-              <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Guest Details:</Typography>
-              <Typography variant="body1">{booking.guestName}</Typography>
-              <Typography variant="body2" color="textSecondary">
-                Phone: +91 {booking.mobileNo}
-              </Typography>
-              <Typography variant="body1">Customer GST No.: {booking.gstin}</Typography>
-            </Grid>
-            <Grid item xs={6} sx={{ textAlign: 'right' }}>
-              <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Invoice Date:</Typography>
-              <Typography variant="body1">{formattedDate}</Typography>
-              <Typography variant="body1" color="textSecondary">
-                Time: {formattedTime}
-              </Typography>
-            </Grid>
-          </Grid>
-
-          {/* Room Details Table */}
-          <TableContainer component={Paper} elevation={0} sx={{ mb: 4 }}>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ bgcolor: '#00bcd4' }}>
-                  <TableCell align="left" sx={{ color: 'white' }}>Date</TableCell>
-                  <TableCell align='center' sx={{ color: 'white' }}>Room Details</TableCell>
-                  <TableCell align='center' sx={{ color: 'white' }}>Room Tax</TableCell>
-                  <TableCell align="right" sx={{ color: 'white' }}>Amount</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {billing.roomNo.map((roomNumber, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{new Date(bookingData.booking.checkIn).toLocaleDateString("en-GB")}</TableCell>
-                    <TableCell align="center">
-                      Room #{roomNumber} - {bookingData.room[index].category.category}
-                    </TableCell>
-                    <TableCell align="center">{billing.taxList[index][0].toFixed(2)}%</TableCell>
-                    <TableCell align="right">₹{billing.priceList[index][0].toFixed(2)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          {/* Total Calculation */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-            <Box sx={{ width: '250px' }}>
-              <Grid container spacing={1}>
-                <Grid item xs={6}>
-                  <Typography variant="body1">Room Tax:</Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 1 }}>Total:</Typography>
-                </Grid>
-                <Grid item xs={6} sx={{ textAlign: 'right' }}>
-                  <Typography variant="body1">{serviceTax}%</Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 1 }}>
-                    ₹{totalServicesAmount.toFixed(2)}
+          maxHeight: "90vh",
+          overflowY: "auto",
+          overflowX: "hidden",
+        }}
+      >
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <CustomTableCell colSpan={4} align="center">
+                  <Typography fontWeight={600} align="center">
+                    TAX INVOICE
                   </Typography>
-                </Grid>
-              </Grid>
-            </Box>
-          </Box>
-
-          {/* Paid Image */}
-          {isPaid && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
-              <img
-                src="/paid.png"
-                alt="Paid"
-                style={{
-                  width: '250px',
-                  height: 'auto',
-                  opacity: 0.8
-                }}
-              />
-            </Box>
-          )}
-
-          {/* Cancelled Image */}
-          {isCancelled && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
-              <img
-                src="/cancelled.png"
-                alt="Cancelled"
-                style={{
-                  width: '250px',
-                  height: 'auto',
-                  opacity: 0.8
-                }}
-              />
-            </Box>
-          )}
-
-          <Divider sx={{ my: 3 }} />
-
-          <Typography variant="body2" color="textSecondary" sx={{ mb: 2, textAlign: 'center' }}>
-            Thank you for your stay.
-          </Typography>
-
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<PrintIcon />}
-              onClick={handlePrint}
-              sx={{
-                bgcolor: '#00bcd4',
-                '&:hover': { bgcolor: '#00acc1' },
-              }}
-            >
-              Print Room Invoice
-            </Button>
-          </Box>
-
-          <Box sx={{ mt: 4, textAlign: 'center' }}>
-            <Typography variant="caption" color="textSecondary">
-              Invoice generated on {formattedDate} at {formattedTime}
-            </Typography>
-          </Box>
-        </Paper>
+                </CustomTableCell>
+              </TableRow>
+              <TableRow>
+                <CustomTableCell colSpan={4} align="center">
+                  <Typography align="center" variant="h5">
+                    {profile?.hotelName}
+                  </Typography>
+                  <Typography align="center">
+                    Contact: {profile?.mobileNo}&nbsp; Email: {profile?.email}
+                  </Typography>
+                  <Typography align="center">
+                    {profile?.addressLine1},{profile?.addressLine2},
+                    {profile?.district},{profile?.state},{profile?.country},
+                    {profile?.pinCode}
+                  </Typography>
+                  <Typography align="center">GSTIN:{profile?.gstNo}</Typography>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Typography>Bill to</Typography>
+                    <Typography>
+                      Booking Id: {bookingData?.booking?.bookingId}
+                    </Typography>
+                  </Box>
+                </CustomTableCell>
+              </TableRow>
+              <TableRow>
+                <CustomTableCell rowSpan={3}>
+                  <Typography>
+                    Guest Name: {bookingData?.booking?.guestName}
+                  </Typography>
+                  <Typography>
+                    Company Name: {bookingData?.booking?.companyName}
+                  </Typography>
+                  <Typography>
+                    Address: {bookingData?.booking?.address},
+                    {bookingData?.booking?.state}, PIN:
+                    {bookingData?.booking?.pinCode}
+                  </Typography>
+                  <Typography>GSTIN: {bookingData?.booking?.gstin}</Typography>
+                </CustomTableCell>
+                <CustomTableCell>
+                  <Typography fontWeight={600}>
+                    Check-in: {GetCustomDate(bookingData?.booking?.checkIn)}
+                  </Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography fontWeight={600}>Invoice:</Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography fontWeight={600}>Date:</Typography>
+                </CustomTableCell>
+              </TableRow>
+              <TableRow>
+                <CustomTableCell>
+                  <Typography fontWeight={600}>
+                    Check-out: {GetCustomDate(bookingData?.booking?.checkOut)}
+                  </Typography>
+                </CustomTableCell>
+                <CustomTableCell rowSpan={2} align="center">
+                  <Typography fontWeight={600}>1001</Typography>
+                </CustomTableCell>
+                <CustomTableCell rowSpan={2} align="center">
+                  <Typography fontWeight={600}>
+                    {GetCustomDate(bookingData?.booking?.checkOut)}
+                  </Typography>
+                </CustomTableCell>
+              </TableRow>
+              <TableRow>
+                <CustomTableCell>
+                  <Typography>
+                    Room No. (s):{" "}
+                    {bookingData?.booking?.roomNumbers?.map((item, index) => (
+                      <span key={index}>
+                        {item}
+                        {index < bookingData?.booking?.roomNumbers.length - 1
+                          ? ", "
+                          : ""}
+                      </span>
+                    ))}
+                  </Typography>
+                </CustomTableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <CustomTableCell align="center">
+                  <Typography fontWeight={600}>
+                    Description of Services
+                  </Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center" width={200}>
+                  <Typography fontWeight={600}>HSN CODE</Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography fontWeight={600}>GST%</Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography fontWeight={600}>Amount</Typography>
+                </CustomTableCell>
+              </TableRow>
+            </TableBody>
+            <TableBody sx={{ height: "200px" }}>
+              {bookingData?.room?.map((room, index) => (
+                <TableRow key={index}>
+                  <CustomTableCell
+                    sx={{ borderBottom: "none", borderTop: "none" }}
+                  >
+                    <Typography>
+                      Room No:{room?.number}- {room?.category?.category}
+                    </Typography>
+                  </CustomTableCell>
+                  <CustomTableCell
+                    sx={{ borderBottom: "none", borderTop: "none" }}
+                  >
+                    <Typography></Typography>
+                  </CustomTableCell>
+                  <CustomTableCell
+                    sx={{ borderBottom: "none", borderTop: "none" }}
+                  >
+                    <Typography></Typography>
+                  </CustomTableCell>
+                  <CustomTableCell
+                    align="center"
+                    sx={{ borderBottom: "none", borderTop: "none" }}
+                  >
+                    <Typography>100</Typography>
+                  </CustomTableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableBody>
+              <TableRow>
+                <CustomTableCell>
+                  <Typography fontWeight={600}>Total</Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography></Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography></Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography>{bookingData?.billing?.totalAmount}</Typography>
+                </CustomTableCell>
+              </TableRow>
+              <TableRow>
+                <CustomTableCell>
+                  <Typography>Amuount Chargeable (in words):</Typography>
+                  <Typography fontWeight={600}>Four Thousand</Typography>
+                </CustomTableCell>
+                <CustomTableCell rowSpan={2} align="center">
+                  <Typography variant="body2">
+                    I agree that I&apos;m responsible for the full payment of
+                    this invoice,in the event it is not paid by the
+                    company,organisation or person indicated above.
+                  </Typography>
+                </CustomTableCell>
+                <CustomTableCell colSpan={2} rowSpan={2} align="center">
+                  <Typography fontWeight={600}>Authorised Signatory</Typography>
+                </CustomTableCell>
+              </TableRow>
+              <TableRow>
+                <CustomTableCell>
+                  <Typography fontWeight={600} sx={{ mb: 10 }}>
+                    GUEST SIGNATURE:
+                  </Typography>
+                </CustomTableCell>
+              </TableRow>
+              <TableRow>
+                <CustomTableCell colSpan={4} align="center">
+                  <Typography variant="caption">
+                    We are Happy to Serve You.Visit us again...
+                  </Typography>
+                </CustomTableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Box>
     </>
   );
