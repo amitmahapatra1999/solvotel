@@ -443,7 +443,13 @@ const PrintableRoomInvoice = ({ billId }) => {
                   <Typography fontWeight={600}>HSN CODE</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography fontWeight={600}>GST%</Typography>
+                  <Typography fontWeight={600}>SGST%</Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography fontWeight={600}>CGST%</Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography fontWeight={600}>Total GST%</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
                   <Typography fontWeight={600}>Amount</Typography>
@@ -465,10 +471,20 @@ const PrintableRoomInvoice = ({ billId }) => {
                   >
                     <Typography></Typography>
                   </CustomTableCell>
+                                    <CustomTableCell
+                    sx={{ borderBottom: "none", borderTop: "none" }}
+                  >
+                    <Typography>{bookingData?.category?.sgst}</Typography>
+                  </CustomTableCell>
+                                    <CustomTableCell
+                    sx={{ borderBottom: "none", borderTop: "none" }}
+                  >
+                    <Typography>{bookingData?.category?.cgst}</Typography>
+                  </CustomTableCell>
                   <CustomTableCell
                     sx={{ borderBottom: "none", borderTop: "none" }}
                   >
-                    <Typography></Typography>
+                    <Typography>{bookingData?.category?.sgst + bookingData?.category?.cgst}</Typography>
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
