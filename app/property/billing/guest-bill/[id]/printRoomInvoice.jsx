@@ -344,14 +344,14 @@ const PrintableRoomInvoice = ({ billId }) => {
           <Table>
             <TableHead>
               <TableRow>
-                <CustomTableCell colSpan={4} align="center">
+                <CustomTableCell colSpan={6} align="center">
                   <Typography fontWeight={600} align="center">
                     TAX INVOICE
                   </Typography>
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={4} align="center">
+                <CustomTableCell colSpan={6} align="center">
                   <Typography align="center" variant="h5">
                     {profile?.hotelName}
                   </Typography>
@@ -375,7 +375,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell rowSpan={3}>
+                <CustomTableCell rowSpan={3} colSpan={2}>
                   <Typography>
                     Guest Name: {bookingData?.booking?.guestName}
                   </Typography>
@@ -389,7 +389,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                   </Typography>
                   <Typography>GSTIN: {bookingData?.booking?.gstin}</Typography>
                 </CustomTableCell>
-                <CustomTableCell>
+                <CustomTableCell colSpan={2}>
                   <Typography fontWeight={600}>
                     Check-in: {GetCustomDate(bookingData?.booking?.checkIn)}
                   </Typography>
@@ -402,7 +402,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell>
+                <CustomTableCell colSpan={2}>
                   <Typography fontWeight={600}>
                     Check-out: {GetCustomDate(bookingData?.booking?.checkOut)}
                   </Typography>
@@ -417,7 +417,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell>
+                <CustomTableCell colSpan={2}>
                   <Typography>
                     Room No. (s):{" "}
                     {bookingData?.booking?.roomNumbers?.map((item, index) => (
@@ -439,19 +439,19 @@ const PrintableRoomInvoice = ({ billId }) => {
                     Description of Services
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width={200}>
+                <CustomTableCell align="center" width="15%">
                   <Typography fontWeight={600}>HSN CODE</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center">
+                <CustomTableCell align="center" width="12%">
                   <Typography fontWeight={600}>SGST%</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center">
+                <CustomTableCell align="center" width="12%">
                   <Typography fontWeight={600}>CGST%</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center">
+                <CustomTableCell align="center" width="12%">
                   <Typography fontWeight={600}>Total GST%</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center">
+                <CustomTableCell align="center" width="12%">
                   <Typography fontWeight={600}>Amount</Typography>
                 </CustomTableCell>
               </TableRow>
@@ -471,12 +471,12 @@ const PrintableRoomInvoice = ({ billId }) => {
                   >
                     <Typography></Typography>
                   </CustomTableCell>
-                                    <CustomTableCell
+                  <CustomTableCell
                     sx={{ borderBottom: "none", borderTop: "none" }}
                   >
                     <Typography>{bookingData?.category?.sgst}</Typography>
                   </CustomTableCell>
-                                    <CustomTableCell
+                  <CustomTableCell
                     sx={{ borderBottom: "none", borderTop: "none" }}
                   >
                     <Typography>{bookingData?.category?.cgst}</Typography>
@@ -484,7 +484,10 @@ const PrintableRoomInvoice = ({ billId }) => {
                   <CustomTableCell
                     sx={{ borderBottom: "none", borderTop: "none" }}
                   >
-                    <Typography>{bookingData?.category?.sgst + bookingData?.category?.cgst}</Typography>
+                    <Typography>
+                      {bookingData?.category?.sgst +
+                        bookingData?.category?.cgst}
+                    </Typography>
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
@@ -507,6 +510,12 @@ const PrintableRoomInvoice = ({ billId }) => {
                   <Typography></Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
+                  <Typography></Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography></Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
                   <Typography>{bookingData?.billing?.totalAmount}</Typography>
                 </CustomTableCell>
               </TableRow>
@@ -515,14 +524,14 @@ const PrintableRoomInvoice = ({ billId }) => {
                   <Typography>Amuount Chargeable (in words):</Typography>
                   <Typography fontWeight={600}>Four Thousand</Typography>
                 </CustomTableCell>
-                <CustomTableCell rowSpan={2} align="center">
+                <CustomTableCell rowSpan={2} colSpan={2} align="center">
                   <Typography variant="body2">
                     I agree that I&apos;m responsible for the full payment of
                     this invoice,in the event it is not paid by the
                     company,organisation or person indicated above.
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell colSpan={2} rowSpan={2} align="center">
+                <CustomTableCell colSpan={3} rowSpan={2} align="center">
                   <Typography fontWeight={600}>Authorised Signatory</Typography>
                 </CustomTableCell>
               </TableRow>
@@ -534,7 +543,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={4} align="center">
+                <CustomTableCell colSpan={6} align="center">
                   <Typography variant="caption">
                     We are Happy to Serve You.Visit us again...
                   </Typography>

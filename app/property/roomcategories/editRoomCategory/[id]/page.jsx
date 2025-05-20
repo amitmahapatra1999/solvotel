@@ -10,13 +10,15 @@ const EditRoomCategory = () => {
   const router = useRouter();
   const params = useParams(); // Get the route parameters
   const { id } = params; // Extract the id from parameters
-
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     image: null,
     category: "",
     description: "",
     bedType: "",
     tariff: 0,
+    sgst: 0,
+    cgst: 0,
     gst: 0,
     total: 0,
     baseAdult: "",
@@ -39,6 +41,7 @@ const EditRoomCategory = () => {
 
   const fetchRoomCategory = async () => {
     try {
+      setLoading(true);
       const res = await fetch(`/api/roomCategories/${id}`);
       if (!res.ok) {
         throw new Error("Failed to fetch room category");
@@ -49,7 +52,9 @@ const EditRoomCategory = () => {
 
       if (result.success && result.data) {
         setFormData(result.data);
+        setLoading(false);
       } else {
+        setLoading(false);
         console.error("Unexpected response format or no data found.");
       }
     } catch (error) {
@@ -72,9 +77,15 @@ const EditRoomCategory = () => {
         [name]: value,
       };
 
-      const gst = parseInt(updatedData.gst) || 0;
+      const gst =
+        parseFloat(updatedData.sgst || 0) + parseFloat(updatedData.cgst || 0);
 
-      if (name === "gst" || name === "tariff") {
+      if (
+        name === "gst" ||
+        name === "sgst" ||
+        name === "cgst" ||
+        name === "tariff"
+      ) {
         // Calculate total when gst or tariff changes
         const tariff = parseInt(updatedData.tariff) || 0;
         updatedData.total = Math.ceil(((100 + gst) / 100) * tariff);
@@ -148,7 +159,16 @@ const EditRoomCategory = () => {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
+
+      <div className="min-h-screen bg-white">
+        {loading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
+            <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
+              <div className="loader"></div>
+              <span className="mt-4 text-gray-700">Loading Bills...</span>
+            </div>
+          </div>
+        )}
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -250,6 +270,38 @@ const EditRoomCategory = () => {
                 </div>
                 <div>
                   <label
+                    htmlFor="sgst"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    SGST
+                  </label>
+                  <input
+                    type="number"
+                    name="sgst"
+                    id="sgst"
+                    value={formData.sgst}
+                    onChange={handleChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="cgst"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    CGST
+                  </label>
+                  <input
+                    type="number"
+                    name="cgst"
+                    id="cgst"
+                    value={formData.cgst}
+                    onChange={handleChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label
                     htmlFor="gst"
                     className="block text-sm font-medium text-gray-700"
                   >
@@ -259,8 +311,12 @@ const EditRoomCategory = () => {
                     type="number"
                     name="gst"
                     id="gst"
-                    value={formData.gst}
+                    value={
+                      parseFloat(formData.sgst || 0) +
+                      parseFloat(formData.cgst || 0)
+                    }
                     onChange={handleChange}
+                    readOnly
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   />
                 </div>
