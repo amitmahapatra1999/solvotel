@@ -11,6 +11,7 @@ import {
   InputLabel,
   Select,
   Grid,
+  Tab,
 } from "@mui/material";
 import { IconButton, Tooltip } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
@@ -150,24 +151,39 @@ export default function EventReport() {
   }, []);
 
   const handleSearch = () => {
-    const data = guests?.filter((item) => {
-      const dob = new Date(item.dateofbirth);
-      const dobMonth = dob.getMonth();
-      const anniversaryMonth = new Date(item.dateofanniversary).getMonth();
-      if (
-        item.dateOfBirth !== "NaN-NaN-NaN" &&
-        item.dateOfBirth !== null &&
-        dobMonth === month
-      ) {
-        return item;
-      }
+    const filteredArray = guests?.filter((item) => {
+      if (!item.dateofbirth && !item.dateofanniversary) return false;
+
+      const dob = item.dateofbirth ? new Date(item.dateofbirth) : null;
+      const doa = item.dateofanniversary
+        ? new Date(item.dateofanniversary)
+        : null;
+
+      const isValidDob = dob instanceof Date && !isNaN(dob);
+      const isValidDoa = doa instanceof Date && !isNaN(doa);
+      console.log("isValidDob", isValidDob, dob);
+      console.log("isValidDoa", isValidDoa, doa);
+
+      const dobMonth = isValidDob ? dob.getMonth() : null;
+      const doaMonth = isValidDoa ? doa.getMonth() : null;
+      console.log("dobMonth", dobMonth);
+      console.log("doaMonth", doaMonth);
+      console.log("month", month);
+
+      const matchesDobMonth = isValidDob && dobMonth === month;
+      const matchesDoaMonth = isValidDoa && doaMonth === month;
+
+      return matchesDobMonth || matchesDoaMonth;
     });
-    setFilteredGuests(data);
+
+    if (!filteredArray || filteredArray.length === 0) {
+      setError("No guests found for the selected month");
+      setFilteredGuests([]);
+    } else {
+      setError(null);
+      setFilteredGuests(filteredArray);
+    }
   };
-
-  console.log(guests);
-
-  if (error) return <p>{error}</p>;
 
   return (
     <>
@@ -239,14 +255,7 @@ export default function EventReport() {
                 {filteredGuests.map((guest) => {
                   let dob = GetCustomDate(guest.dateofbirth);
                   let doa = GetCustomDate(guest.dateofanniversary);
-                  if (dob === "NaN-NaN-NaN") {
-                    dob = "N/A";
-                  }
-                  if (doa === "NaN-NaN-NaN") {
-                    doa = "N/A";
-                  }
-                  guest.dateofbirth = dob;
-                  guest.dateofanniversary = doa;
+
                   return (
                     <TableRow key={guest._id}>
                       <TableCell component="th">{guest.guestName}</TableCell>
@@ -257,6 +266,11 @@ export default function EventReport() {
                     </TableRow>
                   );
                 })}
+                {error && (
+                  <TableRow>
+                    <TableCell>{error}</TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>

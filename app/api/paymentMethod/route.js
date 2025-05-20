@@ -1,12 +1,12 @@
-// app/api/restaurantinvoice/route.js
+import PaymentMethod from "../../lib/models/PaymentMethod";
 import connectSTR from "../../lib/dbConnect";
-import restaurantinvoice from "../../lib/models/restaurantinvoice";
-import Profile from "../../lib/models/Profile";
 import mongoose from "mongoose";
+import Profile from "../../lib/models/Profile";
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
 const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
+// Connect to the database
 const connectToDatabase = async () => {
   if (mongoose.connections[0].readyState) return;
   await mongoose.connect(connectSTR, {
@@ -15,6 +15,7 @@ const connectToDatabase = async () => {
   });
 };
 
+// GET all products
 export async function GET(req) {
   try {
     await connectToDatabase();
@@ -55,33 +56,42 @@ export async function GET(req) {
         { status: 400 }
       );
     }
+    // Find the profile by userId to get the username
     const profile = await Profile.findById(userId);
     if (!profile) {
       return NextResponse.json(
-        { success: false, error: "Profile not found" },
+        {
+          success: false,
+          error: "Profile not found",
+        },
         { status: 404 }
       );
     }
-    const invoices = await restaurantinvoice.find({
-      username: profile.username,
-    });
-    return NextResponse.json({ invoices });
+    const products = await PaymentMethod.find({ username: profile.username });
+    return NextResponse.json({ products });
   } catch (error) {
-    console.error("Error fetching invoices:", error);
+    console.error("Error fetching products:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to fetch invoices" },
-      { status: 400 }
+      { error: "Error fetching products from the database" },
+      { status: 500 }
     );
   }
 }
 
-export async function POST(req) {
+// POST a new product
+export async function POST(request) {
   try {
+    const data = await request.json();
+    if (!data.itemName) {
+      return NextResponse.json(
+        { error: "Product name is required" },
+        { status: 400 }
+      );
+    }
     await connectToDatabase();
-    const data = await req.json();
     // Extract the token from cookies
-    const authToken = req.cookies.get("authToken")?.value;
-    const userAuthToken = req.cookies.get("userAuthToken")?.value;
+    const authToken = request.cookies.get("authToken")?.value;
+    const userAuthToken = request.cookies.get("userAuthToken")?.value;
     if (!authToken && !userAuthToken) {
       return NextResponse.json(
         {
@@ -116,28 +126,31 @@ export async function POST(req) {
         { status: 400 }
       );
     }
+    // Find the profile by userId to get the username
     const profile = await Profile.findById(userId);
     if (!profile) {
       return NextResponse.json(
-        { success: false, error: "Profile not found" },
+        {
+          success: false,
+          error: "Profile not found",
+        },
         { status: 404 }
       );
     }
-
-    const newInvoice = await restaurantinvoice.create({
-      ...data,
-      username: profile.username, // Set the username from the profile
+    const newProduct = new PaymentMethod({
+      itemName: data.itemName,
+      username: profile.username,
     });
-
+    await newProduct.save();
     return NextResponse.json(
-      { success: true, data: newInvoice },
+      { message: "Product added successfully", product: newProduct },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error creating invoice:", error);
+    console.error("Error adding product:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to create invoice" },
-      { status: 400 }
+      { error: "Error adding product to the database" },
+      { status: 500 }
     );
   }
 }
