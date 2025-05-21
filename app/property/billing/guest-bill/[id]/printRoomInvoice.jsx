@@ -194,7 +194,7 @@ const PrintableRoomInvoice = ({ billId }) => {
             (category) => category._id === room.category._id
           )
         );
-
+        console.log("CategoryData", matchedCategories);
         // Fetch menu items for comparison
         const menuResponse = await axios.get("/api/menuItem", { headers });
         const menuItemsList = menuResponse.data.data;
@@ -328,6 +328,7 @@ const PrintableRoomInvoice = ({ billId }) => {
 
   return (
     <>
+    {console.log("Daman", bookingData.category[0].cgst)}
       <style>{printStyles}</style>
       <Box
         id="printable-invoice"
@@ -471,20 +472,20 @@ const PrintableRoomInvoice = ({ billId }) => {
                   >
                     <Typography></Typography>
                   </CustomTableCell>
-                                    <CustomTableCell
+                  <CustomTableCell
                     sx={{ borderBottom: "none", borderTop: "none" }}
                   >
-                    <Typography>{bookingData?.category?.sgst}</Typography>
-                  </CustomTableCell>
-                                    <CustomTableCell
-                    sx={{ borderBottom: "none", borderTop: "none" }}
-                  >
-                    <Typography>{bookingData?.category?.cgst}</Typography>
+                    <Typography>{bookingData.category[index]?.sgst}</Typography>
                   </CustomTableCell>
                   <CustomTableCell
                     sx={{ borderBottom: "none", borderTop: "none" }}
                   >
-                    <Typography>{bookingData?.category?.sgst + bookingData?.category?.cgst}</Typography>
+                    <Typography>{bookingData.category[index]?.cgst}</Typography>
+                  </CustomTableCell>
+                  <CustomTableCell
+                    sx={{ borderBottom: "none", borderTop: "none" }}
+                  >
+                    <Typography>{bookingData.category[index]?.sgst + bookingData.category[index]?.cgst}</Typography>
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
@@ -499,6 +500,12 @@ const PrintableRoomInvoice = ({ billId }) => {
               <TableRow>
                 <CustomTableCell>
                   <Typography fontWeight={600}>Total</Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography></Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography></Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
                   <Typography></Typography>
