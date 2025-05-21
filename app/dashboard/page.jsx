@@ -31,7 +31,7 @@ export default function Dashboard() {
 
         {/* Room Availability */}
         <div className="bg-white p-4 rounded-lg shadow mb-4">
-          <h2 className="text-xl font-bold mb-2">Room Availability</h2>
+          <h2 className="text-xl font-bold mb-2">Room Availabiliti</h2>
           {/* Add room availability table here */}
         </div>
 
