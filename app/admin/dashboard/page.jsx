@@ -1,12 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
-  Box,
   Button,
   Card,
   CardContent,
   CardHeader,
-  Chip,
   Container,
   Grid,
   IconButton,
@@ -1065,7 +1063,7 @@ const SuperAdminDashboard = () => {
     console.log(formData);
 
     // Validate fields on change
-    let newErrors = { ...errors };
+    const newErrors = { ...errors };
     if (name === "username") {
       if (value.length < 3 || value.length > 20) {
         newErrors.username = "Username must be between 3 and 20 characters.";
@@ -1099,7 +1097,7 @@ const SuperAdminDashboard = () => {
 
   const handleAddProfile = async () => {
     // Validate form before submission
-    let newErrors = {};
+    const newErrors = {};
     if (formData.username.length < 3 || formData.username.length > 20) {
       newErrors.username = "Username must be between 3 and 20 characters.";
     } else if (!/^[a-zA-Z0-9]+$/.test(formData.username)) {
@@ -1116,20 +1114,35 @@ const SuperAdminDashboard = () => {
       toast.error("Please correct the form errors !!");
       return;
     }
+
     try {
       setIsLoading(true);
       const method = isEditing ? "PUT" : "POST";
       const url = isEditing
         ? `/api/Profile/${selectedProfileId}`
         : "/api/Profile";
+
+      // Create a copy of the form data
+      const dataToSend = { ...formData };
+
+      // If editing and password is empty, remove it to prevent overwriting existing password
+      if (
+        isEditing &&
+        (!dataToSend.password || dataToSend.password.trim() === "")
+      ) {
+        delete dataToSend.password;
+      }
+
       const response = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       });
+
       const data = await response.json();
+
       if (data.success) {
         if (isEditing) {
           setProfiles((prevProfiles) =>
@@ -1137,8 +1150,10 @@ const SuperAdminDashboard = () => {
               profile._id === selectedProfileId ? data.data : profile
             )
           );
+          toast.success("Profile updated successfully!");
         } else {
           setProfiles([...profiles, data.data]);
+          toast.success("Profile added successfully!");
         }
         setOpenAddProfileDialog(false);
         setFormData({
@@ -1158,12 +1173,12 @@ const SuperAdminDashboard = () => {
           Profile_Complete: "no",
         });
         setErrors({});
-        toast.success("Profile added successfully!");
       } else {
-        toast.error("Username already exists !!");
+        toast.error(data.error || "Username already exists !!");
       }
     } catch (error) {
-      toast.error("Error adding profile.");
+      console.error("Error in profile operation:", error);
+      toast.error("Error processing your request.");
     } finally {
       setIsLoading(false);
     }
