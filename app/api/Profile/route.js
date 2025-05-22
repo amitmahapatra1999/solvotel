@@ -1,8 +1,8 @@
-import mongoose from 'mongoose';
-import connectSTR from '../../lib/dbConnect';
-import Profile from '../../lib/models/Profile';
-import bcrypt from 'bcrypt';
-import { NextResponse } from 'next/server';
+import mongoose from "mongoose";
+import connectSTR from "../../lib/dbConnect";
+import Profile from "../../lib/models/Profile";
+import bcrypt from "bcrypt";
+import { NextResponse } from "next/server";
 
 // Connect to the database
 const connectToDatabase = async () => {
@@ -33,7 +33,7 @@ export async function POST(req) {
       !data.password
     ) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields' },
+        { success: false, error: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -41,7 +41,7 @@ export async function POST(req) {
     const existingProfile = await Profile.findOne({ username: data.username });
     if (existingProfile) {
       return NextResponse.json(
-        { success: false, error: 'Username already exists' },
+        { success: false, error: "Username already exists" },
         { status: 400 }
       );
     }
@@ -70,9 +70,9 @@ export async function POST(req) {
     const result = await newProfile.save();
     return NextResponse.json({ success: true, data: result }, { status: 201 });
   } catch (error) {
-    console.error('Error creating profile:', error);
+    console.error("Error creating profile:", error);
     return NextResponse.json(
-      { success: false, error: error.message ||  'Failed to create profile' },
+      { success: false, error: error.message || "Failed to create profile" },
       { status: 400 }
     );
   }
@@ -99,7 +99,7 @@ export async function PUT(req) {
     const existingProfile = await Profile.findOne({ username: data.username });
     if (existingProfile && existingProfile._id.toString() !== data._id) {
       return NextResponse.json(
-        { success: false, error: 'Username already exists' },
+        { success: false, error: "Username already exists" },
         { status: 400 }
       );
     }
@@ -117,7 +117,7 @@ export async function PUT(req) {
     );
     if (!updatedProfile) {
       return NextResponse.json(
-        { success: false, error: 'Profile not found' },
+        { success: false, error: "Profile not found" },
         { status: 404 }
       );
     }
@@ -126,9 +126,9 @@ export async function PUT(req) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error updating profile:', error);
+    console.error("Error updating profile:", error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to update profile' },
+      { success: false, error: error.message || "Failed to update profile" },
       { status: 400 }
     );
   }
@@ -139,11 +139,14 @@ export async function GET(req) {
   try {
     await connectToDatabase();
     const profiles = await Profile.find({});
-    return NextResponse.json({ success: true, data: profiles }, { status: 200 });
-  } catch (error) {
-    console.error('Error fetching profiles:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch profiles' },
+      { success: true, data: profiles },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error fetching profiles:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch profiles" },
       { status: 400 }
     );
   }

@@ -125,53 +125,102 @@ export async function PATCH(req, { params }) {
     }
 
     // Update existing fields with new logic to handle lists
-    const updatedItemList = data.itemList || billingData.itemList;
-    const updatedPriceList = data.priceList || billingData.priceList;
-    const updatedQuantityList = data.quantityList || billingData.quantityList;
-    const updatedTaxList = data.taxList || billingData.taxList;
+    const updatedItemList = Array.isArray(data.itemList)
+      ? data.itemList
+      : Array.isArray(billingData.itemList)
+      ? billingData.itemList
+      : [];
+    const updatedPriceList = Array.isArray(data.priceList)
+      ? data.priceList
+      : Array.isArray(billingData.priceList)
+      ? billingData.priceList
+      : [];
+    const updatedQuantityList = Array.isArray(data.quantityList)
+      ? data.quantityList
+      : Array.isArray(billingData.quantityList)
+      ? billingData.quantityList
+      : [];
+    const updatedTaxList = Array.isArray(data.taxList)
+      ? data.taxList
+      : Array.isArray(billingData.taxList)
+      ? billingData.taxList
+      : [];
+    const updatedCGSTArray = Array.isArray(data.cgstArray)
+      ? data.cgstArray
+      : Array.isArray(billingData.cgstArray)
+      ? billingData.cgstArray
+      : [];
+    const updatedSGSTArray = Array.isArray(data.sgstArray)
+      ? data.sgstArray
+      : Array.isArray(billingData.sgstArray)
+      ? billingData.sgstArray
+      : [];
 
-    // Handle remarks updates
-    if (data.FoodRemarks) billingData.FoodRemarks = data.FoodRemarks;
-    if (data.ServiceRemarks) billingData.ServiceRemarks = data.ServiceRemarks;
-    if (data.RoomRemarks) billingData.RoomRemarks = data.RoomRemarks;
+    // Handle remarks updates - ensure arrays exist
+    if (data.FoodRemarks) {
+      billingData.FoodRemarks = Array.isArray(billingData.FoodRemarks)
+        ? billingData.FoodRemarks
+        : [];
+      billingData.FoodRemarks = data.FoodRemarks;
+    }
+    if (data.ServiceRemarks) {
+      billingData.ServiceRemarks = Array.isArray(billingData.ServiceRemarks)
+        ? billingData.ServiceRemarks
+        : [];
+      billingData.ServiceRemarks = data.ServiceRemarks;
+    }
+    if (data.RoomRemarks) {
+      billingData.RoomRemarks = Array.isArray(billingData.RoomRemarks)
+        ? billingData.RoomRemarks
+        : [];
+      billingData.RoomRemarks = data.RoomRemarks;
+    }
 
-    // Calculate new totalAmount including taxes and quantities
-    // For room prices (first entries in priceList matching roomNo length)
-    // const roomCount = billingData.roomNo.length;
-    // const roomPrices = updatedPriceList.slice(0, roomCount);
-    // const otherPrices = updatedPriceList.slice(roomCount);
-    // const otherQuantities = updatedQuantityList.slice(roomCount);
+    // Calculate total amount including taxes
+    let totalAmount = 0;
 
-    // // Calculate room subtotal (each room price is already per room)
-    // const roomSubtotal = roomPrices.reduce((total, price) => total + price, 0);
+    // Process each room's items
+    updatedItemList.forEach((roomItems, roomIndex) => {
+      const roomPrices = updatedPriceList[roomIndex] || [];
+      const roomQuantities = updatedQuantityList[roomIndex] || [];
+      const roomTaxes = updatedTaxList[roomIndex] || [];
+      const roomCGST = updatedCGSTArray[roomIndex] || []; // Added for CGST
+      const roomSGST = updatedSGSTArray[roomIndex] || []; // Added for SGST
 
-    // // Calculate other items subtotal with quantities
-    // const otherSubtotal = otherPrices.reduce((total, price, index) =>
-    //   total + (price * (otherQuantities[index] || 1)), 0
-    // );
+      // Calculate total for this room
+      roomItems.forEach((item, itemIndex) => {
+        const price = roomPrices[itemIndex] || 0;
+        const quantity = roomQuantities[itemIndex] || 1;
 
-    // // Calculate final totals
-    // const newSubTotal = roomSubtotal + otherSubtotal;
-    // const newTaxTotal = updatedTaxList.reduce((total, tax) => total + tax, 0);
-    // const newTotalAmount = newSubTotal;
-    // const newDueAmount = newTotalAmount - billingData.amountAdvanced;
+        // Use CGST and SGST if available, otherwise use taxRate
+        const cgstRate =
+          roomCGST[itemIndex] !== undefined
+            ? roomCGST[itemIndex]
+            : (roomTaxes[itemIndex] || 0) / 2;
+        const sgstRate =
+          roomSGST[itemIndex] !== undefined
+            ? roomSGST[itemIndex]
+            : (roomTaxes[itemIndex] || 0) / 2;
 
-    // billingData.totalAmount = billingData.priceList.flatMap((roomPrices, i) =>
-    //   roomPrices.map((price, j) =>
-    //     price + (price * (billingData.taxList[i][j] || 0) / 100)
-    //   )
-    // ).reduce((sum, price) => sum + price, 0);
+        // Calculate item total with tax
+        const itemTotal = price * quantity;
+        const cgstAmount = (itemTotal * cgstRate) / 100;
+        const sgstAmount = (itemTotal * sgstRate) / 100;
 
-    // billingData.dueAmount = billingData.totalAmount - billingData.amountAdvanced;
+        totalAmount += itemTotal + cgstAmount + sgstAmount;
+      });
+    });
 
     // Update the billing data
     billingData.itemList = updatedItemList;
     billingData.priceList = updatedPriceList;
     billingData.quantityList = updatedQuantityList;
     billingData.taxList = updatedTaxList;
-    billingData.totalAmount = billingData.totalAmount || data.totalAmount;
-
-    billingData.dueAmount = billingData.totalAmount || data.dueAmount;
+    billingData.cgstArray = updatedCGSTArray; // Added for CGST
+    billingData.sgstArray = updatedSGSTArray; // Added for SGST
+    billingData.totalAmount = data.totalAmount || totalAmount;
+    billingData.dueAmount =
+      data.dueAmount || totalAmount - billingData.amountAdvanced;
 
     await billingData.save();
     return NextResponse.json(
@@ -249,45 +298,92 @@ export async function PUT(req, { params }) {
     // Handle nested array updates
     const updateNestedArray = (target, source, index) => {
       if (!target[index]) target[index] = [];
-      target[index].push(...source);
+      target[index] = source[index];
       return target;
     };
 
     if (data.dueAmount) {
       bill.dueAmount = data.dueAmount;
     }
-    // Handle itemList, priceList, quantityList, and taxList updates
-    // Modified array update logic
-    if (data.itemList && data.priceList && data.quantityList && data.taxList) {
+
+    // Handle itemList, priceList, quantityList, taxList, cgstArray, and sgstArray updates
+    if (data.itemList && data.priceList && data.quantityList) {
       const roomIndex = data.roomIndex || 0;
 
-      // Initialize arrays if empty
-      if (!bill.itemList[roomIndex]) bill.itemList[roomIndex] = [];
-      if (!bill.priceList[roomIndex]) bill.priceList[roomIndex] = [];
-      if (!bill.quantityList[roomIndex]) bill.quantityList[roomIndex] = [];
-      if (!bill.taxList[roomIndex]) bill.taxList[roomIndex] = [];
+      // Initialize bill arrays if they don't exist
+      if (!Array.isArray(bill.itemList)) bill.itemList = [];
+      if (!Array.isArray(bill.priceList)) bill.priceList = [];
+      if (!Array.isArray(bill.quantityList)) bill.quantityList = [];
+      if (!Array.isArray(bill.taxList)) bill.taxList = [];
+      if (!Array.isArray(bill.cgstArray)) bill.cgstArray = [];
+      if (!Array.isArray(bill.sgstArray)) bill.sgstArray = [];
 
-      // Append new items correctly
+      // Initialize arrays at room index if they don't exist
+      while (bill.itemList.length <= roomIndex) bill.itemList.push([]);
+      while (bill.priceList.length <= roomIndex) bill.priceList.push([]);
+      while (bill.quantityList.length <= roomIndex) bill.quantityList.push([]);
+      while (bill.taxList.length <= roomIndex) bill.taxList.push([]);
+      while (bill.cgstArray.length <= roomIndex) bill.cgstArray.push([]);
+      while (bill.sgstArray.length <= roomIndex) bill.sgstArray.push([]);
 
+      // Update arrays with new data
       bill.itemList[roomIndex] = data.itemList[roomIndex];
       bill.priceList[roomIndex] = data.priceList[roomIndex];
       bill.quantityList[roomIndex] = data.quantityList[roomIndex];
       bill.taxList[roomIndex] = data.taxList[roomIndex];
 
-      // Recalculate totals correctly
-      bill.totalAmount = bill.priceList
-        .flatMap((roomPrices, i) => roomPrices.map((price, j) => price))
-        .reduce((sum, price) => sum + price, 0);
+      // Update CGST and SGST arrays if provided
+      if (data.cgstArray && data.cgstArray[roomIndex]) {
+        bill.cgstArray[roomIndex] = data.cgstArray[roomIndex];
+      }
+      if (data.sgstArray && data.sgstArray[roomIndex]) {
+        bill.sgstArray[roomIndex] = data.sgstArray[roomIndex];
+      }
 
-      bill.dueAmount = bill.totalAmount - bill.amountAdvanced;
+      // Recalculate total amount with taxes
+      let totalAmount = 0;
+
+      bill.itemList.forEach((roomItems, roomIdx) => {
+        const roomPrices = bill.priceList[roomIdx] || [];
+        const roomQuantities = bill.quantityList[roomIdx] || [];
+        const roomTaxes = bill.taxList[roomIdx] || [];
+        const roomCGST = bill.cgstArray[roomIdx] || [];
+        const roomSGST = bill.sgstArray[roomIdx] || [];
+
+        roomItems.forEach((item, itemIdx) => {
+          const price = roomPrices[itemIdx] || 0;
+          const quantity = roomQuantities[itemIdx] || 1;
+
+          // Use CGST and SGST if available, otherwise use taxRate
+          const cgstRate =
+            roomCGST[itemIdx] !== undefined
+              ? roomCGST[itemIdx]
+              : (roomTaxes[itemIdx] || 0) / 2;
+          const sgstRate =
+            roomSGST[itemIdx] !== undefined
+              ? roomSGST[itemIdx]
+              : (roomTaxes[itemIdx] || 0) / 2;
+
+          // Calculate item total with tax
+          const itemTotal = price * quantity;
+          const cgstAmount = (itemTotal * cgstRate) / 100;
+          const sgstAmount = (itemTotal * sgstRate) / 100;
+
+          totalAmount += itemTotal + cgstAmount + sgstAmount;
+        });
+      });
+
+      bill.totalAmount = totalAmount;
+      bill.dueAmount = totalAmount - bill.amountAdvanced;
     }
 
     // Handle remarks updates
     const updateRemarks = (field, newRemarks) => {
       if (newRemarks) {
-        bill[field] = Array.isArray(bill[field])
+        if (!Array.isArray(bill[field])) bill[field] = [];
+        bill[field] = Array.isArray(newRemarks)
           ? [...bill[field], ...newRemarks]
-          : newRemarks;
+          : [...bill[field], newRemarks];
       }
     };
 

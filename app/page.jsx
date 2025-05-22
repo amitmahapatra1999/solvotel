@@ -134,10 +134,12 @@ export default function Home() {
         }
       } else {
         alert(data.error);
+        setIsLoading(false);
       }
     } catch (error) {
       console.error("Error logging in:", error);
       alert("Failed to log in");
+      setIsLoading(false);
     } finally {
     }
   };

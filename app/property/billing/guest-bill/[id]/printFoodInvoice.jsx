@@ -55,6 +55,8 @@ const PrintableFoodInvoice = ({ billId }) => {
   const [menuItems, setMenuItems] = useState([]);
   const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
+  console.log(foodItems);
+
   // Fetch menu items
   useEffect(() => {
     const fetchMenuItems = async () => {
@@ -87,7 +89,7 @@ const PrintableFoodInvoice = ({ billId }) => {
           )
           .split("=")[1];
         const headers = { Authorization: `Bearer ${token}` };
-        console.log("billId", billId);
+
         const authtoken = getCookie("authToken");
         const usertoken = getCookie("userAuthToken");
         if (!authtoken && !usertoken) {
@@ -139,12 +141,10 @@ const PrintableFoodInvoice = ({ billId }) => {
         const bookingsData = await bookingsResponse.json();
         const roomsResponse = await fetch("/api/rooms");
         const roomsData = await roomsResponse.json();
-        console.log("roomsData", roomsData.data);
-        console.log("billingData", billingData);
+
         const matchedRooms = roomsData.data.filter((room) =>
           billingData.roomNo.includes(String(room.number))
         );
-        console.log("matchedRooms", matchedRooms);
 
         if (!matchedRooms) {
           throw new Error("No matching room found");
@@ -180,28 +180,33 @@ const PrintableFoodInvoice = ({ billId }) => {
           })
         );
 
-        console.log("matchedBookings", matchedBookings);
-
         if (!matchedBookings) {
           throw new Error("No matching booking found");
         }
 
-        // Process existing items
+        // Process existing items with proper null checks
         const existingServices = billingData.itemList || [];
         const existingPrices = billingData.priceList || [];
         const existingTaxes = billingData.taxList || [];
         const existingQuantities = billingData.quantityList || [];
+        const existingCGSTArray = billingData.cgstArray || [];
+        const existingSGSTArray = billingData.sgstArray || [];
 
-        // Separate food and service items
         const foodItemsArray = [];
         const serviceItemsArray = [];
 
         existingServices.forEach((roomServices, roomIndex) => {
+          if (!roomServices) return; // Skip if roomServices is undefined
+
           const roomPrices = existingPrices[roomIndex] || [];
           const roomTaxes = existingTaxes[roomIndex] || [];
           const roomQuantities = existingQuantities[roomIndex] || [];
+          const roomCGST = existingCGSTArray[roomIndex] || [];
+          const roomSGST = existingSGSTArray[roomIndex] || [];
 
           roomServices.forEach((item, itemIndex) => {
+            if (!item) return; // Skip if item is undefined
+
             const menuItem = menuItemsList.find(
               (menuItem) => menuItem.itemName === item
             );
@@ -211,6 +216,8 @@ const PrintableFoodInvoice = ({ billId }) => {
               price: roomPrices[itemIndex] || 0,
               quantity: roomQuantities[itemIndex] || 1,
               tax: roomTaxes[itemIndex] || 0,
+              cgst: roomCGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0,
+              sgst: roomSGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0,
               roomIndex: roomIndex,
             };
 
@@ -222,9 +229,9 @@ const PrintableFoodInvoice = ({ billId }) => {
           });
         });
 
-        setFoodItems(foodItemsArray);
+        setFoodItems([...foodItemsArray]);
         setServiceItems(serviceItemsArray);
-        setServices([...serviceItemsArray, ...foodItemsArray]);
+        setServices([...serviceItemsArray]);
 
         setServices(serviceItems);
         setInvoiceData({ billing: billingData, booking: matchedBookings[0] });
@@ -274,12 +281,28 @@ const PrintableFoodInvoice = ({ billId }) => {
   const formattedDate = currentDate.toLocaleDateString("en-GB");
   const formattedTime = currentDate.toLocaleTimeString();
 
-  // Calculate total services amount
-  const totalServicesAmount = foodItems.reduce(
-    (total, service) => total + service.price,
-    0
-  );
-  const serviceTax = foodItems.reduce((tax, service) => tax + service.tax, 0);
+  // Determine if invoice state matches profile state
+  const isSameState =
+    booking.state && profile.state && booking.state === profile.state;
+
+  // // Prepare items with correct attributes for display
+  // const preparedItems = invoice.menuitem.map((item, index) => ({
+  //   name: item,
+  //   qty: invoice.quantity[index],
+  //   rate: invoice.price[index],
+  //   sgst: invoice.sgstArray[index],
+  //   cgst: invoice.cgstArray[index],
+  //   amount: invoice.quantity[index] * invoice.price[index],
+  //   igst:
+  //     invoice.amountWithGstArray[index] -
+  //     invoice.quantity[index] * invoice.price[index], // IGST as total GST
+  // }));
+
+  // // Calculate subtotal from items
+  // const subtotal = preparedItems.reduce(
+  //   (total, item) => total + item.amount,
+  //   0
+  // );
 
   return (
     <>
@@ -378,14 +401,25 @@ const PrintableFoodInvoice = ({ billId }) => {
           <Grid container spacing={2} sx={{ mb: 4 }}>
             <Grid item xs={6}>
               <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                Guest Details:
+                Bill To:
               </Typography>
               <Typography variant="body1">{booking.guestName}</Typography>
               <Typography variant="body2" color="textSecondary">
-                Phone: +91 {booking.mobileNo}
+                Phone: {booking.mobileNo}
               </Typography>
-              <Typography variant="body1">
-                Customer GST No.: {booking.gstin}
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{ mb: 0.5 }}
+              >
+                Customer GST No: {booking.gstin || "N/A"}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{ mb: 0.5 }}
+              >
+                State: {booking.state || "N/A"}
               </Typography>
             </Grid>
             <Grid item xs={6} sx={{ textAlign: "right" }}>
@@ -403,14 +437,24 @@ const PrintableFoodInvoice = ({ billId }) => {
             <Table>
               <TableHead>
                 <TableRow sx={{ bgcolor: "#00bcd4" }}>
-                  <TableCell sx={{ color: "white" }}>Room No.</TableCell>
                   <TableCell sx={{ color: "white" }}>Item</TableCell>
                   <TableCell align="center" sx={{ color: "white" }}>
                     Quantity
                   </TableCell>
-                  <TableCell align="center" sx={{ color: "white" }}>
-                    Tax
-                  </TableCell>
+                  {isSameState ? (
+                    <>
+                      <TableCell align="right" sx={{ color: "white" }}>
+                        SGST
+                      </TableCell>
+                      <TableCell align="right" sx={{ color: "white" }}>
+                        CGST
+                      </TableCell>
+                    </>
+                  ) : (
+                    <TableCell align="right" sx={{ color: "white" }}>
+                      IGST
+                    </TableCell>
+                  )}
                   <TableCell align="right" sx={{ color: "white" }}>
                     Amount
                   </TableCell>
@@ -422,14 +466,27 @@ const PrintableFoodInvoice = ({ billId }) => {
                     key={index}
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
-                    <TableCell>
-                      Room #{billing.roomNo[item.roomIndex]}
-                    </TableCell>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell align="center">{item.quantity}</TableCell>
-                    <TableCell align="center">{item.tax}%</TableCell>
+                    <TableCell>{item?.name}</TableCell>
+                    <TableCell align="right">{item?.qty}</TableCell>
                     <TableCell align="right">
-                      ₹{(parseFloat(item.price) || 0).toFixed(2)}
+                      ₹{item?.rate?.toFixed(2)}
+                    </TableCell>
+                    {isSameState ? (
+                      <>
+                        <TableCell align="right">
+                          ₹{item?.sgst?.toFixed(2)}
+                        </TableCell>
+                        <TableCell align="right">
+                          ₹{item?.cgst?.toFixed(2)}
+                        </TableCell>
+                      </>
+                    ) : (
+                      <TableCell align="right">
+                        ₹{item?.igst?.toFixed(2)}
+                      </TableCell>
+                    )}
+                    <TableCell align="right">
+                      ₹{item?.amount?.toFixed(2)}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -438,37 +495,57 @@ const PrintableFoodInvoice = ({ billId }) => {
           </TableContainer>
 
           {/* Total Calculation */}
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+          {/* <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
             <Box sx={{ width: "250px" }}>
               <Grid container spacing={1}>
                 <Grid item xs={6}>
-                  <Typography variant="body1">IGST:</Typography>
-                  <Typography variant="body1">CGST:</Typography>
-                  <Typography variant="body1">SGST:</Typography>
+                  <Typography variant="body1">Subtotal:</Typography>
+                  {isSameState ? (
+                    <>
+                      <Typography variant="body1">SGST:</Typography>
+                      <Typography variant="body1">CGST:</Typography>
+                    </>
+                  ) : (
+                    <Typography variant="body1">IGST:</Typography>
+                  )}
                   <Typography variant="h6" sx={{ fontWeight: "bold", mt: 1 }}>
                     Total:
                   </Typography>
                 </Grid>
                 <Grid item xs={6} sx={{ textAlign: "right" }}>
                   <Typography variant="body1">
-                    {serviceTax.toFixed(2)}%
+                    ₹{subtotal?.toFixed(2)}
                   </Typography>
-                  <Typography variant="body1">
-                    {(serviceTax / 2).toFixed(2)}%
-                  </Typography>
-                  <Typography variant="body1">
-                    {(serviceTax / 2).toFixed(2)}%
-                  </Typography>
+                  {isSameState ? (
+                    <>
+                      <Typography variant="body1">
+                        ₹
+                        {invoice?.sgstArray
+                          ?.reduce((sum, value) => sum + value, 0)
+                          ?.toFixed(2)}
+                      </Typography>
+                      <Typography variant="body1">
+                        ₹
+                        {invoice?.cgstArray
+                          ?.reduce((sum, value) => sum + value, 0)
+                          .toFixed(2)}
+                      </Typography>
+                    </>
+                  ) : (
+                    <Typography variant="body1">
+                      ₹{invoice.gst.toFixed(2)}
+                    </Typography>
+                  )}
                   <Typography variant="h6" sx={{ fontWeight: "bold", mt: 1 }}>
-                    ₹{totalServicesAmount.toFixed(2)}
+                    ₹{invoice.payableamt.toFixed(2)}
                   </Typography>
                 </Grid>
               </Grid>
             </Box>
-          </Box>
+          </Box> */}
 
           {/* Paid Image */}
-          {isPaid && (
+          {/* {isPaid && (
             <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
               <img
                 src="/paid.png"
@@ -480,10 +557,10 @@ const PrintableFoodInvoice = ({ billId }) => {
                 }}
               />
             </Box>
-          )}
+          )} */}
 
           {/* Cancelled Image */}
-          {isCancelled && (
+          {/* {isCancelled && (
             <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
               <img
                 src="/cancelled.png"
@@ -495,7 +572,7 @@ const PrintableFoodInvoice = ({ billId }) => {
                 }}
               />
             </Box>
-          )}
+          )} */}
 
           <Divider sx={{ my: 3 }} />
 

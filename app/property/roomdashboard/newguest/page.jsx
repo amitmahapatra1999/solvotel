@@ -637,19 +637,14 @@ export default function BookingForm() {
           roomUpdate.billingStarted = "Yes";
         } else {
           // Fetch current guest's booking details
-          console.log("matchedRoom:", matchedRoom);
-          console.log(
-            "matchedRoom.currentGuestId:",
-            matchedRoom.currentGuestId
-          );
+
           const currentGuestResponse = await fetch(
             `/api/NewBooking/${matchedRoom.currentGuestId}`
           );
           const currentGuestData = await currentGuestResponse.json();
-          console.log("currentGuestData:", currentGuestData);
+
           const currentGuestCheckIn = new Date(currentGuestData.checkIn);
-          console.log("currentGuestCheckIn:", currentGuestCheckIn);
-          console.log("sortedGuestWaitlist:", sortedGuestWaitlist);
+
           // Fetch first waitlisted guest's booking details
           const firstWaitlistedGuestResponse = await fetch(
             `/api/NewBooking/${sortedGuestWaitlist[0]._id}`

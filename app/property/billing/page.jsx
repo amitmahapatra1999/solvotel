@@ -16,11 +16,24 @@ import {
   Paper,
   TextField,
   Box,
+  styled,
 } from "@mui/material";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import { jwtVerify } from "jose";
 import { GetCustomDate } from "../../../utils/DateFetcher";
+import { SquarePen } from "lucide-react";
+
+const CustomHeadingCell = styled(TableCell)`
+  font-weight: bold;
+  color: #28bfdb;
+  text-align: center;
+  padding: 5px;
+`;
+const CustomBodyCell = styled(TableCell)`
+  font-size: 13px;
+  padding: 5px;
+`;
 
 export default function Billing() {
   const router = useRouter();
@@ -86,8 +99,6 @@ export default function Billing() {
         const roomsResult = roomsResponse.data.data;
         const billingResult = billingResponse.data.data;
         const bookingResult = bookingResponse.data.data;
-        console.log(billingResult);
-        console.log("Rooms Result : ", roomsResult);
 
         const billingsMap = new Map(
           billingResult.map((bill) => [bill._id, bill])
@@ -95,8 +106,6 @@ export default function Billing() {
         const bookingsMap = new Map(
           bookingResult.map((booking) => [booking._id, booking])
         );
-        console.log("Billings Map : ", billingsMap);
-        console.log("Bookings Map : ", bookingsMap);
 
         const enrichedBills = roomsResult
           .flatMap((room) => {
@@ -115,6 +124,7 @@ export default function Billing() {
                 checkInDate: guest ? guest.checkIn : null,
                 currentBillingId: billId._id,
                 timestamp: bill.createdAt || new Date().toISOString(),
+                bookingDetails: guest,
               };
             });
           })
@@ -207,20 +217,21 @@ export default function Billing() {
     }
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const checkIn = new Date(bill.bill.checkInDate);
-    checkIn.setHours(0, 0, 0, 0);
+    const checkIn = new Date(bill.bookingDetails.checkIn);
+    const checkOut = new Date(bill.bookingDetails.checkOut);
 
+    const isSameDay =
+      today.getFullYear() === checkIn.getFullYear() &&
+      today.getMonth() === checkIn.getMonth() &&
+      today.getDate() === checkIn.getDate();
+    console.log(isSameDay);
     if (today < checkIn) {
       return "Booked";
-    } else if (
-      today.toLocaleDateString("en-GB") === checkIn.toLocaleDateString("en-GB")
-    ) {
+    } else if (today > checkIn && today < checkOut) {
       return "Checked In";
-    } else if (bill.bill.Bill_Paid === "yes") {
+    } else if (today > checkOut || bill.bill.Bill_Paid === "yes") {
       return "Checked Out";
     }
-    return "Staying";
   };
 
   const getBillStatus = (bill) => {
@@ -229,6 +240,8 @@ export default function Billing() {
     }
     return bill.bill.Bill_Paid === "yes" ? "Paid" : "Unpaid";
   };
+
+  console.log(filteredBillingData, "filteredBillingData");
 
   return (
     <>
@@ -318,102 +331,29 @@ export default function Billing() {
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#28bfdb",
-                      textAlign: "center",
-                    }}
-                  >
-                    Booking Date
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#28bfdb",
-                      textAlign: "center",
-                    }}
-                  >
-                    Booking ID
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#28bfdb",
-                      textAlign: "center",
-                    }}
-                  >
-                    Room Number
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#28bfdb",
-                      textAlign: "center",
-                    }}
-                  >
-                    Guest
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#28bfdb",
-                      textAlign: "center",
-                    }}
-                  >
-                    Total Amount
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#28bfdb",
-                      textAlign: "center",
-                    }}
-                  >
-                    Amount Paid in Advance
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#28bfdb",
-                      textAlign: "center",
-                    }}
-                  >
-                    Due Amount
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#28bfdb",
-                      textAlign: "center",
-                    }}
-                  >
-                    Bill Status
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#28bfdb",
-                      textAlign: "center",
-                    }}
-                  >
-                    Guest Status
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#28bfdb",
-                      textAlign: "center",
-                    }}
-                  >
-                    Actions
-                  </TableCell>
+                  <CustomHeadingCell>#</CustomHeadingCell>
+                  <CustomHeadingCell>Booking ID</CustomHeadingCell>
+                  <CustomHeadingCell>Guest</CustomHeadingCell>
+                  <CustomHeadingCell>Room No</CustomHeadingCell>
+                  <CustomHeadingCell>Check In/Out</CustomHeadingCell>
+                  <CustomHeadingCell>Booked On</CustomHeadingCell>
+                  <CustomHeadingCell>Pax</CustomHeadingCell>
+                  <CustomHeadingCell>Meal Plan</CustomHeadingCell>
+                  <CustomHeadingCell>Notes</CustomHeadingCell>
+                  <CustomHeadingCell>Status</CustomHeadingCell>
+                  <CustomHeadingCell>Action</CustomHeadingCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredBillingData.length > 0 ? (
                   filteredBillingData.map((bill, index) => {
                     const bookingDate = GetCustomDate(bill.timestamp);
+                    const checkInDate = GetCustomDate(
+                      bill.bookingDetails.checkIn
+                    );
+                    const checkOutDate = GetCustomDate(
+                      bill.bookingDetails.checkOut
+                    );
                     return (
                       <TableRow
                         key={index}
@@ -431,32 +371,70 @@ export default function Billing() {
                           } 5%, white 5%)`,
                         }}
                       >
-                        <TableCell>{bookingDate || "N/A"}</TableCell>
-                        <TableCell>{bill.bookingId || "N/A"}</TableCell>
-                        <TableCell>
+                        <CustomBodyCell>{index + 1}</CustomBodyCell>
+                        <CustomBodyCell>
+                          <Link
+                            href={`/property/billing/guest-bill/${bill.currentBillingId}`}
+                            style={{
+                              color: " #00158a",
+
+                              fontWeight: "400",
+                            }}
+                          >
+                            {bill.bookingId || "N/A"}
+                          </Link>
+                        </CustomBodyCell>
+                        <CustomBodyCell>
+                          {bill.bookingDetails.guestName || "N/A"} <br />
+                          {bill.bookingDetails.mobileNo || "N/A"}
+                        </CustomBodyCell>
+                        <CustomBodyCell sx={{ fontWeight: 600 }}>
                           {Array.isArray(bill.bill.roomNo)
                             ? bill.bill.roomNo.join(", ")
                             : bill.bill.roomNo || "N/A"}
-                        </TableCell>
-                        <TableCell>{bill.guestName || "N/A"}</TableCell>
-                        <TableCell>₹{bill.bill.totalAmount || 0}</TableCell>
-                        <TableCell>₹{bill.bill.amountAdvanced || 0}</TableCell>
-                        <TableCell>₹{bill.bill.dueAmount || 0}</TableCell>
-                        <TableCell>{getGuestStatus(bill)}</TableCell>
-                        <TableCell>{getBillStatus(bill)}</TableCell>
-                        <TableCell>
+                        </CustomBodyCell>
+                        <CustomBodyCell>
+                          {checkInDate || "N/A"}
+                          <br />
+                          {checkOutDate || "N/A"}
+                        </CustomBodyCell>
+                        <CustomBodyCell>{bookingDate || "N/A"}</CustomBodyCell>
+                        <CustomBodyCell>
+                          Adults: {bill?.bookingDetails?.adults || "N/A"} <br />{" "}
+                          Child:
+                          {bill?.bookingDetails?.children}
+                        </CustomBodyCell>
+                        <CustomBodyCell>
+                          {bill?.bookingDetails?.mealPlan || "N/A"}
+                        </CustomBodyCell>
+                        <CustomBodyCell>
+                          {bill?.bookingDetails?.remarks || "N/A"}
+                        </CustomBodyCell>
+                        {/* <CustomBodyCell>
+                          ₹{parseFloat(bill.bill.totalAmount).toFixed(2) || 0}
+                        </CustomBodyCell>
+                        <CustomBodyCell>
+                          ₹
+                          {parseFloat(bill.bill.amountAdvanced).toFixed(2) || 0}
+                        </CustomBodyCell>
+                        <CustomBodyCell>
+                          ₹{parseFloat(bill.bill.dueAmount).toFixed(2) || 0}
+                        </CustomBodyCell> */}
+                        <CustomBodyCell>{getGuestStatus(bill)}</CustomBodyCell>
+                        {/* <CustomBodyCell>{getBillStatus(bill)}</CustomBodyCell> */}
+                        <CustomBodyCell>
                           <Button
                             variant="contained"
+                            color="warning"
                             onClick={() => handleViewBill(bill)}
                             sx={{
-                              backgroundColor: "#28bfdb",
-                              "&:hover": { backgroundColor: "#1e9ab8" },
-                              textTransform: "none",
+                              p: "4px",
+                              minWidth: 0,
                             }}
                           >
-                            View Bill
+                            <SquarePen size={18} />
                           </Button>
-                        </TableCell>
+                        </CustomBodyCell>
                       </TableRow>
                     );
                   })
