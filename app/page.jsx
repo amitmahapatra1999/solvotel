@@ -139,7 +139,6 @@ export default function Home() {
       console.error("Error logging in:", error);
       alert("Failed to log in");
     } finally {
-      setIsLoading(false);
     }
   };
   //

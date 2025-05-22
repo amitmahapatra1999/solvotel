@@ -20,6 +20,7 @@ import {
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import { jwtVerify } from "jose";
+import { GetCustomDate } from "../../../utils/DateFetcher";
 
 export default function Billing() {
   const router = useRouter();
@@ -324,6 +325,15 @@ export default function Billing() {
                       textAlign: "center",
                     }}
                   >
+                    Booking Date
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
                     Booking ID
                   </TableCell>
                   <TableCell
@@ -402,50 +412,54 @@ export default function Billing() {
               </TableHead>
               <TableBody>
                 {filteredBillingData.length > 0 ? (
-                  filteredBillingData.map((bill, index) => (
-                    <TableRow
-                      key={index}
-                      sx={{
-                        "& > td": {
-                          backgroundColor: "white",
-                          textAlign: "center",
-                        },
-                        background: `linear-gradient(to right, ${
-                          bill.bill.Cancelled === "yes"
-                            ? "#808080"
-                            : bill.bill.Bill_Paid === "yes"
-                            ? "#1ebc1e"
-                            : "#f24a23"
-                        } 5%, white 5%)`,
-                      }}
-                    >
-                      <TableCell>{bill.bookingId || "N/A"}</TableCell>
-                      <TableCell>
-                        {Array.isArray(bill.bill.roomNo)
-                          ? bill.bill.roomNo.join(", ")
-                          : bill.bill.roomNo || "N/A"}
-                      </TableCell>
-                      <TableCell>{bill.guestName || "N/A"}</TableCell>
-                      <TableCell>₹{bill.bill.totalAmount || 0}</TableCell>
-                      <TableCell>₹{bill.bill.amountAdvanced || 0}</TableCell>
-                      <TableCell>₹{bill.bill.dueAmount || 0}</TableCell>
-                      <TableCell>{getGuestStatus(bill)}</TableCell>
-                      <TableCell>{getBillStatus(bill)}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="contained"
-                          onClick={() => handleViewBill(bill)}
-                          sx={{
-                            backgroundColor: "#28bfdb",
-                            "&:hover": { backgroundColor: "#1e9ab8" },
-                            textTransform: "none",
-                          }}
-                        >
-                          View Bill
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  filteredBillingData.map((bill, index) => {
+                    const bookingDate = GetCustomDate(bill.timestamp);
+                    return (
+                      <TableRow
+                        key={index}
+                        sx={{
+                          "& > td": {
+                            backgroundColor: "white",
+                            textAlign: "center",
+                          },
+                          background: `linear-gradient(to right, ${
+                            bill.bill.Cancelled === "yes"
+                              ? "#808080"
+                              : bill.bill.Bill_Paid === "yes"
+                              ? "#1ebc1e"
+                              : "#f24a23"
+                          } 5%, white 5%)`,
+                        }}
+                      >
+                        <TableCell>{bookingDate || "N/A"}</TableCell>
+                        <TableCell>{bill.bookingId || "N/A"}</TableCell>
+                        <TableCell>
+                          {Array.isArray(bill.bill.roomNo)
+                            ? bill.bill.roomNo.join(", ")
+                            : bill.bill.roomNo || "N/A"}
+                        </TableCell>
+                        <TableCell>{bill.guestName || "N/A"}</TableCell>
+                        <TableCell>₹{bill.bill.totalAmount || 0}</TableCell>
+                        <TableCell>₹{bill.bill.amountAdvanced || 0}</TableCell>
+                        <TableCell>₹{bill.bill.dueAmount || 0}</TableCell>
+                        <TableCell>{getGuestStatus(bill)}</TableCell>
+                        <TableCell>{getBillStatus(bill)}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="contained"
+                            onClick={() => handleViewBill(bill)}
+                            sx={{
+                              backgroundColor: "#28bfdb",
+                              "&:hover": { backgroundColor: "#1e9ab8" },
+                              textTransform: "none",
+                            }}
+                          >
+                            View Bill
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={9} align="center">

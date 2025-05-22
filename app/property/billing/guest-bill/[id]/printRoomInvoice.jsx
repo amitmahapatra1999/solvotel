@@ -21,6 +21,28 @@ import axios from "axios";
 import { getCookie } from "cookies-next"; // Import getCookie from cookies-next
 import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
 import { GetCustomDate, GetTodaysDate } from "../../../../../utils/DateFetcher";
+import { ToWords } from "to-words";
+
+const toWords = new ToWords({
+  localeCode: "en-IN",
+  converterOptions: {
+    currency: true,
+    ignoreDecimal: false,
+    ignoreZeroCurrency: false,
+    doNotAddOnly: false,
+    currencyOptions: {
+      // can be used to override defaults for the selected locale
+      name: "Rupee",
+      plural: "Rupees",
+      symbol: "₹",
+      fractionalUnit: {
+        name: "Paisa",
+        plural: "Paise",
+        symbol: "",
+      },
+    },
+  },
+});
 
 // Add print-specific styles
 const printStyles = `
@@ -28,6 +50,9 @@ const printStyles = `
     body * {
       visibility: hidden;
     }
+      #print-button * {
+      display:none;
+      }
 
     #printable-invoice,
     #printable-invoice * {
@@ -58,6 +83,7 @@ const CustomTableCell = styled(TableCell)`
 `;
 
 const PrintableRoomInvoice = ({ billId }) => {
+  const toWords = new ToWords();
   const todaysDate = GetTodaysDate();
   const [bookingData, setBookingData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -296,20 +322,11 @@ const PrintableRoomInvoice = ({ billId }) => {
     );
   }
 
-  const { booking, billing, room, category, services } = bookingData;
-  const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString("en-GB");
-  const formattedTime = currentDate.toLocaleTimeString();
-
-  const totalServicesAmount = serviceItems.reduce(
-    (total, service) => total + service.price,
-    0
-  );
-
-  const serviceTax = serviceItems.reduce(
-    (tax, service) => tax + service.tax,
-    0
-  );
+  let totalInWords = toWords.convert(bookingData?.billing?.totalAmount);
+  const numberOfDays =
+    (new Date(bookingData?.booking?.checkOut) -
+      new Date(bookingData?.booking?.checkIn)) /
+    (1000 * 60 * 60 * 24);
 
   return (
     <>
@@ -317,11 +334,6 @@ const PrintableRoomInvoice = ({ billId }) => {
       <Box
         id="printable-invoice"
         sx={{
-          maxWidth: "800px",
-          margin: "auto",
-
-          maxHeight: "90vh",
-          overflowY: "auto",
           overflowX: "hidden",
         }}
       >
@@ -427,14 +439,14 @@ const PrintableRoomInvoice = ({ billId }) => {
                 <CustomTableCell align="center" width="15%">
                   <Typography fontWeight={600}>HSN CODE</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="12%">
+                <CustomTableCell align="center" width="11%">
                   <Typography fontWeight={600}>SGST%</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="12%">
+                <CustomTableCell align="center" width="11%">
                   <Typography fontWeight={600}>CGST%</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center" width="12%">
-                  <Typography fontWeight={600}>Total GST%</Typography>
+                  <Typography fontWeight={600}>Total GST</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center" width="12%">
                   <Typography fontWeight={600}>Amount</Typography>
@@ -449,6 +461,10 @@ const PrintableRoomInvoice = ({ billId }) => {
                   >
                     <Typography>
                       Room No:{room?.number}- {room?.category?.category}
+                      <br />
+                      <span style={{ fontSize: "12px" }}>
+                        ({`Per night: Rs.${room?.category?.tariff}/-`})
+                      </span>
                     </Typography>
                   </CustomTableCell>
                   <CustomTableCell
@@ -457,28 +473,33 @@ const PrintableRoomInvoice = ({ billId }) => {
                     <Typography></Typography>
                   </CustomTableCell>
                   <CustomTableCell
+                    align="center"
                     sx={{ borderBottom: "none", borderTop: "none" }}
                   >
-                    <Typography>{bookingData?.category?.sgst}</Typography>
+                    <Typography>{room?.category?.sgst}</Typography>
                   </CustomTableCell>
                   <CustomTableCell
+                    align="center"
                     sx={{ borderBottom: "none", borderTop: "none" }}
                   >
-                    <Typography>{bookingData?.category?.cgst}</Typography>
+                    <Typography>{room?.category?.cgst}</Typography>
                   </CustomTableCell>
                   <CustomTableCell
+                    align="center"
                     sx={{ borderBottom: "none", borderTop: "none" }}
                   >
                     <Typography>
-                      {bookingData?.category?.sgst +
-                        bookingData?.category?.cgst}
+                      {(room?.category?.total - room?.category?.tariff) *
+                        numberOfDays}
                     </Typography>
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: "none", borderTop: "none" }}
                   >
-                    <Typography>100</Typography>
+                    <Typography>
+                      {room?.category?.total * numberOfDays}
+                    </Typography>
                   </CustomTableCell>
                 </TableRow>
               ))}
@@ -498,7 +519,14 @@ const PrintableRoomInvoice = ({ billId }) => {
                   <Typography></Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography></Typography>
+                  <Typography>
+                    {bookingData?.room?.reduce((sum, room) => {
+                      const gstPerNight =
+                        (room?.category?.total ?? 0) -
+                        (room?.category?.tariff ?? 0);
+                      return sum + gstPerNight * numberOfDays;
+                    }, 0)}
+                  </Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
                   <Typography>{bookingData?.billing?.totalAmount}</Typography>
@@ -507,7 +535,9 @@ const PrintableRoomInvoice = ({ billId }) => {
               <TableRow>
                 <CustomTableCell>
                   <Typography>Amuount Chargeable (in words):</Typography>
-                  <Typography fontWeight={600}>Four Thousand</Typography>
+                  <Typography fontWeight={600}>
+                    {totalInWords} rupees
+                  </Typography>
                 </CustomTableCell>
                 <CustomTableCell rowSpan={2} colSpan={2} align="center">
                   <Typography variant="body2">
@@ -537,6 +567,11 @@ const PrintableRoomInvoice = ({ billId }) => {
             </TableBody>
           </Table>
         </TableContainer>
+        <Box sx={{ textAlign: "center", mt: 1 }} id="print-button">
+          <Button variant="contained" onClick={handlePrint}>
+            Print Invoice
+          </Button>
+        </Box>
       </Box>
     </>
   );
