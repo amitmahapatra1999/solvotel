@@ -308,6 +308,9 @@ const PrintableServiceInvoice = ({ billId }) => {
           margin: "auto",
           bgcolor: "#f5f5f5",
           borderRadius: 2,
+          maxHeight: "90vh",
+          overflowY: "auto",
+          overflowX: "hidden",
         }}
       >
         <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
