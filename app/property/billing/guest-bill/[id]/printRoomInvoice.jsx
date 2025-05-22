@@ -76,9 +76,9 @@ const printStyles = `
 
 const CustomTableCell = styled(TableCell)`
   border: 1px solid black;
-  padding: 2px;
+  padding: 5px;
   & > p {
-    font-size: 14px;
+    font-size: 15px;
   }
 `;
 
@@ -331,12 +331,7 @@ const PrintableRoomInvoice = ({ billId }) => {
   return (
     <>
       <style>{printStyles}</style>
-      <Box
-        id="printable-invoice"
-        sx={{
-          overflowX: "hidden",
-        }}
-      >
+      <Box id="printable-invoice">
         <TableContainer>
           <Table>
             <TableHead>

@@ -31,11 +31,10 @@ const BookingDashboard = () => {
   const [printableServiceInvoice, setPrintableServiceInvoice] = useState(null);
   const [showPrintModal, setShowPrintModal] = useState(false);
   // Modal States
-  const [openRoomInvoiceModal, setOpenRoomInvoiceModal] = useState(false);
-  const [openServiceInvoiceModal, setOpenServiceInvoiceModal] = useState(false);
+
   const [openServicesModal, setOpenServicesModal] = useState(false);
   const [openFoodModal, setOpenFoodModal] = useState(false);
-  const [openFoodInvoiceModal, setOpenFoodInvoiceModal] = useState(false);
+
   const [openBillPaymentModal, setOpenBillPaymentModal] = useState(false);
   // Service Form States
   const [serviceName, setServiceName] = useState("");
@@ -139,6 +138,7 @@ const BookingDashboard = () => {
         });
         const billingData = billingResponse.data.data;
         setRemainingDueAmount(billingData.dueAmount);
+        setPaymentAmount(billingData.dueAmount);
         // Process existing items with proper null checks
         const existingServices = billingData.itemList || [];
         const existingPrices = billingData.priceList || [];
@@ -213,7 +213,6 @@ const BookingDashboard = () => {
         const newBookingsResponse = await axios.get("/api/NewBooking", {
           headers,
         });
-        console.log(newBookingsResponse.data.data);
 
         // Find bookings for all rooms
         const matchedBookings = await Promise.all(
@@ -274,7 +273,6 @@ const BookingDashboard = () => {
         // Sort invoices by date in descending order (newest first)
 
         setPaymentMethods(data.products);
-        setLoading(false);
       } catch (error) {
         console.error(error);
       }
@@ -1004,7 +1002,7 @@ const BookingDashboard = () => {
               <TextField
                 fullWidth
                 margin="normal"
-                label="Room Remarks (Optional)"
+                label="Remarks (Optional)"
                 multiline
                 rows={3}
                 value={roomRemarks}

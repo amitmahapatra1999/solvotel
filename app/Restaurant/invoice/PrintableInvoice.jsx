@@ -24,7 +24,9 @@ const printStyles = `
     body * {
       visibility: hidden;
     }
-
+ #print-button * {
+      display:none;
+      }
     #printable-invoice,
     #printable-invoice * {
       visibility: visible;
@@ -414,6 +416,7 @@ const PrintableInvoice = ({ invoiceId }) => {
           </Typography>
 
           <Box
+            id="print-button"
             sx={{ mt: 3, display: "flex", justifyContent: "center", gap: 2 }}
           >
             <Button
@@ -424,12 +427,6 @@ const PrintableInvoice = ({ invoiceId }) => {
             >
               Print Invoice
             </Button>
-          </Box>
-
-          <Box sx={{ mt: 4, textAlign: "center" }}>
-            <Typography variant="caption" color="textSecondary">
-              Invoice generated on {new Date().toLocaleString()}
-            </Typography>
           </Box>
         </Paper>
       </Box>

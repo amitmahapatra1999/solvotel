@@ -26,10 +26,13 @@ const printStyles = `
     body * {
       visibility: hidden;
     }
-    #printable-service-invoice, #printable-service-invoice * {
+      #print-button * {
+      display:none;
+      }
+    #printable-invoice, #printable-invoice * {
       visibility: visible;
     }
-    #printable-service-invoice {
+    #printable-invoice {
       position: absolute;
       left: 0;
       top: 0;
@@ -48,10 +51,6 @@ const PrintableServiceInvoice = ({ billId }) => {
   const [error, setError] = useState(null);
   const [invoiceData, setInvoiceData] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [services, setServices] = useState([]);
-  const [isPaid, setIsPaid] = useState(false);
-  const [isCancelled, setIsCancelled] = useState(false);
-  const [foodItems, setFoodItems] = useState([]);
   const [serviceItems, setServiceItems] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
@@ -69,7 +68,6 @@ const PrintableServiceInvoice = ({ billId }) => {
           .split("=")[1];
         const headers = { Authorization: `Bearer ${token}` };
         const menuResponse = await axios.get("/api/menuItem", { headers });
-        setMenuItems(menuResponse.data.data);
       } catch (err) {
         console.error("Error fetching menu items:", err);
       }
@@ -88,7 +86,7 @@ const PrintableServiceInvoice = ({ billId }) => {
           )
           .split("=")[1];
         const headers = { Authorization: `Bearer ${token}` };
-        console.log("billId", billId);
+
         const authtoken = getCookie("authToken");
         const usertoken = getCookie("userAuthToken");
         if (!authtoken && !usertoken) {
@@ -129,24 +127,18 @@ const PrintableServiceInvoice = ({ billId }) => {
           billingResponse.json(),
           profileResponse.json(),
         ]);
-        console.log("Profile Data", profileData);
+
         const billingData = billing.data;
-        // Set payment status
-        setIsPaid(billingData.Bill_Paid?.toLowerCase() === "yes");
-        // Set cancellation status
-        setIsCancelled(billingData.Cancelled?.toLowerCase() === "yes");
 
         // 2. Fetch booking details using room number from billing
         const bookingsResponse = await fetch("/api/NewBooking");
         const bookingsData = await bookingsResponse.json();
         const roomsResponse = await fetch("/api/rooms");
         const roomsData = await roomsResponse.json();
-        console.log("roomsData", roomsData.data);
-        console.log("billingData", billingData);
+
         const matchedRooms = roomsData.data.filter((room) =>
           billingData.roomNo.includes(String(room.number))
         );
-        console.log("matchedRooms", matchedRooms);
 
         if (!matchedRooms) {
           throw new Error("No matching room found");
@@ -182,28 +174,32 @@ const PrintableServiceInvoice = ({ billId }) => {
           })
         );
 
-        console.log("matchedBookings", matchedBookings);
-
         if (!matchedBookings) {
           throw new Error("No matching booking found");
         }
 
-        // Process existing items
+        // Process existing items with proper null checks
         const existingServices = billingData.itemList || [];
         const existingPrices = billingData.priceList || [];
         const existingTaxes = billingData.taxList || [];
         const existingQuantities = billingData.quantityList || [];
-
+        const existingCGSTArray = billingData.cgstArray || [];
+        const existingSGSTArray = billingData.sgstArray || [];
         // Separate food and service items
         const foodItemsArray = [];
         const serviceItemsArray = [];
-
         existingServices.forEach((roomServices, roomIndex) => {
+          if (!roomServices) return; // Skip if roomServices is undefined
+
           const roomPrices = existingPrices[roomIndex] || [];
           const roomTaxes = existingTaxes[roomIndex] || [];
           const roomQuantities = existingQuantities[roomIndex] || [];
+          const roomCGST = existingCGSTArray[roomIndex] || [];
+          const roomSGST = existingSGSTArray[roomIndex] || [];
 
           roomServices.forEach((item, itemIndex) => {
+            if (!item) return; // Skip if item is undefined
+
             const menuItem = menuItemsList.find(
               (menuItem) => menuItem.itemName === item
             );
@@ -213,6 +209,8 @@ const PrintableServiceInvoice = ({ billId }) => {
               price: roomPrices[itemIndex] || 0,
               quantity: roomQuantities[itemIndex] || 1,
               tax: roomTaxes[itemIndex] || 0,
+              cgst: roomCGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0,
+              sgst: roomSGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0,
               roomIndex: roomIndex,
             };
 
@@ -224,11 +222,8 @@ const PrintableServiceInvoice = ({ billId }) => {
           });
         });
 
-        setFoodItems(foodItemsArray);
         setServiceItems(serviceItemsArray);
-        setServices([...serviceItemsArray, ...foodItemsArray]);
 
-        setServices(serviceItems);
         setInvoiceData({ billing: billingData, booking: matchedBookings[0] });
         setProfile(profileData.data);
         setLoading(false);
@@ -269,20 +264,38 @@ const PrintableServiceInvoice = ({ billId }) => {
     );
   }
 
-  const { booking, billing } = invoiceData;
+  const { booking } = invoiceData;
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString("en-GB");
   const formattedTime = currentDate.toLocaleTimeString();
 
-  // Calculate total services amount
-  const totalServicesAmount = serviceItems.reduce(
-    (total, service) => total + service.price,
-    0
-  );
-  const serviceTax = serviceItems.reduce(
-    (tax, service) => tax + service.tax,
-    0
-  );
+  // Determine if invoice state matches profile state
+  const isSameState =
+    booking.state && profile.state && booking.state === profile.state;
+
+  let totalBeforeTax = 0;
+  let totalSGST = 0;
+  let totalCGST = 0;
+  let totalIGST = 0;
+  let totalAmount = 0;
+
+  serviceItems.forEach((item) => {
+    const price = item?.price || 0;
+    const sgstRate = item?.sgst || 0;
+    const cgstRate = item?.cgst || 0;
+    const igstRate = item?.sgst + item?.cgst;
+
+    const itemTotal = price;
+    const taxAmount = itemTotal * (item?.igst / 100);
+
+    totalBeforeTax += itemTotal;
+
+    totalSGST += itemTotal * (sgstRate / 100);
+    totalCGST += itemTotal * (cgstRate / 100);
+    totalIGST += itemTotal * (igstRate / 100);
+
+    totalAmount += itemTotal + taxAmount;
+  });
 
   return (
     <>
@@ -295,18 +308,15 @@ const PrintableServiceInvoice = ({ billId }) => {
           margin: "auto",
           bgcolor: "#f5f5f5",
           borderRadius: 2,
-          maxHeight: "90vh",
-          overflowY: "auto",
-          overflowX: "hidden",
         }}
       >
         <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
           <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={6}>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <RestaurantIcon
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                {/* <RestaurantIcon
                   sx={{ fontSize: 40, mr: 2, color: "#00bcd4" }}
-                />
+                /> */}
                 <Typography
                   variant="h5"
                   sx={{ fontWeight: "bold", color: "#00bcd4" }}
@@ -367,7 +377,7 @@ const PrintableServiceInvoice = ({ billId }) => {
                 variant="h4"
                 sx={{ fontWeight: "bold", color: "#00bcd4" }}
               >
-                Service Invoice
+                Invoice No
               </Typography>
               <Typography variant="body1" color="textSecondary">
                 #{booking.bookingId}
@@ -407,30 +417,54 @@ const PrintableServiceInvoice = ({ billId }) => {
             <Table>
               <TableHead>
                 <TableRow sx={{ bgcolor: "#00bcd4" }}>
-                  <TableCell sx={{ color: "white" }}>Room No.</TableCell>
-                  <TableCell sx={{ color: "white" }}>Service</TableCell>
+                  {/* <TableCell sx={{ color: "white" }}>Room No.</TableCell> */}
+                  <TableCell sx={{ color: "white" }}>ITEM</TableCell>
                   <TableCell align="center" sx={{ color: "white" }}>
-                    Quantity
+                    RATE
                   </TableCell>
-                  <TableCell align="center" sx={{ color: "white" }}>
-                    Tax
-                  </TableCell>
+                  {isSameState ? (
+                    <>
+                      <TableCell align="right" sx={{ color: "white" }}>
+                        SGST
+                      </TableCell>
+                      <TableCell align="right" sx={{ color: "white" }}>
+                        CGST
+                      </TableCell>
+                    </>
+                  ) : (
+                    <TableCell align="right" sx={{ color: "white" }}>
+                      IGST
+                    </TableCell>
+                  )}
                   <TableCell align="right" sx={{ color: "white" }}>
-                    Total
+                    AMOUNT
                   </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {serviceItems.map((service, index) => (
                   <TableRow key={index}>
-                    <TableCell>
+                    {/* <TableCell>
                       Room #{billing.roomNo[service.roomIndex]}
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>{service.name}</TableCell>
-                    <TableCell align="center">{service.quantity}</TableCell>
-                    <TableCell align="center">{service.tax}%</TableCell>
-                    <TableCell align="right">
+                    <TableCell align="center">
                       ₹{(parseFloat(service.price) || 0).toFixed(2)}
+                    </TableCell>
+                    {isSameState ? (
+                      <>
+                        <TableCell align="center">{service?.sgst}</TableCell>
+                        <TableCell align="center">{service?.cgst}</TableCell>
+                      </>
+                    ) : (
+                      <TableCell align="right">
+                        ₹{item?.igst?.toFixed(2)}
+                      </TableCell>
+                    )}
+                    <TableCell align="right">
+                      ₹
+                      {service.price +
+                        service.price * ((service?.sgst + service?.cgst) / 100)}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -443,59 +477,44 @@ const PrintableServiceInvoice = ({ billId }) => {
             <Box sx={{ width: "250px" }}>
               <Grid container spacing={1}>
                 <Grid item xs={6}>
-                  <Typography variant="body1">IGST:</Typography>
-                  <Typography variant="body1">CGST:</Typography>
-                  <Typography variant="body1">SGST:</Typography>
+                  <Typography variant="body1">Subtotal:</Typography>
+                  {isSameState ? (
+                    <>
+                      <Typography variant="body1">SGST:</Typography>
+                      <Typography variant="body1">CGST:</Typography>
+                    </>
+                  ) : (
+                    <Typography variant="body1">IGST:</Typography>
+                  )}
                   <Typography variant="h6" sx={{ fontWeight: "bold", mt: 1 }}>
                     Total:
                   </Typography>
                 </Grid>
                 <Grid item xs={6} sx={{ textAlign: "right" }}>
-                  <Typography variant="body1">
-                    {serviceTax.toFixed(2)}%
-                  </Typography>
-                  <Typography variant="body1">
-                    {(serviceTax / 2).toFixed(2)}%
-                  </Typography>
-                  <Typography variant="body1">
-                    {(serviceTax / 2).toFixed(2)}%
-                  </Typography>
+                  {isSameState ? (
+                    <>
+                      <Typography variant="body1">
+                        ₹{totalBeforeTax.toFixed(2)}
+                      </Typography>
+                      <Typography variant="body1">
+                        ₹{totalCGST.toFixed(2)}
+                      </Typography>
+                      <Typography variant="body1">
+                        ₹{totalSGST.toFixed(2)}
+                      </Typography>
+                    </>
+                  ) : (
+                    <Typography variant="body1">
+                      ₹{totalIGST.toFixed(2)}
+                    </Typography>
+                  )}
                   <Typography variant="h6" sx={{ fontWeight: "bold", mt: 1 }}>
-                    ₹{totalServicesAmount.toFixed(2)}
+                    ₹{(totalIGST + totalBeforeTax).toFixed(2)}
                   </Typography>
                 </Grid>
               </Grid>
             </Box>
           </Box>
-          {/* Paid Image */}
-          {isPaid && (
-            <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
-              <img
-                src="/paid.png"
-                alt="Paid"
-                style={{
-                  width: "250px",
-                  height: "auto",
-                  opacity: 0.8,
-                }}
-              />
-            </Box>
-          )}
-
-          {/* Cancelled Image */}
-          {isCancelled && (
-            <Box sx={{ display: "flex", justifyContent: "center", my: 3 }}>
-              <img
-                src="/cancelled.png"
-                alt="Cancelled"
-                style={{
-                  width: "250px",
-                  height: "auto",
-                  opacity: 0.8,
-                }}
-              />
-            </Box>
-          )}
 
           <Divider sx={{ my: 3 }} />
 
@@ -509,6 +528,7 @@ const PrintableServiceInvoice = ({ billId }) => {
 
           <Box
             sx={{ mt: 3, display: "flex", justifyContent: "center", gap: 2 }}
+            id="print-button"
           >
             <Button
               variant="contained"
@@ -516,14 +536,8 @@ const PrintableServiceInvoice = ({ billId }) => {
               onClick={handlePrint}
               sx={{ bgcolor: "#00bcd4", "&:hover": { bgcolor: "#00acc1" } }}
             >
-              Print Service Invoice
+              Print Invoice
             </Button>
-          </Box>
-
-          <Box sx={{ mt: 4, textAlign: "center" }}>
-            <Typography variant="caption" color="textSecondary">
-              Invoice generated on {formattedDate} at {formattedTime}
-            </Typography>
           </Box>
         </Paper>
       </Box>
