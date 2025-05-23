@@ -66,7 +66,6 @@ const BookingDashboard = () => {
 
   const [paymentMethods, setPaymentMethods] = useState([]);
 
-  console.log(bookingData, "booking");
   // Modal Styles
   const modalStyle = {
     position: "absolute",
@@ -140,7 +139,7 @@ const BookingDashboard = () => {
         });
         const billingData = billingResponse.data.data;
         setRemainingDueAmount(billingData.dueAmount);
-        setPaymentAmount(billingData.dueAmount);
+
         // Process existing items with proper null checks
         const existingServices = billingData.itemList || [];
         const existingPrices = billingData.priceList || [];
@@ -415,6 +414,7 @@ const BookingDashboard = () => {
       };
       setServices([...services, newService]);
       handleCloseServicesModal();
+      window.location.reload();
     } catch (error) {
       console.error("Error adding service:", error);
       alert(
@@ -622,7 +622,7 @@ const BookingDashboard = () => {
 
       setFoodItems([...foodItems, ...foodUpdates]);
       handleCloseFoodModal();
-
+      window.location.reload();
       // Refresh data
     } catch (error) {
       console.error("Error adding food:", error);
@@ -786,6 +786,12 @@ const BookingDashboard = () => {
     return <div>Error: {error}</div>;
   }
   const { billing, booking, room, category } = bookingData;
+  const numberOfNights =
+    (new Date(bookingData?.bookings?.checkOut) -
+      new Date(bookingData?.bookings?.checkIn)) /
+    (1000 * 60 * 60 * 24);
+
+  console.log(numberOfNights);
 
   return (
     <div className="min-h-screen bg-amber-50">
@@ -1080,25 +1086,28 @@ const BookingDashboard = () => {
             <table className="w-full mt-2 bg-gray-100 rounded text-sm mb-4">
               <thead>
                 <tr className="bg-gray-200">
-                  <th className="p-2 text-left">Date</th>
+                  <th className="p-2 text-left">#</th>
                   <th className="p-2 text-center">Room Details</th>
+                  <th className="p-2 text-center">Tariff</th>
+                  <th className="p-2 text-center">CGST</th>
+                  <th className="p-2 text-center"> SGST</th>
                   <th className="p-2 text-right">Amount</th>
                 </tr>
               </thead>
               <tbody>
-                {billing.roomNo.map((roomNumber, index) => (
+                {bookingData.rooms.map((room, index) => (
                   <tr key={index}>
-                    <td className="p-2 text-left">
-                      {new Date(
-                        bookingData?.bookings?.checkIn
-                      ).toLocaleDateString("en-GB")}
+                    <td className="p-2 text-left">{index + 1}</td>
+                    <td className="p-2 text-center">
+                      Room # {room?.number} - {room?.category?.category}
                     </td>
                     <td className="p-2 text-center">
-                      Room # {roomNumber} -{" "}
-                      {bookingData?.rooms[index]?.category?.category}
+                      {room?.category?.tariff}
                     </td>
+                    <td className="p-2 text-center">{room?.category?.cgst}%</td>
+                    <td className="p-2 text-center">{room?.category?.sgst}%</td>
                     <td className="p-2 text-right">
-                      {/* {billing?.priceList[index]?.toFixed(2)} */}
+                      {parseFloat(room?.category?.total) * numberOfNights}
                     </td>
                   </tr>
                 ))}
@@ -1142,7 +1151,7 @@ const BookingDashboard = () => {
                 <tr className="bg-gray-200">
                   <th className="p-2 text-left">Room No.</th>
                   <th className="p-2 text-left">Item</th>
-                  <th className="p-2 text-center">Quantity</th>
+                  <th className="p-2 text-center">Rate</th>
                   <th className="p-2 text-center">CGST</th>
                   <th className="p-2 text-center">SGST</th>
                   <th className="p-2 text-right">Amount</th>
@@ -1155,7 +1164,7 @@ const BookingDashboard = () => {
                       Room #{billing.roomNo[service.roomIndex]}
                     </td>
                     <td className="p-2 text-left">{service.name}</td>
-                    <td className="p-2 text-center">{service.quantity}</td>
+                    <td className="p-2 text-center">{service.price}</td>
                     <td className="p-2 text-center">
                       {service.cgst || service.tax / 2}%
                     </td>
@@ -1163,7 +1172,8 @@ const BookingDashboard = () => {
                       {service.sgst || service.tax / 2}%
                     </td>
                     <td className="p-2 text-right">
-                      {(Number.parseFloat(service.price) || 0).toFixed(2)}
+                      {service.price +
+                        (service.price * (service.cgst + service.sgst)) / 100}
                     </td>
                   </tr>
                 ))}
@@ -1520,6 +1530,7 @@ const BookingDashboard = () => {
                 <tr className="bg-gray-200">
                   <th className="p-2 text-left">Room No.</th>
                   <th className="p-2 text-left">Item</th>
+                  <th className="p-2 text-left">Rate</th>
                   <th className="p-2 text-center">Quantity</th>
                   <th className="p-2 text-center">CGST</th>
                   <th className="p-2 text-center">SGST</th>
@@ -1533,6 +1544,7 @@ const BookingDashboard = () => {
                       Room #{billing.roomNo[food.roomIndex]}
                     </td>
                     <td className="p-2 text-left">{food.name}</td>
+                    <td className="p-2 text-left">{food.price.toFixed(2)}</td>
                     <td className="p-2 text-center">{food.quantity}</td>
                     <td className="p-2 text-center">
                       {food.cgst || food.tax / 2}%
@@ -1540,7 +1552,11 @@ const BookingDashboard = () => {
                     <td className="p-2 text-center">
                       {food.sgst || food.tax / 2}%
                     </td>
-                    <td className="p-2 text-right">{food.price.toFixed(2)}</td>
+                    <td className="p-2 text-right">
+                      {food.price * food.quantity +
+                        food.price *
+                          (food.quantity * ((food.cgst + food.sgst) / 100))}
+                    </td>
                   </tr>
                 ))}
               </tbody>
