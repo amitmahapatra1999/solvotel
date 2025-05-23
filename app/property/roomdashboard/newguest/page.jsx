@@ -309,7 +309,7 @@ export default function BookingForm() {
       !anniversaryError;
 
     setIsFormValid(isValid);
-    console.log(isFormValid);
+
     return isValid && Object.keys(newErrors).length === 0;
   };
 
@@ -542,9 +542,10 @@ export default function BookingForm() {
         // Calculate billing details
         const checkInDate = new Date(formData.checkIn);
         const checkOutDate = new Date(formData.checkOut);
-        const numberOfNights = Math.ceil(
-          (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)
-        );
+        const numberOfNights =
+          (new Date(checkOutDate) - new Date(checkInDate)) /
+          (1000 * 60 * 60 * 24);
+
         const roomCharge = matchedCategory.total * numberOfNights;
         const roomTax = matchedCategory.gst;
 
@@ -577,6 +578,7 @@ export default function BookingForm() {
           amountAdvanced: 0,
           dueAmount: totalAmount,
           Bill_Paid: "no",
+          bookingId: formData?.bookingId,
         }),
       });
 
@@ -667,20 +669,17 @@ export default function BookingForm() {
             roomUpdate.currentBillingId = sortedBillWaitlist[0];
           }
         }
-        const roomUpdateResponse = await fetch(
-          `/api/rooms/${matchedRoom._id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(roomUpdate),
-          }
-        );
+        await fetch(`/api/rooms/${matchedRoom._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(roomUpdate),
+        });
       }
 
       alert("Booking created with consolidated billing!");
       setLoading(false);
       setModalOpen(false);
-      router.push("/property/roomdashboard");
+      router.push("/property/billing");
     } catch (error) {
       setLoading(false);
       console.error("Error in booking submission:", error);
@@ -826,31 +825,6 @@ export default function BookingForm() {
       setFilteredMobileNumbers([]);
     }
   };
-
-  // Replace the mobile number TextField with Autocomplete
-  const mobileNumberField = (
-    <Autocomplete
-      freeSolo
-      options={filteredMobileNumbers}
-      value={formData.mobileNo}
-      onChange={(event, newValue) => handleMobileNumberChange(event, newValue)}
-      onInputChange={(event, newValue) =>
-        handleMobileNumberChange(event, newValue)
-      }
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label="Mobile Number"
-          required
-          fullWidth
-          variant="outlined"
-        />
-      )}
-      filterOptions={(options, { inputValue }) =>
-        options.filter((option) => option.startsWith(inputValue))
-      }
-    />
-  );
 
   // Add useEffect for continuous form validation
   useEffect(() => {

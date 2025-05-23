@@ -65,6 +65,8 @@ const BookingDashboard = () => {
   const [selectedRoomIndex, setSelectedRoomIndex] = useState(0);
 
   const [paymentMethods, setPaymentMethods] = useState([]);
+
+  console.log(bookingData, "booking");
   // Modal Styles
   const modalStyle = {
     position: "absolute",
@@ -213,44 +215,16 @@ const BookingDashboard = () => {
         const newBookingsResponse = await axios.get("/api/NewBooking", {
           headers,
         });
-
-        // Find bookings for all rooms
-        const matchedBookings = await Promise.all(
-          matchedRooms.map(async (room) => {
-            if (
-              billingData.Bill_Paid === "yes" ||
-              billingData.Cancelled === "yes"
-            ) {
-              const currentBillIndex = room.billWaitlist.findIndex(
-                (billId) => billId._id.toString() === billingData._id.toString()
-              );
-
-              if (currentBillIndex === -1) {
-                return null;
-              }
-
-              const correspondingGuestId = room.guestWaitlist[currentBillIndex];
-              return newBookingsResponse.data.data.find(
-                (booking) => booking._id === correspondingGuestId._id.toString()
-              );
-            } else {
-              return newBookingsResponse.data.data.find(
-                (booking) => booking._id === room.currentGuestId
-              );
-            }
-          })
-        );
-
-        // Filter out duplicates and null values
-        const uniqueBookings = Array.from(
-          new Set(
-            matchedBookings.filter((booking) => booking).map(JSON.stringify)
-          )
-        ).map(JSON.parse);
+        const bookingResult = newBookingsResponse.data.data;
+        const filteredBookingData = bookingResult?.find((item, index) => {
+          if (item?.bookingId === billingData.bookingId) {
+            return item;
+          }
+        });
 
         setBookingData({
           billing: billingData,
-          bookings: uniqueBookings, // Use unique bookings
+          bookings: filteredBookingData, // Use unique bookings
           rooms: matchedRooms,
           categories: matchedCategories,
         });
@@ -728,7 +702,7 @@ const BookingDashboard = () => {
 
       // Step 2: Update NewBooking API to set CheckOut to true
       await axios.put(
-        `/api/NewBooking/${bookingData.bookings[0]._id}`, // Use the first booking's ID
+        `/api/NewBooking/${bookingData.bookings._id}`, // Use the first booking's ID
         {
           CheckedOut: true,
         },
@@ -822,57 +796,56 @@ const BookingDashboard = () => {
           <h2 className="text-xl font-semibold text-gray-800">
             Booking Dashboard{" "}
             <span className="text-gray-500">
-              ({bookingData.bookings[0].bookingId})
+              ({bookingData.bookings.bookingId})
             </span>
           </h2>
 
           {/* Booking Information */}
           <div className="mt-4 bg-blue-100 p-4 rounded">
             <p className="text-lg font-semibold">
-              {bookingData.bookings[0].guestName}{" "}
+              {bookingData.bookings.guestName}{" "}
             </p>
             <p className="mt-2 text-sm text-gray-700">
               Check-In:{" "}
               <strong>
-                {new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
+                {new Date(bookingData.bookings.checkIn).toLocaleDateString(
                   "en-GB"
                 )}
               </strong>{" "}
               | Expected Check-Out:{" "}
               <strong>
-                {new Date(bookingData.bookings[0].checkOut).toLocaleDateString(
+                {new Date(bookingData.bookings.checkOut).toLocaleDateString(
                   "en-GB"
                 )}
               </strong>{" "}
-              | Phone No:{" "}
-              <strong>+91 {bookingData.bookings[0].mobileNo}</strong>
+              | Phone No: <strong>+91 {bookingData.bookings.mobileNo}</strong>
             </p>
             <p className="mt-1 text-sm text-gray-700">
-              Guest ID: <strong>{bookingData.bookings[0].guestid}</strong> |
-              Date of Birth:{" "}
+              Guest ID: <strong>{bookingData.bookings.guestid}</strong> | Date
+              of Birth:{" "}
               <strong>
-                {new Date(
-                  bookingData.bookings[0].dateofbirth
-                ).toLocaleDateString("en-GB")}
+                {new Date(bookingData.bookings.dateofbirth).toLocaleDateString(
+                  "en-GB"
+                )}
               </strong>{" "}
               | Booking Type:{" "}
-              <strong>{bookingData.bookings[0].bookingType}</strong> | Booking
-              Source: <strong>{bookingData.bookings[0].bookingSource}</strong>
+              <strong>{bookingData.bookings.bookingType}</strong> | Booking
+              Source: <strong>{bookingData.bookings.bookingSource}</strong>
             </p>
             <p className="mt-1 text-sm text-gray-700">
               Booked On:{" "}
               <strong>
-                {new Date(bookingData.bookings[0].createdAt).toLocaleDateString(
+                {new Date(bookingData.bookings.createdAt).toLocaleDateString(
                   "en-GB"
                 )}
               </strong>{" "}
               | No. Of guest(s):{" "}
               <strong>
-                {bookingData.bookings[0].adults} Adult{" "}
-                {bookingData.bookings[0].children} Child
+                {bookingData.bookings.adults} Adult{" "}
+                {bookingData.bookings.children} Child
               </strong>{" "}
-              | Meal Plan: <strong>{bookingData.bookings[0].mealPlan}</strong> |
-              Notes: <strong>{bookingData.bookings[0].remarks || "-"}</strong>
+              | Meal Plan: <strong>{bookingData.bookings.mealPlan}</strong> |
+              Notes: <strong>{bookingData.bookings.remarks || "-"}</strong>
             </p>
           </div>
 
@@ -880,8 +853,8 @@ const BookingDashboard = () => {
           <div className="mt-6 bg-blue-50 p-4 rounded">
             <h3 className="font-semibold text-gray-800">Rooms Booked</h3>
             <p className="text-sm text-gray-700">
-              {new Date(bookingData.bookings[0].checkIn).toLocaleDateString()} (
-              {new Date(bookingData.bookings[0].checkIn).toLocaleString(
+              {new Date(bookingData.bookings.checkIn).toLocaleDateString()} (
+              {new Date(bookingData.bookings.checkIn).toLocaleString(
                 "default",
                 {
                   weekday: "short",
@@ -906,7 +879,7 @@ const BookingDashboard = () => {
                 disabled:
                   billing.Bill_Paid === "yes" ||
                   billing.Cancelled === "yes" ||
-                  new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
+                  new Date(bookingData.bookings.checkIn).toLocaleDateString(
                     "en-GB"
                   ) > new Date().toLocaleDateString("en-GB"),
               },
@@ -918,7 +891,7 @@ const BookingDashboard = () => {
                 disabled:
                   billing.Bill_Paid === "yes" ||
                   billing.Cancelled === "yes" ||
-                  new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
+                  new Date(bookingData.bookings.checkIn).toLocaleDateString(
                     "en-GB"
                   ) > new Date().toLocaleDateString("en-GB"),
               },
@@ -933,7 +906,7 @@ const BookingDashboard = () => {
                 disabled:
                   remainingDueAmount <= 0 ||
                   billing.Cancelled === "yes" ||
-                  new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
+                  new Date(bookingData.bookings.checkIn).toLocaleDateString(
                     "en-GB"
                   ) > new Date().toLocaleDateString("en-GB"),
               },
@@ -1092,7 +1065,7 @@ const BookingDashboard = () => {
                 remainingDueAmount > 0 ||
                 billing.Bill_Paid === "yes" ||
                 billing.Cancelled === "yes" ||
-                new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
+                new Date(bookingData.bookings.checkIn).toLocaleDateString(
                   "en-GB"
                 ) > new Date().toLocaleDateString("en-GB")
               }
@@ -1117,15 +1090,15 @@ const BookingDashboard = () => {
                   <tr key={index}>
                     <td className="p-2 text-left">
                       {new Date(
-                        bookingData.bookings[0].checkIn
+                        bookingData?.bookings?.checkIn
                       ).toLocaleDateString("en-GB")}
                     </td>
                     <td className="p-2 text-center">
                       Room # {roomNumber} -{" "}
-                      {bookingData.rooms[index].category.category}
+                      {bookingData?.rooms[index]?.category?.category}
                     </td>
                     <td className="p-2 text-right">
-                      {billing.priceList[index][0].toFixed(2)}
+                      {/* {billing?.priceList[index]?.toFixed(2)} */}
                     </td>
                   </tr>
                 ))}

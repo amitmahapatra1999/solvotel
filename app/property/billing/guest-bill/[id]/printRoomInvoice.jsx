@@ -105,7 +105,7 @@ const PrintableRoomInvoice = ({ billId }) => {
           )
           .split("=")[1];
         const headers = { Authorization: `Bearer ${token}` };
-        console.log("billId", billId);
+
         // 1. First fetch billing details
         const authtoken = getCookie("authToken");
         const usertoken = getCookie("userAuthToken");
@@ -153,12 +153,10 @@ const PrintableRoomInvoice = ({ billId }) => {
         // 2. Fetch and find matched room
         const roomsResponse = await fetch("/api/rooms");
         const roomsData = await roomsResponse.json();
-        console.log("roomsData", roomsData.data);
+
         const matchedRooms = roomsData.data.filter((room) =>
           billingData.roomNo.includes(String(room.number))
         );
-
-        console.log("matchedRooms", matchedRooms);
 
         if (!matchedRooms) {
           throw new Error("No matching room found");
@@ -168,6 +166,13 @@ const PrintableRoomInvoice = ({ billId }) => {
         const newBookingsResponse = await axios.get("/api/NewBooking", {
           headers,
         });
+        const bookingResult = newBookingsResponse.data.data;
+        const filteredBookingData = bookingResult?.find((item, index) => {
+          if (item?.bookingId === billingData.bookingId) {
+            return item;
+          }
+        });
+
         // Find bookings for all rooms
         const matchedBookings = await Promise.all(
           matchedRooms.map(async (room) => {
@@ -221,12 +226,7 @@ const PrintableRoomInvoice = ({ billId }) => {
           )
         );
 
-        // Fetch menu items for comparison
-        const menuResponse = await axios.get("/api/menuItem", { headers });
-        const menuItemsList = menuResponse.data.data;
-
         // Fetch billing details
-        console.log("billingData", billingData.itemList);
 
         // Process existing items
         const existingServices = billingData.itemList || [];
@@ -255,11 +255,10 @@ const PrintableRoomInvoice = ({ billId }) => {
           });
         });
         setServiceItems(serviceItemsArray);
-        console.log("serviceItemsArray", serviceItemsArray);
 
         setBookingData({
           billing: billingData,
-          booking: uniqueBookings[0],
+          booking: filteredBookingData,
           room: matchedRooms,
           category: matchedCategories,
         });

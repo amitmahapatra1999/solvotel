@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const BillingSchema = new mongoose.Schema(
   {
+    bookingId: {
+      type: String,
+      required: true,
+    },
     roomNo: { type: [String], ref: "Room", required: true },
     itemList: {
       type: [[String]],
