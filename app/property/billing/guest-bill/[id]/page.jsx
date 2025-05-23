@@ -791,6 +791,16 @@ const BookingDashboard = () => {
       new Date(bookingData?.bookings?.checkIn)) /
     (1000 * 60 * 60 * 24);
 
+  let checkInStatus =
+    bookingData?.bookings?.CheckedIn == true &&
+    bookingData?.bookings?.CheckedOut == false;
+  let checkOutStatus =
+    bookingData?.bookings?.CheckedIn == true &&
+    bookingData?.bookings?.CheckedOut == true;
+
+  console.log(`checkinStatus: ${checkInStatus}`);
+  console.log(`checkOutStatus: ${checkOutStatus}`);
+
   return (
     <div className="min-h-screen bg-amber-50">
       <Navbar />
@@ -883,9 +893,8 @@ const BookingDashboard = () => {
                 disabled:
                   billing.Bill_Paid === "yes" ||
                   billing.Cancelled === "yes" ||
-                  new Date(bookingData.bookings.checkIn).toLocaleDateString(
-                    "en-GB"
-                  ) > new Date().toLocaleDateString("en-GB"),
+                  checkInStatus == false ||
+                  checkOutStatus == true,
               },
               {
                 label: "Add Food",
@@ -895,9 +904,8 @@ const BookingDashboard = () => {
                 disabled:
                   billing.Bill_Paid === "yes" ||
                   billing.Cancelled === "yes" ||
-                  new Date(bookingData.bookings.checkIn).toLocaleDateString(
-                    "en-GB"
-                  ) > new Date().toLocaleDateString("en-GB"),
+                  checkInStatus == false ||
+                  checkOutStatus == true,
               },
               {
                 label: "Bill Payment",
@@ -910,9 +918,8 @@ const BookingDashboard = () => {
                 disabled:
                   remainingDueAmount <= 0 ||
                   billing.Cancelled === "yes" ||
-                  new Date(bookingData.bookings.checkIn).toLocaleDateString(
-                    "en-GB"
-                  ) > new Date().toLocaleDateString("en-GB"),
+                  checkInStatus == false ||
+                  checkOutStatus == true,
               },
             ].map((btn, index) => (
               <Button

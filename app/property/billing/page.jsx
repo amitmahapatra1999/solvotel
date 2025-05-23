@@ -43,6 +43,7 @@ export default function Billing() {
   const [searchRoom, setSearchRoom] = useState("");
   const [searchGuest, setSearchGuest] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [checInOutLoader, setChecInOutLoader] = useState(false);
   const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
   useEffect(() => {
@@ -212,33 +213,133 @@ export default function Billing() {
   };
 
   const getGuestStatus = (bill) => {
+    const chechInStatus = bill?.bookingDetails?.CheckedIn;
+    const chechOutStatus = bill?.bookingDetails?.CheckedOut;
     if (bill.bill.Cancelled === "yes") {
       return "Cancelled";
     }
 
-    const today = new Date();
-    const checkIn = new Date(bill.bookingDetails.checkIn);
-    const checkOut = new Date(bill.bookingDetails.checkOut);
-
-    const isSameDay =
-      today.getFullYear() === checkIn.getFullYear() &&
-      today.getMonth() === checkIn.getMonth() &&
-      today.getDate() === checkIn.getDate();
-
-    if (today < checkIn) {
-      return "Booked";
-    } else if (today > checkIn && today < checkOut) {
+    if (chechInStatus == true && chechOutStatus == false) {
       return "Checked In";
-    } else if (today > checkOut || bill.bill.Bill_Paid === "yes") {
+    } else if (chechOutStatus == true) {
       return "Checked Out";
+    }
+    return "Booked";
+  };
+
+  const handleCheckIn = async (bill) => {
+    try {
+      setChecInOutLoader(true);
+      const payload = {
+        ...bill.bookingDetails,
+        CheckedIn: true,
+      };
+
+      const token = getCookie("authToken");
+      const usertoken = getCookie("userAuthToken");
+      if (!token && !usertoken) {
+        router.push("/"); // Redirect to login if no token is found
+        return;
+      }
+
+      let decoded, userId;
+      if (token) {
+        // Verify the authToken (legacy check)
+        decoded = await jwtVerify(token, new TextEncoder().encode(SECRET_KEY));
+        userId = decoded.payload.id;
+      }
+      if (usertoken) {
+        // Verify the userAuthToken
+        decoded = await jwtVerify(
+          usertoken,
+          new TextEncoder().encode(SECRET_KEY)
+        );
+        userId = decoded.payload.profileId; // Use userId from the new token structure
+      }
+      // Fetch the profile by userId to get the username
+      const profileResponse = await fetch(`/api/Profile/${userId}`);
+      const profileData = await profileResponse.json();
+      if (!profileData.success || !profileData.data) {
+        router.push("/"); // Redirect to login if profile not found
+        return;
+      }
+
+      const response = await fetch(
+        `/api/NewBooking/${bill.bookingDetails._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+      const res = await response.json();
+      const result = res.data;
+
+      alert("Check IN Success");
+      window.location.reload();
+    } catch (err) {
+      console.log(`Error while checkin: ${err}`);
+      setChecInOutLoader(false);
+      return;
     }
   };
 
-  const getBillStatus = (bill) => {
-    if (bill.bill.Cancelled === "yes") {
-      return "Cancelled";
+  const handleCheckOut = async (bill) => {
+    try {
+      setChecInOutLoader(true);
+      const payload = {
+        ...bill.bookingDetails,
+        CheckedOut: true,
+      };
+
+      const token = getCookie("authToken");
+      const usertoken = getCookie("userAuthToken");
+      if (!token && !usertoken) {
+        router.push("/"); // Redirect to login if no token is found
+        return;
+      }
+
+      let decoded, userId;
+      if (token) {
+        // Verify the authToken (legacy check)
+        decoded = await jwtVerify(token, new TextEncoder().encode(SECRET_KEY));
+        userId = decoded.payload.id;
+      }
+      if (usertoken) {
+        // Verify the userAuthToken
+        decoded = await jwtVerify(
+          usertoken,
+          new TextEncoder().encode(SECRET_KEY)
+        );
+        userId = decoded.payload.profileId; // Use userId from the new token structure
+      }
+      // Fetch the profile by userId to get the username
+      const profileResponse = await fetch(`/api/Profile/${userId}`);
+      const profileData = await profileResponse.json();
+      if (!profileData.success || !profileData.data) {
+        router.push("/"); // Redirect to login if profile not found
+        return;
+      }
+
+      const response = await fetch(
+        `/api/NewBooking/${bill.bookingDetails._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+      const res = await response.json();
+      const result = res.data;
+      console.log(result);
+
+      alert("Check Out Success");
+      window.location.reload();
+    } catch (err) {
+      console.log(`Error while checkin: ${err}`);
+      setChecInOutLoader(false);
+      return;
     }
-    return bill.bill.Bill_Paid === "yes" ? "Paid" : "Unpaid";
   };
 
   return (
@@ -418,7 +519,43 @@ export default function Billing() {
                         <CustomBodyCell>
                           ₹{parseFloat(bill.bill.dueAmount).toFixed(2) || 0}
                         </CustomBodyCell> */}
-                        <CustomBodyCell>{getGuestStatus(bill)}</CustomBodyCell>
+                        <CustomBodyCell>
+                          {getGuestStatus(bill)}
+                          <br />
+                          {bill?.bookingDetails?.CheckedIn == false && (
+                            <Button
+                              variant="contained"
+                              color="success"
+                              sx={{
+                                textTransform: "none",
+                                fontSize: "10px",
+                                p: 0,
+                              }}
+                              disabled={checInOutLoader}
+                              onClick={() => handleCheckIn(bill)}
+                            >
+                              {!checInOutLoader ? "Check In" : "Checking In..."}
+                            </Button>
+                          )}
+                          {bill?.bookingDetails?.CheckedIn &&
+                            !bill?.bookingDetails?.CheckedOut && (
+                              <Button
+                                variant="contained"
+                                color="error"
+                                sx={{
+                                  textTransform: "none",
+                                  fontSize: "10px",
+                                  p: 0,
+                                }}
+                                disabled={checInOutLoader}
+                                onClick={() => handleCheckOut(bill)}
+                              >
+                                {!checInOutLoader
+                                  ? "Check Out"
+                                  : "Checking Out..."}
+                              </Button>
+                            )}
+                        </CustomBodyCell>
                         {/* <CustomBodyCell>{getBillStatus(bill)}</CustomBodyCell> */}
                         <CustomBodyCell>
                           <Button

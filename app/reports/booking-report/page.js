@@ -17,11 +17,23 @@ import {
   TextField,
   Box,
   Typography,
+  styled,
 } from "@mui/material";
 import axios from "axios";
 import { getCookie } from "cookies-next";
 import { jwtVerify } from "jose";
 import { GetCustomDate } from "../../../utils/DateFetcher";
+
+const CustomHeadingCell = styled(TableCell)`
+  font-weight: bold;
+  color: #28bfdb;
+  text-align: center;
+  padding: 5px;
+`;
+const CustomBodyCell = styled(TableCell)`
+  font-size: 13px;
+  padding: 5px;
+`;
 
 const BookingReport = () => {
   const tableRef = useRef(null);
@@ -111,6 +123,8 @@ const BookingReport = () => {
                 checkInDate: guest ? guest.checkIn : null,
                 currentBillingId: billId._id,
                 timestamp: bill.createdAt || new Date().toISOString(),
+                bookingDetails: guest,
+                rooms: room,
               };
             });
           })
@@ -151,6 +165,8 @@ const BookingReport = () => {
       setFilteredInvoices(invoices);
     }
   };
+
+  console.log(filteredInvoices);
 
   const printTable = () => {
     if (!tableRef.current) return;
@@ -248,61 +264,18 @@ const BookingReport = () => {
                 <Table ref={tableRef}>
                   <TableHead>
                     <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        Booking Date
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        Check-In Date
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        Check-Out Date
-                      </TableCell>
+                      <CustomHeadingCell>Booking Date</CustomHeadingCell>
+                      {/* <CustomHeadingCell>Check-In Date</CustomHeadingCell>
+                      <CustomHeadingCell>Check-Out Date</CustomHeadingCell> */}
 
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        Booking ID
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        Room Number
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        Guest
-                      </TableCell>
+                      <CustomHeadingCell>Invoice ID</CustomHeadingCell>
+                      {/* <CustomHeadingCell>Room Number</CustomHeadingCell> */}
+                      <CustomHeadingCell>Guest</CustomHeadingCell>
+                      <CustomHeadingCell>Taxable Value</CustomHeadingCell>
+                      <CustomHeadingCell>CGST</CustomHeadingCell>
+                      <CustomHeadingCell>SGST</CustomHeadingCell>
+                      <CustomHeadingCell>IGST</CustomHeadingCell>
+                      <CustomHeadingCell>Total Sales</CustomHeadingCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -325,35 +298,50 @@ const BookingReport = () => {
                               key={index}
                               sx={{ backgroundColor: "white" }}
                             >
-                              <TableCell sx={{ textAlign: "center" }}>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {invoiceDate}
-                              </TableCell>
-                              <TableCell sx={{ textAlign: "center" }}>
+                              </CustomBodyCell>
+                              {/* <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {checkInDate}
-                              </TableCell>
-                              <TableCell sx={{ textAlign: "center" }}>
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {checkOutDate}
-                              </TableCell>
-                              <TableCell sx={{ textAlign: "center" }}>
+                              </CustomBodyCell> */}
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {item.bookingId || "N/A"}
-                              </TableCell>
-                              <TableCell sx={{ textAlign: "center" }}>
+                              </CustomBodyCell>
+                              {/* <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {Array.isArray(item.bill.roomNo)
                                   ? item.bill.roomNo.join(", ")
                                   : item.bill.roomNo || "N/A"}
-                              </TableCell>
-                              <TableCell sx={{ textAlign: "center" }}>
+                              </CustomBodyCell> */}
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {item.guestName || "N/A"}
-                              </TableCell>
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
+                                0.00
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
+                                0.00
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
+                                0.00
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
+                                0.00
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
+                                0.00
+                              </CustomBodyCell>
                             </TableRow>
                           );
                         })}
                       </>
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} align="center">
+                        <CustomBodyCell colSpan={5} align="center">
                           No Booking found for the selected date range.
-                        </TableCell>
+                        </CustomBodyCell>
                       </TableRow>
                     )}
                   </TableBody>
