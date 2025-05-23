@@ -50,6 +50,7 @@ const printStyles = `
     body * {
       visibility: hidden;
     }
+      
       #print-button * {
       display:none;
       }
@@ -136,7 +137,7 @@ const PrintableRoomInvoice = ({ billId }) => {
           fetch(`/api/Billing/${billId}`),
           fetch(`/api/Profile/${userId}`),
         ]);
-        console.log("billingResponse", billingResponse);
+
         if (!billingResponse.ok || !profileResponse.ok) {
           throw new Error("Failed to fetch data");
         }
@@ -145,7 +146,7 @@ const PrintableRoomInvoice = ({ billId }) => {
           profileResponse.json(),
         ]);
         const billingData = billing.data;
-        console.log("billingData", billingData);
+
         // Set payment status
         setIsPaid(billingData.Bill_Paid?.toLowerCase() === "yes");
         // Set cancellation status
@@ -200,8 +201,6 @@ const PrintableRoomInvoice = ({ billId }) => {
           })
         );
 
-        console.log("matchedBookings", matchedBookings);
-
         if (!matchedBookings) {
           throw new Error("No matching booking found");
         }
@@ -212,7 +211,6 @@ const PrintableRoomInvoice = ({ billId }) => {
             matchedBookings.filter((booking) => booking).map(JSON.stringify)
           )
         ).map(JSON.parse);
-        console.log("uniqueBookings", uniqueBookings);
 
         // Fetch room categories
         const roomCategoriesResponse = await axios.get("/api/roomCategories", {
@@ -327,6 +325,11 @@ const PrintableRoomInvoice = ({ billId }) => {
       new Date(bookingData?.booking?.checkIn)) /
     (1000 * 60 * 60 * 24);
 
+  const isSameState =
+    bookingData?.booking?.state &&
+    profile.state &&
+    bookingData?.booking?.state === profile.state;
+
   return (
     <>
       <style>{printStyles}</style>
@@ -335,14 +338,14 @@ const PrintableRoomInvoice = ({ billId }) => {
           <Table>
             <TableHead>
               <TableRow>
-                <CustomTableCell colSpan={6} align="center">
+                <CustomTableCell colSpan={7} align="center">
                   <Typography fontWeight={600} align="center">
                     TAX INVOICE
                   </Typography>
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={6} align="center">
+                <CustomTableCell colSpan={7} align="center">
                   <Typography align="center" variant="h5">
                     {profile?.hotelName}
                   </Typography>
@@ -380,7 +383,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                   </Typography>
                   <Typography>GSTIN: {bookingData?.booking?.gstin}</Typography>
                 </CustomTableCell>
-                <CustomTableCell colSpan={2}>
+                <CustomTableCell colSpan={3}>
                   <Typography fontWeight={600}>
                     Check-in: {GetCustomDate(bookingData?.booking?.checkIn)}
                   </Typography>
@@ -393,7 +396,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={2}>
+                <CustomTableCell colSpan={3}>
                   <Typography fontWeight={600}>
                     Check-out: {GetCustomDate(bookingData?.booking?.checkOut)}
                   </Typography>
@@ -408,11 +411,11 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={2}>
+                <CustomTableCell colSpan={3}>
                   <Typography>
                     Room No. (s):{" "}
                     {bookingData?.booking?.roomNumbers?.map((item, index) => (
-                      <span key={index}>
+                      <span key={index} style={{ fontWeight: 600 }}>
                         {item}
                         {index < bookingData?.booking?.roomNumbers.length - 1
                           ? ", "
@@ -430,14 +433,17 @@ const PrintableRoomInvoice = ({ billId }) => {
                     Description of Services
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="15%">
+                <CustomTableCell align="center" width="10%">
                   <Typography fontWeight={600}>HSN CODE</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="11%">
+                <CustomTableCell align="center" width="10%">
                   <Typography fontWeight={600}>SGST%</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="11%">
+                <CustomTableCell align="center" width="10%">
                   <Typography fontWeight={600}>CGST%</Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center" width="10%">
+                  <Typography fontWeight={600}>IGST%</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center" width="12%">
                   <Typography fontWeight={600}>Total GST</Typography>
@@ -447,11 +453,11 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
             </TableBody>
-            <TableBody sx={{ height: "200px" }}>
+            <TableBody>
               {bookingData?.room?.map((room, index) => (
                 <TableRow key={index}>
                   <CustomTableCell
-                    sx={{ borderBottom: "none", borderTop: "none" }}
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
                     <Typography>
                       Room No:{room?.number}- {room?.category?.category}
@@ -462,25 +468,39 @@ const PrintableRoomInvoice = ({ billId }) => {
                     </Typography>
                   </CustomTableCell>
                   <CustomTableCell
-                    sx={{ borderBottom: "none", borderTop: "none" }}
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
                     <Typography></Typography>
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
-                    sx={{ borderBottom: "none", borderTop: "none" }}
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
-                    <Typography>{room?.category?.sgst}</Typography>
+                    <Typography>
+                      {isSameState ? room?.category?.sgst : "-"}
+                    </Typography>
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
-                    sx={{ borderBottom: "none", borderTop: "none" }}
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
-                    <Typography>{room?.category?.cgst}</Typography>
+                    <Typography>
+                      {isSameState ? room?.category?.cgst : "-"}
+                    </Typography>
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
-                    sx={{ borderBottom: "none", borderTop: "none" }}
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
+                  >
+                    <Typography>
+                      {!isSameState
+                        ? room?.category?.cgst + room?.category?.sgst
+                        : "-"}
+                    </Typography>
+                  </CustomTableCell>
+                  <CustomTableCell
+                    align="center"
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
                     <Typography>
                       {(room?.category?.total - room?.category?.tariff) *
@@ -489,7 +509,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
-                    sx={{ borderBottom: "none", borderTop: "none" }}
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
                     <Typography>
                       {room?.category?.total * numberOfDays}
@@ -499,9 +519,28 @@ const PrintableRoomInvoice = ({ billId }) => {
               ))}
             </TableBody>
             <TableBody>
+              {Array.from({
+                length: 17 - (bookingData?.room?.length || 0),
+              }).map((_, idx) => (
+                <TableRow key={`empty-${idx}`}>
+                  {[...Array(7)].map((__, cellIdx) => (
+                    <CustomTableCell
+                      key={cellIdx}
+                      sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
+                    >
+                      &nbsp;
+                    </CustomTableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableBody>
               <TableRow>
                 <CustomTableCell>
                   <Typography fontWeight={600}>Total</Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography></Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
                   <Typography></Typography>
@@ -533,7 +572,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                     {totalInWords} rupees
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell rowSpan={2} colSpan={2} align="center">
+                <CustomTableCell rowSpan={2} colSpan={3} align="center">
                   <Typography variant="body2">
                     I agree that I&apos;m responsible for the full payment of
                     this invoice,in the event it is not paid by the
@@ -552,7 +591,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={6} align="center">
+                <CustomTableCell colSpan={7} align="center">
                   <Typography variant="caption">
                     We are Happy to Serve You.Visit us again...
                   </Typography>

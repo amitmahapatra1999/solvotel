@@ -42,8 +42,7 @@ export default function InventoryCategory() {
         setIsLoading(true);
         const token = getCookie("authToken");
         const usertoken = getCookie("userAuthToken");
-        console.log("Token:", token);
-        console.log("User Token:", usertoken);
+
         if (!token && !usertoken) {
           router.push("/"); // Redirect to login if no token is found
           return;
@@ -139,7 +138,7 @@ export default function InventoryCategory() {
         }),
       });
       const data = await response.json();
-      console.log("Response data:", data);
+
       if (method === "POST") setProducts((prev) => [...prev, data.product]);
       else
         setProducts((prev) =>

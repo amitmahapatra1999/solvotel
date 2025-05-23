@@ -27,17 +27,30 @@ export default function LoginPage() {
   // Function to delete specific cookies
   const deleteSpecificCookies = () => {
     // Delete authToken if it exists
-    if (document.cookie.split("; ").find((row) => row.startsWith("authToken="))) {
-      document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+    if (
+      document.cookie.split("; ").find((row) => row.startsWith("authToken="))
+    ) {
+      document.cookie =
+        "authToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
     }
     // Delete adminuthToken if it exists
-    if (document.cookie.split("; ").find((row) => row.startsWith("adminauthToken="))) {
-      document.cookie = "adminauthToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+    if (
+      document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("adminauthToken="))
+    ) {
+      document.cookie =
+        "adminauthToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
     }
 
     // Delete userAuthToken if it exists
-    if (document.cookie.split("; ").find((row) => row.startsWith("userAuthToken="))) {
-      document.cookie = "userAuthToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+    if (
+      document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("userAuthToken="))
+    ) {
+      document.cookie =
+        "userAuthToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
     }
   };
 
@@ -78,21 +91,24 @@ export default function LoginPage() {
           return;
         }
 
-        const decoded = await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET || "your_secret_key"));
-        console.log("Decoded token:", decoded);
+        const decoded = await jwtVerify(
+          token,
+          new TextEncoder().encode(process.env.JWT_SECRET || "your_secret_key")
+        );
+
         const userId = decoded.payload.userId;
         const profileId = decoded.payload.profileId;
 
         const response = await fetch(`/api/User/${userId}`);
         const result = await response.json();
-        console.log("Profile data:", result.data._id);
+
         // Fetch user data to get roles
         const userRes = await fetch(`/api/User/${result.data._id}`);
         const userData = await userRes.json();
-        console.log("User data:", userData);
+
         if (userData.success && userData.data && userData.data.roles) {
           const roles = userData.data.roles;
-          console.log("User roles:", roles);
+
           // Determine the first role and its first route
           if (roles.length > 0) {
             const firstRole = roles[0]; // Get the first role from the array

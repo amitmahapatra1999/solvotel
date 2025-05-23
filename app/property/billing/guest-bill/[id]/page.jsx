@@ -791,8 +791,6 @@ const BookingDashboard = () => {
       new Date(bookingData?.bookings?.checkIn)) /
     (1000 * 60 * 60 * 24);
 
-  console.log(numberOfNights);
-
   return (
     <div className="min-h-screen bg-amber-50">
       <Navbar />

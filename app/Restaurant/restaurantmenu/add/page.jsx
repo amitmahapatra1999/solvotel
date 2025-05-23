@@ -75,7 +75,6 @@ export default function AddRestaurant() {
 
       const result = await response.json();
       if (response.ok) {
-        console.log("Menu item added successfully:", result);
         toast.success("Menu item added successfully");
         router.back();
       } else {

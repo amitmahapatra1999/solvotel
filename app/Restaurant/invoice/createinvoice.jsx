@@ -381,7 +381,6 @@ const CreateInvoicePage = ({
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Invoice saved successfully:", data);
         if (onInvoiceCreate) onInvoiceCreate(data.data);
 
         resetForm();

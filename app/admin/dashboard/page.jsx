@@ -930,14 +930,14 @@ const SuperAdminDashboard = () => {
       try {
         setIsLoading(true);
         const token = getCookie("adminauthToken");
-        console.log(token);
+
         if (!token) {
           router.push("/admin/login");
           return;
         }
         const response = await fetch("/api/Profile");
         const data = await response.json();
-        console.log(data);
+
         if (data.success) {
           setProfiles(data.data);
         } else {
@@ -1009,7 +1009,7 @@ const SuperAdminDashboard = () => {
     try {
       setIsLoading(true);
       const response = await axios.patch(`/api/Profile/${id}`);
-      console.log(response);
+
       if (response.status === 200) {
         setProfiles((prevProfiles) =>
           prevProfiles.map((profile) =>
@@ -1060,7 +1060,6 @@ const SuperAdminDashboard = () => {
         ? { district: "" }
         : {}),
     }));
-    console.log(formData);
 
     // Validate fields on change
     const newErrors = { ...errors };
@@ -1229,7 +1228,7 @@ const SuperAdminDashboard = () => {
         forgotUsername: false,
         forgotPassword: false,
       });
-      console.log(response);
+
       if (response.data.success) {
         setProfiles((prevProfiles) =>
           prevProfiles.map((profile) =>

@@ -93,7 +93,7 @@ const PrintableInvoice = ({ invoiceId }) => {
           invoiceResponse.json(),
           profileResponse.json(),
         ]);
-        console.log(profileData.data);
+
         setInvoice(invoiceData);
         setProfile(profileData.data);
         setLoading(false);

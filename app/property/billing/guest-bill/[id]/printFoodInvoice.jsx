@@ -59,8 +59,6 @@ const PrintableFoodInvoice = ({ billId }) => {
   const [menuItems, setMenuItems] = useState([]);
   const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
-  console.log(foodItems);
-
   // Fetch menu items
   useEffect(() => {
     const fetchMenuItems = async () => {

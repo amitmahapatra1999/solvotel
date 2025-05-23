@@ -78,7 +78,7 @@ export default function AdminLogin() {
         credentials: "include", // Important: This ensures cookies are sent with the request
       });
       const data = await response.json();
-      console.log("Login response:", data);
+
       if (data.success) {
         router.push("/admin/dashboard");
       } else {

@@ -64,7 +64,7 @@ export default function InventoryList() {
         // Fetch the profile by userId to get the username
         const profileResponse = await fetch(`/api/Profile/${userId}`);
         const profileData = await profileResponse.json();
-        console.log(profileData);
+
         if (!profileData.success || !profileData.data) {
           router.push("/"); // Redirect to login if profile not found
           return;
@@ -226,7 +226,6 @@ export default function InventoryList() {
       }
 
       const data = await response.json();
-      console.log(data.message);
 
       // Remove the deleted product from the state
       setItems((prev) => prev.filter((item) => item._id !== id));

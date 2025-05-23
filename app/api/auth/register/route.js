@@ -1,8 +1,8 @@
-import connectSTR from '../../../lib/dbConnect';
-import Profile from '../../../lib/models/Profile';
-import bcrypt from 'bcrypt';
+import connectSTR from "../../../lib/dbConnect";
+import Profile from "../../../lib/models/Profile";
+import bcrypt from "bcrypt";
 import mongoose from "mongoose";
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 const connectToDatabase = async () => {
   if (mongoose.connections[0]?.readyState === 1) return;
@@ -11,13 +11,11 @@ const connectToDatabase = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("Database connected successfully");
   } catch (err) {
     console.error("Database connection error:", err.message);
     throw new Error("Database connection failed.");
   }
 };
-
 
 export async function POST(req) {
   try {
@@ -26,7 +24,7 @@ export async function POST(req) {
     // Validate required fields
     if (!data.username || !data.password) {
       return NextResponse.json(
-        { success: false, error: 'Username and password are required' },
+        { success: false, error: "Username and password are required" },
         { status: 400 }
       );
     }
@@ -34,7 +32,7 @@ export async function POST(req) {
     const existingProfile = await Profile.findOne({ username: data.username });
     if (existingProfile) {
       return NextResponse.json(
-        { success: false, error: 'Username already exists' },
+        { success: false, error: "Username already exists" },
         { status: 400 }
       );
     }
@@ -55,11 +53,14 @@ export async function POST(req) {
       password: data.password,
     });
     await newProfile.save();
-    return NextResponse.json({ success: true, data: newProfile }, { status: 201 });
-  } catch (error) {
-    console.error('Error creating profile:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to create profile' },
+      { success: true, data: newProfile },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Error creating profile:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to create profile" },
       { status: 400 }
     );
   }

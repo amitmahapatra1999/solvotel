@@ -224,7 +224,7 @@ export default function Billing() {
       today.getFullYear() === checkIn.getFullYear() &&
       today.getMonth() === checkIn.getMonth() &&
       today.getDate() === checkIn.getDate();
-    console.log(isSameDay);
+
     if (today < checkIn) {
       return "Booked";
     } else if (today > checkIn && today < checkOut) {
@@ -240,8 +240,6 @@ export default function Billing() {
     }
     return bill.bill.Bill_Paid === "yes" ? "Paid" : "Unpaid";
   };
-
-  console.log(filteredBillingData, "filteredBillingData");
 
   return (
     <>

@@ -178,7 +178,6 @@ export default function AddUser() {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      console.log(data);
       const response = await fetch("/api/User", {
         method: "POST",
         headers: {
@@ -187,7 +186,7 @@ export default function AddUser() {
         body: JSON.stringify({ ...data, roles: data.roles }),
       });
       const result = await response.json();
-      console.log(result);
+
       if (result.success) {
         toast.success("User added successfully!");
         router.push("/master/users"); // Navigate back to the user list page
