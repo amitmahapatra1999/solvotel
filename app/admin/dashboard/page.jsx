@@ -1008,7 +1008,15 @@ const SuperAdminDashboard = () => {
   const toggleActiveStatus = async (id) => {
     try {
       setIsLoading(true);
-      const response = await axios.patch(`/api/Profile/${id}`);
+      // Get the admin auth token
+      const adminToken = getCookie("adminauthToken");
+      
+      const response = await axios.patch(`/api/Profile/${id}`, {}, {
+        headers: {
+          Cookie: `adminauthToken=${adminToken}`
+        },
+        withCredentials: true
+      });
 
       if (response.status === 200) {
         setProfiles((prevProfiles) =>
@@ -1021,12 +1029,12 @@ const SuperAdminDashboard = () => {
         toast.error("Failed to toggle active status: " + response.data.error);
       }
     } catch (error) {
+      console.error("Error toggling active status:", error);
       toast.error("Error toggling active status: " + error.message);
     } finally {
       setIsLoading(false);
     }
   };
-
   const handleCloseAddProfileDialog = () => {
     setOpenAddProfileDialog(false);
     setFormData({
@@ -1132,11 +1140,16 @@ const SuperAdminDashboard = () => {
         delete dataToSend.password;
       }
 
+      // Get the admin auth token
+      const adminToken = getCookie("adminauthToken");
+      
       const response = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
+          "Cookie": `adminauthToken=${adminToken}`
         },
+        credentials: 'include',
         body: JSON.stringify(dataToSend),
       });
 
@@ -1224,10 +1237,22 @@ const SuperAdminDashboard = () => {
   const handleResolveIssue = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.put(`/api/Profile/${issueProfile._id}`, {
-        forgotUsername: false,
-        forgotPassword: false,
-      });
+      // Get the admin auth token
+      const adminToken = getCookie("adminauthToken");
+      
+      // Make the request with the token in headers
+      const response = await axios.put(`/api/Profile/${issueProfile._id}`, 
+        {
+          forgotUsername: false,
+          forgotPassword: false,
+        },
+        {
+          headers: {
+            Cookie: `adminauthToken=${adminToken}`
+          },
+          withCredentials: true
+        }
+      );
 
       if (response.data.success) {
         setProfiles((prevProfiles) =>
@@ -1243,7 +1268,8 @@ const SuperAdminDashboard = () => {
         toast.error("Failed to resolve issue.");
       }
     } catch (error) {
-      toast.error("Error resolving issue.");
+      console.error("Error resolving issue:", error);
+      toast.error(`Error resolving issue: ${error.message || "Unknown error"}`);
     } finally {
       setIsLoading(false);
     }
@@ -1510,6 +1536,7 @@ const SuperAdminDashboard = () => {
                 value={formData.username}
                 onChange={handleChange}
                 required
+                disabled={isEditing}
                 error={Boolean(errors.username)}
                 helperText={errors.username}
               />

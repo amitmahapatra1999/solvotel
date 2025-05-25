@@ -166,15 +166,43 @@ const BookingDashboard = () => {
               (menuItem) => menuItem.itemName === item
             );
 
+            // Extract CGST and SGST values properly
+            let cgstValue = 0;
+            let sgstValue = 0;
+            // First try to get from cgstArray and sgstArray
+            if (roomCGST[itemIndex] !== undefined) {
+              cgstValue = parseFloat(roomCGST[itemIndex]);
+            }
+
+            if (roomSGST[itemIndex] !== undefined) {
+              sgstValue = parseFloat(roomSGST[itemIndex]);
+            }
+
+            // If not found, try to get from taxList in the new format [sgst, cgst]
+            if ((cgstValue === 0 && sgstValue === 0) && roomTaxes[itemIndex]) {
+              if (Array.isArray(roomTaxes[itemIndex]) && roomTaxes[itemIndex].length === 2) {
+                sgstValue = parseFloat(roomTaxes[itemIndex][0] || 0);
+                cgstValue = parseFloat(roomTaxes[itemIndex][1] || 0);
+              } else {
+                // Fallback to old format
+                const totalTax = parseFloat(roomTaxes[itemIndex] || 0);
+                cgstValue = totalTax / 2;
+                sgstValue = totalTax / 2;
+              }
+            }
+
+
             const itemDetails = {
               name: item,
-              price: roomPrices[itemIndex] || 0,
-              quantity: roomQuantities[itemIndex] || 1,
-              tax: roomTaxes[itemIndex] || 0,
-              cgst: roomCGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0,
-              sgst: roomSGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0,
+              price: parseFloat(roomPrices[itemIndex] || 0),
+              quantity: parseInt(roomQuantities[itemIndex] || 1),
+              tax: cgstValue + sgstValue,
+              cgst: cgstValue,
+              sgst: sgstValue,
               roomIndex: roomIndex,
             };
+
+
 
             if (menuItem) {
               foodItemsArray.push(itemDetails);
@@ -371,14 +399,20 @@ const BookingDashboard = () => {
       // Add new service to arrays
       updatedItemList[selectedRoomIndex].push(serviceName);
       updatedPriceList[selectedRoomIndex].push(Number.parseFloat(servicePrice));
-      updatedTaxList[selectedRoomIndex].push(totalTaxRate); // Store total tax rate for compatibility
+      updatedTaxList[selectedRoomIndex].push([
+        Number.parseFloat(serviceSGST || 0),
+        Number.parseFloat(serviceCGST || 0)
+      ]);
+      // Store total tax rate for compatibility
       updatedQuantityList[selectedRoomIndex].push(1);
+      // Keep these for backward compatibility
+      // Keep these for backward compatibility
       updatedCGSTArray[selectedRoomIndex].push(
         Number.parseFloat(serviceCGST || 0)
-      ); // Store CGST rate
+      );
       updatedSGSTArray[selectedRoomIndex].push(
         Number.parseFloat(serviceSGST || 0)
-      ); // Store SGST rate
+      );
 
       const serviceRemarksArray = Array.isArray(billing.ServiceRemarks)
         ? [...billing.ServiceRemarks]
@@ -419,7 +453,7 @@ const BookingDashboard = () => {
       console.error("Error adding service:", error);
       alert(
         "Failed to add service: " +
-          (error.response?.data?.error || error.message)
+        (error.response?.data?.error || error.message)
       );
     }
   };
@@ -566,24 +600,35 @@ const BookingDashboard = () => {
         updatedSGSTArray.push([]);
       }
 
+      // Calculate total price of all new food items
+      let totalFoodPrice = 0;
+
       // Add each food item to the arrays
       selectedFoodItems.forEach((item) => {
-        updatedItemList[selectedRoomIndex].push(item.selectedFoodItem.itemName);
-        updatedPriceList[selectedRoomIndex].push(item.selectedFoodItem.price);
-        updatedQuantityList[selectedRoomIndex].push(item.quantity);
+        const itemPrice = Number(item.selectedFoodItem.price);
+        const itemQuantity = Number(item.quantity);
+        const cgstRate = Number(item.selectedFoodItem.cgst || 0);
+        const sgstRate = Number(item.selectedFoodItem.sgst || 0);
 
-        // Calculate total tax for backward compatibility
-        const totalTax =
-          (item.selectedFoodItem.cgst || 0) + (item.selectedFoodItem.sgst || 0);
-        updatedTaxList[selectedRoomIndex].push(totalTax);
+        console.log("Item Price:", itemPrice);
+        console.log("Item Quantity:", itemQuantity);
+        console.log("CGST Rate:", cgstRate);
+        console.log("SGST Rate:", sgstRate);
+
+        updatedItemList[selectedRoomIndex].push(item.selectedFoodItem.itemName);
+        updatedPriceList[selectedRoomIndex].push(itemPrice);
+        updatedQuantityList[selectedRoomIndex].push(itemQuantity);
+
+        // Store tax values in the new format [sgst, cgst]
+        updatedTaxList[selectedRoomIndex].push([sgstRate, cgstRate]);
 
         // Store CGST and SGST separately
-        updatedCGSTArray[selectedRoomIndex].push(
-          item.selectedFoodItem.cgst || 0
-        );
-        updatedSGSTArray[selectedRoomIndex].push(
-          item.selectedFoodItem.sgst || 0
-        );
+        updatedCGSTArray[selectedRoomIndex].push(cgstRate);
+        updatedSGSTArray[selectedRoomIndex].push(sgstRate);
+
+        // Calculate this item's total price with tax
+        const itemTotal = itemPrice * itemQuantity * (1 + (cgstRate + sgstRate) / 100);
+        totalFoodPrice += itemTotal;
       });
 
       const foodRemarksArray = Array.isArray(currentBilling.FoodRemarks)
@@ -592,6 +637,13 @@ const BookingDashboard = () => {
       if (foodRemarks) {
         foodRemarksArray.push(foodRemarks);
       }
+
+      // Calculate new total and due amounts
+      const currentTotal = Number(currentBilling.totalAmount) || 0;
+      const currentDueAmount = Number(currentBilling.dueAmount) || 0;
+
+      const newTotalAmount = currentTotal + totalFoodPrice;
+      const newDueAmount = currentDueAmount + totalFoodPrice;
 
       await axios.put(
         `/api/Billing/${id}`,
@@ -604,31 +656,34 @@ const BookingDashboard = () => {
           sgstArray: updatedSGSTArray,
           roomIndex: selectedRoomIndex,
           FoodRemarks: foodRemarksArray,
+          totalAmount: newTotalAmount,
+          dueAmount: newDueAmount
         },
         { headers }
       );
 
-      // Update local state with new food items
+      // Update local state with new food items - THIS IS THE KEY CHANGE
       const foodUpdates = selectedFoodItems.map((item) => ({
         name: item.selectedFoodItem.itemName,
-        price: item.totalPrice,
-        tax:
-          (item.selectedFoodItem.cgst || 0) + (item.selectedFoodItem.sgst || 0),
-        cgst: item.selectedFoodItem.cgst || 0,
-        sgst: item.selectedFoodItem.sgst || 0,
-        quantity: item.quantity,
+        price: Number(item.selectedFoodItem.price),
+        tax: Number(item.selectedFoodItem.cgst || 0) + Number(item.selectedFoodItem.sgst || 0),
+        cgst: Number(item.selectedFoodItem.cgst || 0),
+        sgst: Number(item.selectedFoodItem.sgst || 0),
+        quantity: Number(item.quantity),
         roomIndex: selectedRoomIndex,
       }));
 
+      console.log("Food Updates:", foodUpdates); // Log the food updates her
+
       setFoodItems([...foodItems, ...foodUpdates]);
+      setRemainingDueAmount(newDueAmount);
       handleCloseFoodModal();
-      window.location.reload();
-      // Refresh data
+      // window.location.reload();
     } catch (error) {
       console.error("Error adding food:", error);
       alert(
         "Failed to add food items: " +
-          (error.response?.data?.error || error.message)
+        (error.response?.data?.error || error.message)
       );
     }
   };
@@ -1549,18 +1604,16 @@ const BookingDashboard = () => {
                       Room #{billing.roomNo[food.roomIndex]}
                     </td>
                     <td className="p-2 text-left">{food.name}</td>
-                    <td className="p-2 text-left">{food.price.toFixed(2)}</td>
+                    <td className="p-2 text-left">{parseFloat(food.price).toFixed(2)}</td>
                     <td className="p-2 text-center">{food.quantity}</td>
                     <td className="p-2 text-center">
-                      {food.cgst || food.tax / 2}%
+                      {parseFloat(food.cgst).toFixed(1)}%
                     </td>
                     <td className="p-2 text-center">
-                      {food.sgst || food.tax / 2}%
+                      {parseFloat(food.sgst).toFixed(1)}%
                     </td>
                     <td className="p-2 text-right">
-                      {food.price * food.quantity +
-                        food.price *
-                          (food.quantity * ((food.cgst + food.sgst) / 100))}
+                      {(parseFloat(food.price) * food.quantity * (1 + (parseFloat(food.cgst) + parseFloat(food.sgst)) / 100)).toFixed(2)}
                     </td>
                   </tr>
                 ))}

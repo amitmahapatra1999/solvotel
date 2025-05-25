@@ -204,13 +204,27 @@ const PrintableServiceInvoice = ({ billId }) => {
               (menuItem) => menuItem.itemName === item
             );
 
+            // Get tax values from the taxList if available in the new format
+            let sgst = 0;
+            let cgst = 0;
+            
+            if (roomTaxes[itemIndex] && Array.isArray(roomTaxes[itemIndex]) && roomTaxes[itemIndex].length === 2) {
+              // New format: [sgst, cgst]
+              sgst = roomTaxes[itemIndex][0] || 0;
+              cgst = roomTaxes[itemIndex][1] || 0;
+            } else {
+              // Fallback to old format
+              sgst = roomSGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0;
+              cgst = roomCGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0;
+            }
+
             const itemDetails = {
               name: item,
               price: roomPrices[itemIndex] || 0,
               quantity: roomQuantities[itemIndex] || 1,
-              tax: roomTaxes[itemIndex] || 0,
-              cgst: roomCGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0,
-              sgst: roomSGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0,
+              tax: (sgst + cgst) || 0, // Total tax is sum of SGST and CGST
+              sgst: sgst,
+              cgst: cgst,
               roomIndex: roomIndex,
             };
 
@@ -425,20 +439,15 @@ const PrintableServiceInvoice = ({ billId }) => {
                   <TableCell align="center" sx={{ color: "white" }}>
                     RATE
                   </TableCell>
-                  {isSameState ? (
-                    <>
-                      <TableCell align="right" sx={{ color: "white" }}>
-                        SGST
-                      </TableCell>
-                      <TableCell align="right" sx={{ color: "white" }}>
-                        CGST
-                      </TableCell>
-                    </>
-                  ) : (
-                    <TableCell align="right" sx={{ color: "white" }}>
-                      IGST
-                    </TableCell>
-                  )}
+                  <TableCell align="center" sx={{ color: "white" }}>
+                      SGST (%)
+                  </TableCell>
+                  <TableCell align="center" sx={{ color: "white" }}>
+                      CGST (%)
+                  </TableCell>
+                  <TableCell align="center" sx={{ color: "white" }}>
+                      IGST (%)
+                  </TableCell>
                   <TableCell align="right" sx={{ color: "white" }}>
                     AMOUNT
                   </TableCell>
@@ -454,20 +463,15 @@ const PrintableServiceInvoice = ({ billId }) => {
                     <TableCell align="center">
                       ₹{(parseFloat(service.price) || 0).toFixed(2)}
                     </TableCell>
-                    {isSameState ? (
-                      <>
-                        <TableCell align="center">{service?.sgst}</TableCell>
-                        <TableCell align="center">{service?.cgst}</TableCell>
-                      </>
-                    ) : (
-                      <TableCell align="right">
-                        ₹{item?.igst?.toFixed(2)}
+                    <TableCell align="center">{service?.sgst}%</TableCell>
+                    <TableCell align="center">{service?.cgst}%</TableCell>
+                      <TableCell align="center">
+                        {(service?.sgst + service?.cgst)}%
                       </TableCell>
-                    )}
                     <TableCell align="right">
                       ₹
-                      {service.price +
-                        service.price * ((service?.sgst + service?.cgst) / 100)}
+                      {(service.price +
+                        service.price * ((service?.sgst + service?.cgst) / 100)).toFixed(2)}
                     </TableCell>
                   </TableRow>
                 ))}

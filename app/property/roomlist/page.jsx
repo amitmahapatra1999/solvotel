@@ -35,15 +35,57 @@ export default function BookingManagement() {
   const [clean, setClean] = useState("Yes");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [roomNumberError, setRoomNumberError] = useState("");
+  const [floorNumberError, setFloorNumberError] = useState("");
+
+  // Function to validate positive number
+  const isPositiveNumber = (value) => {
+    const num = Number(value);
+    return /^\d+$/.test(value) && num > 0;
+  };
+
+  // Handle room number input change
+  const handleRoomNumberChange = (e) => {
+    const value = e.target.value;
+    setRoomNumber(value);
+    if (value === "") {
+      setRoomNumberError("Room number is required");
+    } else if (!isPositiveNumber(value)) {
+      setRoomNumberError("Please enter a positive number");
+    } else {
+      setRoomNumberError("");
+    }
+  };
+
+  // Handle floor number input change
+  const handleFloorNumberChange = (e) => {
+    const value = e.target.value;
+    setFloorNumber(value);
+    if (value === "") {
+      setFloorNumberError("Floor number is required");
+    } else if (!isPositiveNumber(value)) {
+      setFloorNumberError("Please enter a positive number");
+    } else {
+      setFloorNumberError("");
+    }
+  };
+
+  // Check if form is valid
+  const isFormValid = () => {
+    return (
+      roomNumber !== "" &&
+      floorNumber !== "" &&
+      category !== "" &&
+      isPositiveNumber(roomNumber) &&
+      isPositiveNumber(floorNumber)
+    );
+  };
 
   // Function to sort room numbers
   const sortRoomNumbers = (roomsArray) => {
     return [...roomsArray].sort((a, b) => {
-      // Extract numbers from room numbers
       const aNum = parseInt(a.number.replace(/\D/g, ""));
       const bNum = parseInt(b.number.replace(/\D/g, ""));
-
-      // If the numbers are the same, sort by the full string
       if (aNum === bNum) {
         return a.number.localeCompare(b.number);
       }
@@ -55,12 +97,10 @@ export default function BookingManagement() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Fetch categories
         const categoriesResponse = await fetch("/api/roomCategories");
         const categoriesData = await categoriesResponse.json();
         setCategories(categoriesData.data);
 
-        // Fetch rooms
         const roomsResponse = await fetch("/api/rooms");
         const roomsData = await roomsResponse.json();
         if (roomsData.success) {
@@ -79,11 +119,19 @@ export default function BookingManagement() {
   }, []);
 
   const handleOpenModal = () => setOpenModal(true);
-  const handleCloseModal = () => setOpenModal(false);
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setRoomNumber("");
+    setCategory("");
+    setFloorNumber("");
+    setClean("Yes");
+    setRoomNumberError("");
+    setFloorNumberError("");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Reset error state
+    setError(null);
 
     const newRoom = {
       number: roomNumber,
@@ -93,17 +141,13 @@ export default function BookingManagement() {
     };
 
     try {
-      // Check if room number already exists
       const roomsResponse = await fetch("/api/rooms");
       const roomsData = await roomsResponse.json();
       const existingRooms = roomsData.data;
-      console.log("existingRooms", existingRooms);
 
-      // Check if room number already exists
       const roomExists = existingRooms.some(
         (room) => room.number === roomNumber
       );
-      console.log("room exist", roomExists);
 
       if (roomExists) {
         toast.error("Room number already exists!", {
@@ -113,7 +157,6 @@ export default function BookingManagement() {
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
-          progress: undefined,
           theme: "colored",
         });
         return;
@@ -124,12 +167,11 @@ export default function BookingManagement() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(newRoom),
-        credentials: "include", // Include cookies
+        credentials: "include",
       });
 
       if (res.ok) {
         const data = await res.json();
-        console.log("New room added:", data.data);
         toast.success("New room added successfully!", {
           position: "top-center",
           autoClose: 3000,
@@ -139,7 +181,6 @@ export default function BookingManagement() {
           draggable: true,
         });
 
-        // Fetch updated rooms
         const roomsResponse = await fetch("/api/rooms");
         const roomsData = await roomsResponse.json();
         if (roomsData.success) {
@@ -149,11 +190,12 @@ export default function BookingManagement() {
           console.log("Failed to fetch updated rooms:", roomsData.error);
         }
 
-        // Reset form
         setRoomNumber("");
         setCategory("");
         setFloorNumber("");
         setClean("Yes");
+        setRoomNumberError("");
+        setFloorNumberError("");
         handleCloseModal();
       } else {
         const errorData = await res.json();
@@ -179,6 +221,7 @@ export default function BookingManagement() {
       });
     }
   };
+
   const modalStyle = {
     position: "absolute",
     top: "50%",
@@ -202,35 +245,29 @@ export default function BookingManagement() {
 
       if (data.success) {
         toast.success("Room deleted successfully!", {
-          //success toaster
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
-          progress: undefined,
           theme: "dark",
           onClose: () => window.location.reload(),
         });
-
-        //fetchCategories();
       } else {
         toast.error("Failed to delete room.", {
-          //error toaster
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
-          progress: undefined,
           theme: "dark",
         });
       }
     } catch (error) {
-      console.error("Error deleting room category:", error);
-      toast.error("An error occurred while trying to delete the category.");
+      console.error("Error deleting room:", error);
+      toast.error("An error occurred while trying to delete the room.");
     } finally {
       setIsLoading(false);
     }
@@ -351,7 +388,6 @@ export default function BookingManagement() {
                   </TableCell>
                 </TableRow>
               </TableHead>
-
               <TableBody>
                 {rooms.length > 0 ? (
                   rooms.map((room) => (
@@ -493,8 +529,10 @@ export default function BookingManagement() {
                   label="Room Number"
                   variant="outlined"
                   value={roomNumber}
-                  onChange={(e) => setRoomNumber(e.target.value)}
+                  onChange={handleRoomNumberChange}
                   required
+                  error={!!roomNumberError}
+                  helperText={roomNumberError}
                 />
               </div>
               <div className="mb-4">
@@ -520,8 +558,10 @@ export default function BookingManagement() {
                   label="Floor Number"
                   variant="outlined"
                   value={floorNumber}
-                  onChange={(e) => setFloorNumber(e.target.value)}
+                  onChange={handleFloorNumberChange}
                   required
+                  error={!!floorNumberError}
+                  helperText={floorNumberError}
                 />
               </div>
               <div className="mb-4">
@@ -546,7 +586,12 @@ export default function BookingManagement() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" variant="contained" color="primary">
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  disabled={!isFormValid()}
+                >
                   Add Room
                 </Button>
               </div>

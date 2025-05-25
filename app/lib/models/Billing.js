@@ -34,14 +34,28 @@ const BillingSchema = new mongoose.Schema(
       },
     },
     taxList: {
-      type: [[Number]],
+      type: [[Array]],
       default: [],
-      validate: {
-        validator: function (taxes) {
-          return taxes.every((roomTaxes) => roomTaxes.every((tax) => tax >= 0));
-        },
-        message: "Tax values must be non-negative numbers",
-      },
+      // validate: {
+      //   validator: function(taxes) {
+      //     if (!Array.isArray(taxes)) return false;
+          
+      //     return taxes.every(roomTaxes => {
+      //       if (!Array.isArray(roomTaxes)) return false;
+            
+      //       return roomTaxes.every(taxPair => {
+      //         // Check if taxPair is an array with exactly 2 non-negative numbers
+      //         return Array.isArray(taxPair) && 
+      //                taxPair.length === 2 && 
+      //                !isNaN(taxPair[0]) && 
+      //                !isNaN(taxPair[1]) && 
+      //                taxPair[0] >= 0 && 
+      //                taxPair[1] >= 0;
+      //       });
+      //     });
+      //   },
+      //   message: "Tax values must be non-negative numbers in [sgst, cgst] format"
+      // }
     },
     billStartDate: { type: [Date], ref: "NewBooking", required: true },
     billEndDate: { type: [Date], ref: "NewBooking", required: true },

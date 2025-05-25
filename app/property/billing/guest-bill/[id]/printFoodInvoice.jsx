@@ -194,6 +194,7 @@ const PrintableFoodInvoice = ({ billId }) => {
         const existingCGSTArray = billingData.cgstArray || [];
         const existingSGSTArray = billingData.sgstArray || [];
 
+
         const foodItemsArray = [];
         const serviceItemsArray = [];
 
@@ -206,20 +207,34 @@ const PrintableFoodInvoice = ({ billId }) => {
           const roomCGST = existingCGSTArray[roomIndex] || [];
           const roomSGST = existingSGSTArray[roomIndex] || [];
 
+
           roomServices.forEach((item, itemIndex) => {
             if (!item) return; // Skip if item is undefined
 
             const menuItem = menuItemsList.find(
               (menuItem) => menuItem.itemName === item
             );
+            // Get tax values from the taxList if available in the new format
+            let sgst = 0;
+            let cgst = 0;
+
+            if (roomTaxes[itemIndex] && Array.isArray(roomTaxes[itemIndex]) && roomTaxes[itemIndex].length === 2) {
+              // New format: [sgst, cgst]
+              sgst = roomTaxes[itemIndex][0] || 0;
+              cgst = roomTaxes[itemIndex][1] || 0;
+            } else {
+              // Fallback to old format
+              sgst = roomSGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0;
+              cgst = roomCGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0;
+            }
 
             const itemDetails = {
               name: item,
               price: roomPrices[itemIndex] || 0,
               quantity: roomQuantities[itemIndex] || 1,
-              tax: roomTaxes[itemIndex] || 0,
-              cgst: roomCGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0,
-              sgst: roomSGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0,
+              tax: (sgst + cgst) || 0, // Total tax is sum of SGST and CGST
+              sgst: sgst,
+              cgst: cgst,
               roomIndex: roomIndex,
             };
 
@@ -230,7 +245,7 @@ const PrintableFoodInvoice = ({ billId }) => {
             }
           });
         });
-
+        console.log(foodItemsArray);
         setFoodItems([...foodItemsArray]);
         setServiceItems(serviceItemsArray);
         setServices([...serviceItemsArray]);
@@ -451,20 +466,15 @@ const PrintableFoodInvoice = ({ billId }) => {
                   <TableCell align="center" sx={{ color: "white" }}>
                     RATE
                   </TableCell>
-                  {isSameState ? (
-                    <>
-                      <TableCell align="right" sx={{ color: "white" }}>
-                        SGST
-                      </TableCell>
-                      <TableCell align="right" sx={{ color: "white" }}>
-                        CGST
-                      </TableCell>
-                    </>
-                  ) : (
-                    <TableCell align="right" sx={{ color: "white" }}>
-                      IGST
-                    </TableCell>
-                  )}
+                  <TableCell align="right" sx={{ color: "white" }}>
+                    SGST
+                  </TableCell>
+                  <TableCell align="right" sx={{ color: "white" }}>
+                    CGST
+                  </TableCell>
+                  <TableCell align="right" sx={{ color: "white" }}>
+                    IGST
+                  </TableCell>
                   <TableCell align="right" sx={{ color: "white" }}>
                     AMOUNT
                   </TableCell>
@@ -481,16 +491,11 @@ const PrintableFoodInvoice = ({ billId }) => {
                     <TableCell align="center">
                       ₹{item?.price?.toFixed(2)}
                     </TableCell>
-                    {isSameState ? (
-                      <>
-                        <TableCell align="right">{item?.sgst}</TableCell>
-                        <TableCell align="right">{item?.cgst}</TableCell>
-                      </>
-                    ) : (
-                      <TableCell align="right">
-                        ₹{item?.igst?.toFixed(2)}
-                      </TableCell>
-                    )}
+                    <TableCell align="right">{item?.sgst}</TableCell>
+                    <TableCell align="right">{item?.cgst}</TableCell>
+                    <TableCell align="right">
+                      ₹{(item?.cgst + item?.sgst).toFixed(2)}
+                    </TableCell>
                     <TableCell align="right">
                       ₹
                       {(
