@@ -82,44 +82,52 @@ export async function PUT(req) {
   try {
     await connectToDatabase();
     const data = await req.json();
-    // Validate required fields
-    // if (
-    //   !data.hotelName ||
-    //   !data.mobileNo ||
-    //   !data.email ||
-    //   !data.username
-    // ) {
-    //   return NextResponse.json(
-    //     { success: false, error: 'Missing required fields' },
-    //     { status: 400 }
-    //   );
-    // }
+    
+    // Validate that _id is provided for updates
+    if (!data._id) {
+      return NextResponse.json(
+        { success: false, error: "Profile ID is required for updates" },
+        { status: 400 }
+      );
+    }
+    
     // Check if username already exists for another profile
-    const existingProfile = await Profile.findOne({ username: data.username });
-    if (existingProfile && existingProfile._id.toString() !== data._id) {
+    const existingProfile = await Profile.findOne({ 
+      username: data.username,
+      _id: { $ne: data._id } // Exclude current profile from check
+    });
+    
+    if (existingProfile) {
       return NextResponse.json(
         { success: false, error: "Username already exists" },
         { status: 400 }
       );
     }
+    
     // Hash the password if it is provided
     let updatedData = { ...data };
     if (data.password) {
       const hashedPassword = await bcrypt.hash(data.password, 10);
       updatedData.password = hashedPassword;
     }
-    // Update the profile
-    const updatedProfile = await Profile.findOneAndUpdate(
-      {}, // Empty filter to target the only profile in the database
+    
+    // Remove _id from updatedData to avoid MongoDB errors
+    delete updatedData._id;
+    
+    // Update the specific profile by ID
+    const updatedProfile = await Profile.findByIdAndUpdate(
+      data._id, // Use the specific profile ID
       { $set: updatedData },
       { new: true, runValidators: true }
     );
+    
     if (!updatedProfile) {
       return NextResponse.json(
         { success: false, error: "Profile not found" },
         { status: 404 }
       );
     }
+    
     return NextResponse.json(
       { success: true, data: updatedProfile },
       { status: 200 }

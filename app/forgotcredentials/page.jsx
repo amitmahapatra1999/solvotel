@@ -137,7 +137,7 @@ const ForgottenCredentials = () => {
           </Typography>
 
           <div className="space-y-4">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            {/* <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 variant="contained"
                 color="primary"
@@ -148,7 +148,7 @@ const ForgottenCredentials = () => {
               >
                 Forgot Username
               </Button>
-            </motion.div>
+            </motion.div> */}
 
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button

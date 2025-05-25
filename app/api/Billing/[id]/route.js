@@ -351,30 +351,67 @@ export async function PUT(req, { params }) {
         const roomSGST = bill.sgstArray[roomIdx] || [];
 
         roomItems.forEach((item, itemIdx) => {
-          const price = roomPrices[itemIdx] || 0;
-          const quantity = roomQuantities[itemIdx] || 1;
+          // Parse price and quantity, ensuring they are numbers
+          const price = parseFloat(roomPrices[itemIdx]) || 0;
+          console.log("Price:", price);
+          console.log("Item No.:", itemIdx);
+          const quantity = parseFloat(roomQuantities[itemIdx]) || 1;
 
-          // Use CGST and SGST if available, otherwise use taxRate
-          const cgstRate =
-            roomCGST[itemIdx] !== undefined
-              ? roomCGST[itemIdx]
-              : (roomTaxes[itemIdx] || 0) / 2;
-          const sgstRate =
-            roomSGST[itemIdx] !== undefined
-              ? roomSGST[itemIdx]
-              : (roomTaxes[itemIdx] || 0) / 2;
-
+          // Handle tax rates based on different possible formats
+          let cgstRate = 0;
+          let sgstRate = 0;
+          
+          // Check if we have CGST and SGST arrays with values
+          if (roomCGST[itemIdx] !== undefined) {
+            cgstRate = parseFloat(roomCGST[itemIdx]) || 0;
+          }
+          
+          if (roomSGST[itemIdx] !== undefined) {
+            sgstRate = parseFloat(roomSGST[itemIdx]) || 0;
+          }
+          
+          // If not, try to get from taxList in the new format [sgst, cgst]
+          if ((cgstRate === 0 && sgstRate === 0) && roomTaxes[itemIdx]) {
+            // Handle the case where taxList is in the format [sgst, cgst]
+            if (Array.isArray(roomTaxes[itemIdx]) && roomTaxes[itemIdx].length === 2) {
+              // Direct array of numbers
+              sgstRate = parseFloat(roomTaxes[itemIdx][0]) || 0;
+              cgstRate = parseFloat(roomTaxes[itemIdx][1]) || 0;
+            } 
+            // Handle MongoDB format where values are objects with $numberInt
+            else if (Array.isArray(roomTaxes[itemIdx]) && 
+                    roomTaxes[itemIdx].length === 2 && 
+                    typeof roomTaxes[itemIdx][0] === 'object' &&
+                    roomTaxes[itemIdx][0].$numberInt !== undefined) {
+              sgstRate = parseFloat(roomTaxes[itemIdx][0].$numberInt) || 0;
+              cgstRate = parseFloat(roomTaxes[itemIdx][1].$numberInt) || 0;
+            }
+            // Fallback to old format where taxList has a single value
+            else {
+              const totalTax = parseFloat(roomTaxes[itemIdx]) || 0;
+              sgstRate = totalTax / 2;
+              cgstRate = totalTax / 2;
+            }
+          }
+          console.log("CGST Rate:", cgstRate);
+          console.log("SGST Rate:", sgstRate);
           // Calculate item total with tax
           const itemTotal = price * quantity;
+          console.log("Item Total:", itemTotal);
           const cgstAmount = (itemTotal * cgstRate) / 100;
+          console.log("CGST Amount:", cgstAmount);
           const sgstAmount = (itemTotal * sgstRate) / 100;
+          console.log("SGST Amount:", sgstAmount);
 
           totalAmount += itemTotal + cgstAmount + sgstAmount;
+          console.log("Total Amount:", totalAmount);
         });
       });
 
       bill.totalAmount = totalAmount;
+      console.log("Final Total Amount:", bill.totalAmount);
       bill.dueAmount = totalAmount - bill.amountAdvanced;
+      console.log("Final Due Amount:", bill.dueAmount);
     }
 
     // Handle remarks updates

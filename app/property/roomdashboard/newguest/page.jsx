@@ -509,7 +509,15 @@ export default function BookingForm() {
         body: JSON.stringify(bookingData),
       });
 
+      if (!bookingResponse.ok) {
+        const errorData = await bookingResponse.json();
+        throw new Error(`Booking creation failed: ${errorData.error || 'Unknown error'}`);
+      }
       const bookingResult = await bookingResponse.json();
+      if (!bookingResult.success || !bookingResult.data || !bookingResult.data._id) {
+        throw new Error('Invalid booking response data');
+      }
+      
       const guestId = bookingResult.data._id;
 
       // Fetch necessary data
@@ -547,17 +555,19 @@ export default function BookingForm() {
           (1000 * 60 * 60 * 24);
 
         const roomCharge = matchedCategory.total * numberOfNights;
-        const roomTax = matchedCategory.gst;
-
+        const roomCgst = matchedCategory.cgst;
+        const roomSgst = matchedCategory.sgst;
+        const roomTax = matchedCategory.cgst + matchedCategory.sgst;
+        console.log("Room sgst", roomSgst);
+        console.log("Room cgst", roomCgst);
+        console.log("Room tax", roomTax);
         // Collect data for consolidated billing
         allRoomNumbers.push(selectedRoomNumber);
         roomCharges.push([roomCharge]);
-        roomTaxes.push([roomTax]);
+        roomTaxes.push([[roomSgst, roomCgst]]); 
+        console.log("Room tax", roomTaxes);
         quantities.push([1]);
         totalAmount += roomCharge;
-
-        // Update room records...
-        // (Keep existing room update logic here)
       }
 
       // Create single billing record for all rooms

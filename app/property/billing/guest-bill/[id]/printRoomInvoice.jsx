@@ -477,7 +477,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                     sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
                     <Typography>
-                      {isSameState ? room?.category?.sgst : "-"}
+                      {room?.category?.sgst}
                     </Typography>
                   </CustomTableCell>
                   <CustomTableCell
@@ -485,7 +485,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                     sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
                     <Typography>
-                      {isSameState ? room?.category?.cgst : "-"}
+                      {room?.category?.cgst}
                     </Typography>
                   </CustomTableCell>
                   <CustomTableCell
