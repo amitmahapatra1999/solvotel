@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useParams } from "next/navigation";
 import axios from "axios";
@@ -8,7 +8,6 @@ import { Footer } from "../../../../_components/Footer";
 import PrintableRoomInvoice from "./printRoomInvoice";
 import PrintableServiceInvoice from "./printServiceInvoice";
 import PrintableFoodInvoice from "./printFoodInvoice";
-import { PrintRoomInvoice } from "../../../../_components/PrintRoomInvoice";
 import {
   Modal,
   Box,
@@ -19,9 +18,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Paper,
 } from "@mui/material";
-import { useReactToPrint } from "react-to-print";
 
 const BookingDashboard = () => {
   const { id } = useParams();
@@ -34,15 +31,15 @@ const BookingDashboard = () => {
   const [printableServiceInvoice, setPrintableServiceInvoice] = useState(null);
   const [showPrintModal, setShowPrintModal] = useState(false);
   // Modal States
-  const [openRoomInvoiceModal, setOpenRoomInvoiceModal] = useState(false);
-  const [openServiceInvoiceModal, setOpenServiceInvoiceModal] = useState(false);
+
   const [openServicesModal, setOpenServicesModal] = useState(false);
   const [openFoodModal, setOpenFoodModal] = useState(false);
-  const [openFoodInvoiceModal, setOpenFoodInvoiceModal] = useState(false);
+
   const [openBillPaymentModal, setOpenBillPaymentModal] = useState(false);
   // Service Form States
   const [serviceName, setServiceName] = useState("");
-  const [serviceTax, setServiceTax] = useState("0");
+  const [serviceCGST, setServiceCGST] = useState("0"); // Changed from serviceTax to serviceCGST
+  const [serviceSGST, setServiceSGST] = useState("0");
   const [servicePrice, setServicePrice] = useState("0");
   const [serviceTotal, setServiceTotal] = useState("0");
   const [services, setServices] = useState([]);
@@ -51,7 +48,8 @@ const BookingDashboard = () => {
   const [selectedFoodItem, setSelectedFoodItem] = useState([]);
   const [foodName, setFoodName] = useState("");
   const [foodPrice, setFoodPrice] = useState("");
-  const [foodTax, setFoodTax] = useState("");
+  const [foodCGST, setFoodCGST] = useState(""); // Changed from foodTax to foodCGST
+  const [foodSGST, setFoodSGST] = useState("");
   const [foodQuantity, setFoodQuantity] = useState(1);
   const [selectedFoodItems, setSelectedFoodItems] = useState([]);
   // Payment Form States
@@ -65,6 +63,9 @@ const BookingDashboard = () => {
   const [serviceRemarks, setServiceRemarks] = useState("");
   const [roomRemarks, setRoomRemarks] = useState("");
   const [selectedRoomIndex, setSelectedRoomIndex] = useState(0);
+
+  const [paymentMethods, setPaymentMethods] = useState([]);
+
   // Modal Styles
   const modalStyle = {
     position: "absolute",
@@ -80,16 +81,20 @@ const BookingDashboard = () => {
 
   // Calculate service total when price or tax changes
   useEffect(() => {
-    const today = new Date();
-    if (servicePrice && serviceTax) {
-      const price = parseFloat(servicePrice);
-      const taxRate = parseFloat(serviceTax);
-      const total = price + (price * taxRate) / 100;
+    if (servicePrice && (serviceCGST || serviceSGST)) {
+      const price = Number.parseFloat(servicePrice);
+      const cgstRate = Number.parseFloat(serviceCGST);
+      const sgstRate = Number.parseFloat(serviceSGST);
+
+      const cgstAmount = (price * cgstRate) / 100;
+      const sgstAmount = (price * sgstRate) / 100;
+
+      const total = price + cgstAmount + sgstAmount;
       setServiceTotal(total.toFixed(2));
     } else {
       setServiceTotal("");
     }
-  }, [servicePrice, serviceTax]);
+  }, [servicePrice, serviceCGST, serviceSGST]); // dependencies
 
   // Fetch menu items
   useEffect(() => {
@@ -128,7 +133,6 @@ const BookingDashboard = () => {
         // Fetch menu items for comparison
         const menuResponse = await axios.get("/api/menuItem", { headers });
         const menuItemsList = menuResponse.data.data;
-
         // Fetch billing details
         const billingResponse = await axios.get(`/api/Billing/${id}`, {
           headers,
@@ -136,33 +140,69 @@ const BookingDashboard = () => {
         const billingData = billingResponse.data.data;
         setRemainingDueAmount(billingData.dueAmount);
 
-        // Process existing items
+        // Process existing items with proper null checks
         const existingServices = billingData.itemList || [];
         const existingPrices = billingData.priceList || [];
         const existingTaxes = billingData.taxList || [];
         const existingQuantities = billingData.quantityList || [];
-
+        const existingCGSTArray = billingData.cgstArray || [];
+        const existingSGSTArray = billingData.sgstArray || [];
         // Separate food and service items
         const foodItemsArray = [];
         const serviceItemsArray = [];
-
         existingServices.forEach((roomServices, roomIndex) => {
+          if (!roomServices) return; // Skip if roomServices is undefined
+
           const roomPrices = existingPrices[roomIndex] || [];
           const roomTaxes = existingTaxes[roomIndex] || [];
           const roomQuantities = existingQuantities[roomIndex] || [];
+          const roomCGST = existingCGSTArray[roomIndex] || [];
+          const roomSGST = existingSGSTArray[roomIndex] || [];
 
           roomServices.forEach((item, itemIndex) => {
+            if (!item) return; // Skip if item is undefined
+
             const menuItem = menuItemsList.find(
               (menuItem) => menuItem.itemName === item
             );
 
+            // Extract CGST and SGST values properly
+            let cgstValue = 0;
+            let sgstValue = 0;
+            // First try to get from cgstArray and sgstArray
+            if (roomCGST[itemIndex] !== undefined) {
+              cgstValue = parseFloat(roomCGST[itemIndex]);
+            }
+
+            if (roomSGST[itemIndex] !== undefined) {
+              sgstValue = parseFloat(roomSGST[itemIndex]);
+            }
+
+            // If not found, try to get from taxList in the new format [sgst, cgst]
+            if ((cgstValue === 0 && sgstValue === 0) && roomTaxes[itemIndex]) {
+              if (Array.isArray(roomTaxes[itemIndex]) && roomTaxes[itemIndex].length === 2) {
+                sgstValue = parseFloat(roomTaxes[itemIndex][0] || 0);
+                cgstValue = parseFloat(roomTaxes[itemIndex][1] || 0);
+              } else {
+                // Fallback to old format
+                const totalTax = parseFloat(roomTaxes[itemIndex] || 0);
+                cgstValue = totalTax / 2;
+                sgstValue = totalTax / 2;
+              }
+            }
+
+
             const itemDetails = {
               name: item,
-              price: roomPrices[itemIndex] || 0,
-              quantity: roomQuantities[itemIndex] || 1,
-              tax: roomTaxes[itemIndex] || 0,
+              price: parseFloat(roomPrices[itemIndex] || 0),
+              quantity: parseInt(roomQuantities[itemIndex] || 1),
+              tax: cgstValue + sgstValue,
+              cgst: cgstValue,
+              sgst: sgstValue,
               roomIndex: roomIndex,
             };
+
+
 
             if (menuItem) {
               foodItemsArray.push(itemDetails);
@@ -172,9 +212,9 @@ const BookingDashboard = () => {
           });
         });
 
-        setFoodItems(foodItemsArray);
+        setFoodItems([...foodItemsArray]);
         setServiceItems(serviceItemsArray);
-        setServices([...serviceItemsArray, ...foodItemsArray]);
+        setServices([...serviceItemsArray]);
 
         // Fetch room details - Modified to handle multiple rooms
         const roomsResponse = await axios.get("/api/rooms", { headers });
@@ -185,7 +225,6 @@ const BookingDashboard = () => {
         if (matchedRooms.length === 0) {
           throw new Error("No matching rooms found");
         }
-        console.log("matchedRooms", matchedRooms);
 
         // Fetch room categories
         const roomCategoriesResponse = await axios.get("/api/roomCategories", {
@@ -203,44 +242,16 @@ const BookingDashboard = () => {
         const newBookingsResponse = await axios.get("/api/NewBooking", {
           headers,
         });
+        const bookingResult = newBookingsResponse.data.data;
+        const filteredBookingData = bookingResult?.find((item, index) => {
+          if (item?.bookingId === billingData.bookingId) {
+            return item;
+          }
+        });
 
-        // Find bookings for all rooms
-        const matchedBookings = await Promise.all(
-          matchedRooms.map(async (room) => {
-            if (
-              billingData.Bill_Paid === "yes" ||
-              billingData.Cancelled === "yes"
-            ) {
-              const currentBillIndex = room.billWaitlist.findIndex(
-                (billId) => billId._id.toString() === billingData._id.toString()
-              );
-
-              if (currentBillIndex === -1) {
-                return null;
-              }
-
-              const correspondingGuestId = room.guestWaitlist[currentBillIndex];
-              return newBookingsResponse.data.data.find(
-                (booking) => booking._id === correspondingGuestId._id.toString()
-              );
-            } else {
-              return newBookingsResponse.data.data.find(
-                (booking) => booking._id === room.currentGuestId
-              );
-            }
-          })
-        );
-
-        // Filter out duplicates and null values
-        const uniqueBookings = Array.from(
-          new Set(
-            matchedBookings.filter((booking) => booking).map(JSON.stringify)
-          )
-        ).map(JSON.parse);
-        console.log("uniqueBookings", uniqueBookings);
         setBookingData({
           billing: billingData,
-          bookings: uniqueBookings, // Use unique bookings
+          bookings: filteredBookingData, // Use unique bookings
           rooms: matchedRooms,
           categories: matchedCategories,
         });
@@ -254,19 +265,37 @@ const BookingDashboard = () => {
     fetchBookingDetails();
   }, [id]);
 
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/paymentMethod");
+        const data = await response.json();
+        // Sort invoices by date in descending order (newest first)
+
+        setPaymentMethods(data.products);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchPaymentMethods();
+  }, []);
+
   // Handler functions for modals
   const handleOpenServicesModal = () => {
     setOpenServicesModal(true);
     setServiceName("");
     setServicePrice("");
-    setServiceTax("");
+    setServiceCGST("");
+    setServiceSGST("");
     setServiceTotal("");
   };
   const handleCloseServicesModal = () => {
     setOpenServicesModal(false);
     setServiceName("");
     setServicePrice("");
-    setServiceTax("");
+    setServiceCGST("");
+    setServiceSGST("");
     setServiceTotal("");
   };
 
@@ -290,7 +319,8 @@ const BookingDashboard = () => {
     setSelectedFoodItem([]);
     setFoodName("");
     setFoodPrice("");
-    setFoodTax("");
+    setFoodCGST("");
+    setFoodSGST("");
   };
   const handleCloseFoodModal = () => setOpenFoodModal(false);
   const handleOpenBillPaymentModal = () => setOpenBillPaymentModal(true);
@@ -301,35 +331,96 @@ const BookingDashboard = () => {
 
   // Handler functions for form submissions
   const handleAddService = async () => {
-    if (!serviceName || !servicePrice || !serviceTax) {
-      alert("Please enter service name, price, and tax");
+    if (!serviceName || !servicePrice) {
+      alert("Please enter service name and price");
       return;
     }
     try {
       const token = document.cookie
         .split("; ")
-        .find((row) => row.startsWith("authToken="))
+        .find(
+          (row) =>
+            row.startsWith("authToken=") || row.startsWith("userAuthToken=")
+        )
         .split("=")[1];
       const headers = { Authorization: `Bearer ${token}` };
-      const updatedItemList = billing.itemList.map((items, index) =>
-        index === selectedRoomIndex ? [...items, serviceName] : items
+
+      // Get current billing data
+      const billingResponse = await axios.get(`/api/Billing/${id}`, {
+        headers,
+      });
+      const billing = billingResponse.data.data;
+
+      // Calculate total tax rate for backward compatibility
+      const totalTaxRate =
+        Number.parseFloat(serviceCGST || 0) +
+        Number.parseFloat(serviceSGST || 0);
+
+      // Prepare arrays for update with proper initialization
+      const updatedItemList = Array.isArray(billing.itemList)
+        ? [...billing.itemList]
+        : [];
+      const updatedPriceList = Array.isArray(billing.priceList)
+        ? [...billing.priceList]
+        : [];
+      const updatedTaxList = Array.isArray(billing.taxList)
+        ? [...billing.taxList]
+        : [];
+      const updatedQuantityList = Array.isArray(billing.quantityList)
+        ? [...billing.quantityList]
+        : [];
+      const updatedCGSTArray = Array.isArray(billing.cgstArray)
+        ? [...billing.cgstArray]
+        : [];
+      const updatedSGSTArray = Array.isArray(billing.sgstArray)
+        ? [...billing.sgstArray]
+        : [];
+
+      // Ensure arrays have room index
+      while (updatedItemList.length <= selectedRoomIndex) {
+        updatedItemList.push([]);
+      }
+      while (updatedPriceList.length <= selectedRoomIndex) {
+        updatedPriceList.push([]);
+      }
+      while (updatedTaxList.length <= selectedRoomIndex) {
+        updatedTaxList.push([]);
+      }
+      while (updatedQuantityList.length <= selectedRoomIndex) {
+        updatedQuantityList.push([]);
+      }
+      while (updatedCGSTArray.length <= selectedRoomIndex) {
+        updatedCGSTArray.push([]);
+      }
+      while (updatedSGSTArray.length <= selectedRoomIndex) {
+        updatedSGSTArray.push([]);
+      }
+
+      // Add new service to arrays
+      updatedItemList[selectedRoomIndex].push(serviceName);
+      updatedPriceList[selectedRoomIndex].push(Number.parseFloat(servicePrice));
+      updatedTaxList[selectedRoomIndex].push([
+        Number.parseFloat(serviceSGST || 0),
+        Number.parseFloat(serviceCGST || 0)
+      ]);
+      // Store total tax rate for compatibility
+      updatedQuantityList[selectedRoomIndex].push(1);
+      // Keep these for backward compatibility
+      // Keep these for backward compatibility
+      updatedCGSTArray[selectedRoomIndex].push(
+        Number.parseFloat(serviceCGST || 0)
+      );
+      updatedSGSTArray[selectedRoomIndex].push(
+        Number.parseFloat(serviceSGST || 0)
       );
 
-      const updatedPriceList = billing.priceList.map((prices, index) =>
-        index === selectedRoomIndex
-          ? [...prices, parseFloat(serviceTotal)]
-          : prices
-      );
+      const serviceRemarksArray = Array.isArray(billing.ServiceRemarks)
+        ? [...billing.ServiceRemarks]
+        : [];
+      if (serviceRemarks) {
+        serviceRemarksArray.push(serviceRemarks);
+      }
 
-      const updatedTaxList = billing.taxList.map((taxes, index) =>
-        index === selectedRoomIndex ? [...taxes, parseFloat(serviceTax)] : taxes
-      );
-
-      const updatedQuantityList = billing.quantityList.map(
-        (quantities, index) =>
-          index === selectedRoomIndex ? [...quantities, 1] : quantities
-      );
-      console.log("itemlist", updatedItemList);
       const response = await axios.put(
         `/api/Billing/${id}`,
         {
@@ -337,25 +428,33 @@ const BookingDashboard = () => {
           priceList: updatedPriceList,
           taxList: updatedTaxList,
           quantityList: updatedQuantityList,
+          cgstArray: updatedCGSTArray,
+          sgstArray: updatedSGSTArray,
           roomIndex: selectedRoomIndex,
-          ServiceRemarks: [...billing.ServiceRemarks, serviceRemarks],
+          ServiceRemarks: serviceRemarksArray,
         },
         { headers }
       );
+
       // Update local state
       const newService = {
         roomIndex: selectedRoomIndex,
         name: serviceName,
-        price: serviceTotal,
-        tax: serviceTax,
+        price: Number.parseFloat(serviceTotal),
+        tax: totalTaxRate,
+        cgst: Number.parseFloat(serviceCGST || 0),
+        sgst: Number.parseFloat(serviceSGST || 0),
         quantity: 1,
       };
       setServices([...services, newService]);
       handleCloseServicesModal();
-      // window.location.reload();
+      window.location.reload();
     } catch (error) {
       console.error("Error adding service:", error);
-      alert("Failed to add service");
+      alert(
+        "Failed to add service: " +
+        (error.response?.data?.error || error.message)
+      );
     }
   };
 
@@ -367,19 +466,21 @@ const BookingDashboard = () => {
       setSelectedFoodItem(selectedItem);
       setFoodName(selectedItem.itemName || "");
       setFoodPrice(selectedItem.price?.toString() || "0");
-      setFoodTax((selectedItem.sgst + selectedItem.cgst || 0).toString());
+      setFoodCGST(selectedItem.cgst?.toString() || "0");
+      setFoodSGST(selectedItem.sgst?.toString() || "0");
       setFoodQuantity(1);
     }
   };
 
-  const calculateTotalWithTax = (price, tax, quantity) => {
-    const basePrice = parseFloat(price) * quantity;
-    const taxAmount = (basePrice * parseFloat(tax)) / 100;
-    return basePrice + taxAmount;
+  const calculateTotalWithTax = (price, cgst, sgst, quantity) => {
+    const basePrice = Number.parseFloat(price) * quantity;
+    const cgstAmount = (basePrice * cgst) / 100;
+    const sgstAmount = (basePrice * sgst) / 100;
+    return basePrice + cgstAmount + sgstAmount;
   };
 
   const handleQuantityChange = (e) => {
-    const value = parseInt(e.target.value);
+    const value = Number.parseInt(e.target.value);
     if (value > 0) {
       setFoodQuantity(value);
     }
@@ -393,7 +494,8 @@ const BookingDashboard = () => {
 
     const totalPriceWithTax = calculateTotalWithTax(
       selectedFoodItem.price,
-      selectedFoodItem.sgst + selectedFoodItem.cgst,
+      selectedFoodItem.cgst || 0,
+      selectedFoodItem.sgst || 0,
       foodQuantity
     );
 
@@ -406,7 +508,8 @@ const BookingDashboard = () => {
     setSelectedFoodItem([]);
     setFoodName("");
     setFoodPrice("");
-    setFoodTax("");
+    setFoodCGST("");
+    setFoodSGST("");
     setFoodQuantity(1);
   };
 
@@ -421,7 +524,8 @@ const BookingDashboard = () => {
       if (idx === index) {
         const totalPriceWithTax = calculateTotalWithTax(
           item.selectedFoodItem.price,
-          item.selectedFoodItem.sgst + item.selectedFoodItem.cgst,
+          item.selectedFoodItem.cgst || 0,
+          item.selectedFoodItem.sgst || 0,
           newQuantity
         );
         return {
@@ -443,17 +547,12 @@ const BookingDashboard = () => {
     try {
       const token = document.cookie
         .split("; ")
-        .find((row) => row.startsWith("authToken="))
+        .find(
+          (row) =>
+            row.startsWith("authToken=") || row.startsWith("userAuthToken=")
+        )
         .split("=")[1];
       const headers = { Authorization: `Bearer ${token}` };
-
-      const foodUpdates = selectedFoodItems.map((item) => ({
-        name: item.selectedFoodItem.itemName,
-        price: item.totalPrice, // This is now the total price including tax
-        tax:
-          Number(item.selectedFoodItem.sgst + item.selectedFoodItem.cgst) || 0,
-        quantity: Number(item.quantity),
-      }));
 
       // Get current billing state
       const billingResponse = await axios.get(`/api/Billing/${id}`, {
@@ -461,20 +560,90 @@ const BookingDashboard = () => {
       });
       const currentBilling = billingResponse.data.data;
 
-      // Update arrays immutably
-      const updatedItemList = currentBilling.itemList.map((arr) => [...arr]);
-      const updatedPriceList = currentBilling.priceList.map((arr) => [...arr]);
-      const updatedQuantityList = currentBilling.quantityList.map((arr) => [
-        ...arr,
-      ]);
-      const updatedTaxList = currentBilling.taxList.map((arr) => [...arr]);
+      // Update arrays immutably with proper initialization
+      const updatedItemList = Array.isArray(currentBilling.itemList)
+        ? [...currentBilling.itemList]
+        : [];
+      const updatedPriceList = Array.isArray(currentBilling.priceList)
+        ? [...currentBilling.priceList]
+        : [];
+      const updatedQuantityList = Array.isArray(currentBilling.quantityList)
+        ? [...currentBilling.quantityList]
+        : [];
+      const updatedTaxList = Array.isArray(currentBilling.taxList)
+        ? [...currentBilling.taxList]
+        : [];
+      const updatedCGSTArray = Array.isArray(currentBilling.cgstArray)
+        ? [...currentBilling.cgstArray]
+        : [];
+      const updatedSGSTArray = Array.isArray(currentBilling.sgstArray)
+        ? [...currentBilling.sgstArray]
+        : [];
 
-      foodUpdates.forEach((item) => {
-        updatedItemList[selectedRoomIndex].push(item.name);
-        updatedPriceList[selectedRoomIndex].push(item.price);
-        updatedQuantityList[selectedRoomIndex].push(item.quantity);
-        updatedTaxList[selectedRoomIndex].push(item.tax);
+      // Ensure arrays have room index
+      while (updatedItemList.length <= selectedRoomIndex) {
+        updatedItemList.push([]);
+      }
+      while (updatedPriceList.length <= selectedRoomIndex) {
+        updatedPriceList.push([]);
+      }
+      while (updatedTaxList.length <= selectedRoomIndex) {
+        updatedTaxList.push([]);
+      }
+      while (updatedQuantityList.length <= selectedRoomIndex) {
+        updatedQuantityList.push([]);
+      }
+      while (updatedCGSTArray.length <= selectedRoomIndex) {
+        updatedCGSTArray.push([]);
+      }
+      while (updatedSGSTArray.length <= selectedRoomIndex) {
+        updatedSGSTArray.push([]);
+      }
+
+      // Calculate total price of all new food items
+      let totalFoodPrice = 0;
+
+      // Add each food item to the arrays
+      selectedFoodItems.forEach((item) => {
+        const itemPrice = Number(item.selectedFoodItem.price);
+        const itemQuantity = Number(item.quantity);
+        const cgstRate = Number(item.selectedFoodItem.cgst || 0);
+        const sgstRate = Number(item.selectedFoodItem.sgst || 0);
+
+        console.log("Item Price:", itemPrice);
+        console.log("Item Quantity:", itemQuantity);
+        console.log("CGST Rate:", cgstRate);
+        console.log("SGST Rate:", sgstRate);
+
+        updatedItemList[selectedRoomIndex].push(item.selectedFoodItem.itemName);
+        updatedPriceList[selectedRoomIndex].push(itemPrice);
+        updatedQuantityList[selectedRoomIndex].push(itemQuantity);
+
+        // Store tax values in the new format [sgst, cgst]
+        updatedTaxList[selectedRoomIndex].push([sgstRate, cgstRate]);
+
+        // Store CGST and SGST separately
+        updatedCGSTArray[selectedRoomIndex].push(cgstRate);
+        updatedSGSTArray[selectedRoomIndex].push(sgstRate);
+
+        // Calculate this item's total price with tax
+        const itemTotal = itemPrice * itemQuantity * (1 + (cgstRate + sgstRate) / 100);
+        totalFoodPrice += itemTotal;
       });
+
+      const foodRemarksArray = Array.isArray(currentBilling.FoodRemarks)
+        ? [...currentBilling.FoodRemarks]
+        : [];
+      if (foodRemarks) {
+        foodRemarksArray.push(foodRemarks);
+      }
+
+      // Calculate new total and due amounts
+      const currentTotal = Number(currentBilling.totalAmount) || 0;
+      const currentDueAmount = Number(currentBilling.dueAmount) || 0;
+
+      const newTotalAmount = currentTotal + totalFoodPrice;
+      const newDueAmount = currentDueAmount + totalFoodPrice;
 
       await axios.put(
         `/api/Billing/${id}`,
@@ -483,24 +652,39 @@ const BookingDashboard = () => {
           priceList: updatedPriceList,
           quantityList: updatedQuantityList,
           taxList: updatedTaxList,
+          cgstArray: updatedCGSTArray,
+          sgstArray: updatedSGSTArray,
           roomIndex: selectedRoomIndex,
-          FoodRemarks: [...currentBilling.FoodRemarks, foodRemarks],
+          FoodRemarks: foodRemarksArray,
+          totalAmount: newTotalAmount,
+          dueAmount: newDueAmount
         },
         { headers }
       );
 
-      setServices([
-        ...services,
-        ...foodUpdates.map((item) => ({
-          ...item,
-          roomIndex: selectedRoomIndex,
-        })),
-      ]);
+      // Update local state with new food items - THIS IS THE KEY CHANGE
+      const foodUpdates = selectedFoodItems.map((item) => ({
+        name: item.selectedFoodItem.itemName,
+        price: Number(item.selectedFoodItem.price),
+        tax: Number(item.selectedFoodItem.cgst || 0) + Number(item.selectedFoodItem.sgst || 0),
+        cgst: Number(item.selectedFoodItem.cgst || 0),
+        sgst: Number(item.selectedFoodItem.sgst || 0),
+        quantity: Number(item.quantity),
+        roomIndex: selectedRoomIndex,
+      }));
 
+      console.log("Food Updates:", foodUpdates); // Log the food updates her
+
+      setFoodItems([...foodItems, ...foodUpdates]);
+      setRemainingDueAmount(newDueAmount);
       handleCloseFoodModal();
+      // window.location.reload();
     } catch (error) {
       console.error("Error adding food:", error);
-      alert("Failed to add food items");
+      alert(
+        "Failed to add food items: " +
+        (error.response?.data?.error || error.message)
+      );
     }
   };
 
@@ -573,7 +757,7 @@ const BookingDashboard = () => {
 
       // Step 2: Update NewBooking API to set CheckOut to true
       await axios.put(
-        `/api/NewBooking/${bookingData.bookings[0]._id}`, // Use the first booking's ID
+        `/api/NewBooking/${bookingData.bookings._id}`, // Use the first booking's ID
         {
           CheckedOut: true,
         },
@@ -657,6 +841,20 @@ const BookingDashboard = () => {
     return <div>Error: {error}</div>;
   }
   const { billing, booking, room, category } = bookingData;
+  const numberOfNights =
+    (new Date(bookingData?.bookings?.checkOut) -
+      new Date(bookingData?.bookings?.checkIn)) /
+    (1000 * 60 * 60 * 24);
+
+  let checkInStatus =
+    bookingData?.bookings?.CheckedIn == true &&
+    bookingData?.bookings?.CheckedOut == false;
+  let checkOutStatus =
+    bookingData?.bookings?.CheckedIn == true &&
+    bookingData?.bookings?.CheckedOut == true;
+
+  console.log(`checkinStatus: ${checkInStatus}`);
+  console.log(`checkOutStatus: ${checkOutStatus}`);
 
   return (
     <div className="min-h-screen bg-amber-50">
@@ -666,59 +864,57 @@ const BookingDashboard = () => {
           {/* Header */}
           <h2 className="text-xl font-semibold text-gray-800">
             Booking Dashboard{" "}
-            {console.log("Booking Data: ", bookingData.bookings.bookingId)}
             <span className="text-gray-500">
-              ({bookingData.bookings[0].bookingId})
+              ({bookingData.bookings.bookingId})
             </span>
           </h2>
 
           {/* Booking Information */}
           <div className="mt-4 bg-blue-100 p-4 rounded">
             <p className="text-lg font-semibold">
-              {bookingData.bookings[0].guestName}{" "}
+              {bookingData.bookings.guestName}{" "}
             </p>
             <p className="mt-2 text-sm text-gray-700">
               Check-In:{" "}
               <strong>
-                {new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
+                {new Date(bookingData.bookings.checkIn).toLocaleDateString(
                   "en-GB"
                 )}
               </strong>{" "}
               | Expected Check-Out:{" "}
               <strong>
-                {new Date(bookingData.bookings[0].checkOut).toLocaleDateString(
+                {new Date(bookingData.bookings.checkOut).toLocaleDateString(
                   "en-GB"
                 )}
               </strong>{" "}
-              | Phone No:{" "}
-              <strong>+91 {bookingData.bookings[0].mobileNo}</strong>
+              | Phone No: <strong>+91 {bookingData.bookings.mobileNo}</strong>
             </p>
             <p className="mt-1 text-sm text-gray-700">
-              Guest ID: <strong>{bookingData.bookings[0].guestid}</strong> |
-              Date of Birth:{" "}
+              Guest ID: <strong>{bookingData.bookings.guestid}</strong> | Date
+              of Birth:{" "}
               <strong>
-                {new Date(
-                  bookingData.bookings[0].dateofbirth
-                ).toLocaleDateString("en-GB")}
+                {new Date(bookingData.bookings.dateofbirth).toLocaleDateString(
+                  "en-GB"
+                )}
               </strong>{" "}
               | Booking Type:{" "}
-              <strong>{bookingData.bookings[0].bookingType}</strong> | Booking
-              Source: <strong>{bookingData.bookings[0].bookingSource}</strong>
+              <strong>{bookingData.bookings.bookingType}</strong> | Booking
+              Source: <strong>{bookingData.bookings.bookingSource}</strong>
             </p>
             <p className="mt-1 text-sm text-gray-700">
               Booked On:{" "}
               <strong>
-                {new Date(bookingData.bookings[0].createdAt).toLocaleDateString(
+                {new Date(bookingData.bookings.createdAt).toLocaleDateString(
                   "en-GB"
                 )}
               </strong>{" "}
               | No. Of guest(s):{" "}
               <strong>
-                {bookingData.bookings[0].adults} Adult{" "}
-                {bookingData.bookings[0].children} Child
+                {bookingData.bookings.adults} Adult{" "}
+                {bookingData.bookings.children} Child
               </strong>{" "}
-              | Meal Plan: <strong>{bookingData.bookings[0].mealPlan}</strong> |
-              Notes: <strong>{bookingData.bookings[0].remarks || "-"}</strong>
+              | Meal Plan: <strong>{bookingData.bookings.mealPlan}</strong> |
+              Notes: <strong>{bookingData.bookings.remarks || "-"}</strong>
             </p>
           </div>
 
@@ -726,8 +922,8 @@ const BookingDashboard = () => {
           <div className="mt-6 bg-blue-50 p-4 rounded">
             <h3 className="font-semibold text-gray-800">Rooms Booked</h3>
             <p className="text-sm text-gray-700">
-              {new Date(bookingData.bookings[0].checkIn).toLocaleDateString()} (
-              {new Date(bookingData.bookings[0].checkIn).toLocaleString(
+              {new Date(bookingData.bookings.checkIn).toLocaleDateString()} (
+              {new Date(bookingData.bookings.checkIn).toLocaleString(
                 "default",
                 {
                   weekday: "short",
@@ -752,9 +948,8 @@ const BookingDashboard = () => {
                 disabled:
                   billing.Bill_Paid === "yes" ||
                   billing.Cancelled === "yes" ||
-                  new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
-                    "en-GB"
-                  ) > new Date().toLocaleDateString("en-GB"),
+                  checkInStatus == false ||
+                  checkOutStatus == true,
               },
               {
                 label: "Add Food",
@@ -764,9 +959,8 @@ const BookingDashboard = () => {
                 disabled:
                   billing.Bill_Paid === "yes" ||
                   billing.Cancelled === "yes" ||
-                  new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
-                    "en-GB"
-                  ) > new Date().toLocaleDateString("en-GB"),
+                  checkInStatus == false ||
+                  checkOutStatus == true,
               },
               {
                 label: "Bill Payment",
@@ -779,9 +973,8 @@ const BookingDashboard = () => {
                 disabled:
                   remainingDueAmount <= 0 ||
                   billing.Cancelled === "yes" ||
-                  new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
-                    "en-GB"
-                  ) > new Date().toLocaleDateString("en-GB"),
+                  checkInStatus == false ||
+                  checkOutStatus == true,
               },
             ].map((btn, index) => (
               <Button
@@ -839,17 +1032,16 @@ const BookingDashboard = () => {
                 }}
               >
                 <option value="" disabled></option>
-                <option value="UPI">UPI</option>
-                <option value="Cash">Cash</option>
-                <option value="Credit Card">Credit Card</option>
-                <option value="Debit Card">Debit Card</option>
-                <option value="Net Banking">Net Banking</option>
-                <option value="Other">Other</option>
+                {paymentMethods.map((item, index) => (
+                  <option key={index} value={item?.itemName}>
+                    {item?.itemName}
+                  </option>
+                ))}
               </TextField>
               <TextField
                 fullWidth
                 margin="normal"
-                label="Room Remarks (Optional)"
+                label="Remarks (Optional)"
                 multiline
                 rows={3}
                 value={roomRemarks}
@@ -862,7 +1054,9 @@ const BookingDashboard = () => {
                   variant="contained"
                   color="primary"
                   onClick={handleAddPayment}
-                  disabled={parseFloat(paymentAmount) > remainingDueAmount}
+                  disabled={
+                    Number.parseFloat(paymentAmount) > remainingDueAmount
+                  }
                 >
                   Submit Payment
                 </Button>
@@ -887,11 +1081,11 @@ const BookingDashboard = () => {
                 <p>Due Amount:</p>
               </div>
               <div className="text-gray-800 font-semibold text-right">
-                <p>{parseFloat(billing.totalAmount).toFixed(2)}</p>
+                <p>{Number.parseFloat(billing.totalAmount).toFixed(2)}</p>
 
-                <p>{parseFloat(billing.amountAdvanced).toFixed(2)}</p>
+                <p>{Number.parseFloat(billing.amountAdvanced).toFixed(2)}</p>
 
-                <p>{parseFloat(billing.dueAmount).toFixed(2)}</p>
+                <p>{Number.parseFloat(billing.dueAmount).toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -920,7 +1114,9 @@ const BookingDashboard = () => {
                       {billing.ModeOfPayment[index]}
                     </td>
                     <td className="p-2 text-right">
-                      {parseFloat(billing.AmountOfPayment[index]).toFixed(2)}
+                      {Number.parseFloat(
+                        billing.AmountOfPayment[index]
+                      ).toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -935,7 +1131,7 @@ const BookingDashboard = () => {
                 remainingDueAmount > 0 ||
                 billing.Bill_Paid === "yes" ||
                 billing.Cancelled === "yes" ||
-                new Date(bookingData.bookings[0].checkIn).toLocaleDateString(
+                new Date(bookingData.bookings.checkIn).toLocaleDateString(
                   "en-GB"
                 ) > new Date().toLocaleDateString("en-GB")
               }
@@ -950,25 +1146,28 @@ const BookingDashboard = () => {
             <table className="w-full mt-2 bg-gray-100 rounded text-sm mb-4">
               <thead>
                 <tr className="bg-gray-200">
-                  <th className="p-2 text-left">Date</th>
+                  <th className="p-2 text-left">#</th>
                   <th className="p-2 text-center">Room Details</th>
+                  <th className="p-2 text-center">Tariff</th>
+                  <th className="p-2 text-center">CGST</th>
+                  <th className="p-2 text-center"> SGST</th>
                   <th className="p-2 text-right">Amount</th>
                 </tr>
               </thead>
               <tbody>
-                {billing.roomNo.map((roomNumber, index) => (
+                {bookingData.rooms.map((room, index) => (
                   <tr key={index}>
-                    <td className="p-2 text-left">
-                      {new Date(
-                        bookingData.bookings[0].checkIn
-                      ).toLocaleDateString("en-GB")}
+                    <td className="p-2 text-left">{index + 1}</td>
+                    <td className="p-2 text-center">
+                      Room # {room?.number} - {room?.category?.category}
                     </td>
                     <td className="p-2 text-center">
-                      Room # {roomNumber} -{" "}
-                      {bookingData.rooms[index].category.category}
+                      {room?.category?.tariff}
                     </td>
+                    <td className="p-2 text-center">{room?.category?.cgst}%</td>
+                    <td className="p-2 text-center">{room?.category?.sgst}%</td>
                     <td className="p-2 text-right">
-                      {billing.priceList[index][0].toFixed(2)}
+                      {parseFloat(room?.category?.total) * numberOfNights}
                     </td>
                   </tr>
                 ))}
@@ -1005,29 +1204,36 @@ const BookingDashboard = () => {
             )}
             {/* Services Table */}
             <h3 className="font-semibold text-gray-800 text-center ml-16">
-              Services ({serviceItems.length})
+              Services ({services.length})
             </h3>
             <table className="w-full mt-2 bg-gray-100 rounded text-sm mb-4">
               <thead>
                 <tr className="bg-gray-200">
                   <th className="p-2 text-left">Room No.</th>
                   <th className="p-2 text-left">Item</th>
-                  <th className="p-2 text-center">Item Quantity</th>
-                  <th className="p-2 text-center">Item Tax</th>
+                  <th className="p-2 text-center">Rate</th>
+                  <th className="p-2 text-center">CGST</th>
+                  <th className="p-2 text-center">SGST</th>
                   <th className="p-2 text-right">Amount</th>
                 </tr>
               </thead>
               <tbody>
-                {serviceItems.map((service, index) => (
+                {services.map((service, index) => (
                   <tr key={index}>
                     <td className="p-2 text-left">
                       Room #{billing.roomNo[service.roomIndex]}
                     </td>
                     <td className="p-2 text-left">{service.name}</td>
-                    <td className="p-2 text-center">{service.quantity}</td>
-                    <td className="p-2 text-center">{service.tax}%</td>
+                    <td className="p-2 text-center">{service.price}</td>
+                    <td className="p-2 text-center">
+                      {service.cgst || service.tax / 2}%
+                    </td>
+                    <td className="p-2 text-center">
+                      {service.sgst || service.tax / 2}%
+                    </td>
                     <td className="p-2 text-right">
-                      {(parseFloat(service.price) || 0).toFixed(2)}
+                      {service.price +
+                        (service.price * (service.cgst + service.sgst)) / 100}
                     </td>
                   </tr>
                 ))}
@@ -1085,10 +1291,18 @@ const BookingDashboard = () => {
                 <TextField
                   fullWidth
                   margin="normal"
-                  label="Service Tax (%)"
+                  label="CGST (%)"
                   type="number"
-                  value={serviceTax}
-                  onChange={(e) => setServiceTax(e.target.value)}
+                  value={serviceCGST}
+                  onChange={(e) => setServiceCGST(e.target.value)}
+                />
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="SGST (%)"
+                  type="number"
+                  value={serviceSGST}
+                  onChange={(e) => setServiceSGST(e.target.value)}
                 />
                 <TextField
                   fullWidth
@@ -1194,7 +1408,7 @@ const BookingDashboard = () => {
                       label="Food Item"
                       onChange={handleFoodItemChange}
                     >
-                      {menuItems.map((item) => (
+                      {menuItems?.map((item) => (
                         <MenuItem key={item._id} value={item.itemName}>
                           {item.itemName}
                         </MenuItem>
@@ -1217,8 +1431,18 @@ const BookingDashboard = () => {
                     margin="normal"
                     readOnly
                     disabled
-                    label="Food Tax (%)"
-                    value={foodTax}
+                    label="CGST (%)"
+                    value={foodCGST}
+                    InputProps={{ readOnly: true }}
+                  />
+
+                  <TextField
+                    fullWidth
+                    margin="normal"
+                    readOnly
+                    disabled
+                    label="SGST (%)"
+                    value={foodSGST}
                     InputProps={{ readOnly: true }}
                   />
 
@@ -1270,8 +1494,12 @@ const BookingDashboard = () => {
                       <tbody>
                         {selectedFoodItems.map((item, index) => (
                           <tr key={index}>
-                            <td className="text-left">{item.itemName}</td>
-                            <td className="text-center">₹{item.price}</td>
+                            <td className="text-left">
+                              {item.selectedFoodItem.itemName}
+                            </td>
+                            <td className="text-center">
+                              ₹{item.selectedFoodItem.price}
+                            </td>
                             <td className="text-center">
                               <div>
                                 <Button
@@ -1301,7 +1529,9 @@ const BookingDashboard = () => {
                                 </Button>
                               </div>
                             </td>
-                            <td className="text-center">₹{item.totalPrice}</td>
+                            <td className="text-center">
+                              ₹{item.totalPrice.toFixed(2)}
+                            </td>
                             <td className="text-right">
                               <Button
                                 color="error"
@@ -1360,8 +1590,10 @@ const BookingDashboard = () => {
                 <tr className="bg-gray-200">
                   <th className="p-2 text-left">Room No.</th>
                   <th className="p-2 text-left">Item</th>
-                  <th className="p-2 text-center">Item Quantity</th>
-                  <th className="p-2 text-center">Item Tax</th>
+                  <th className="p-2 text-left">Rate</th>
+                  <th className="p-2 text-center">Quantity</th>
+                  <th className="p-2 text-center">CGST</th>
+                  <th className="p-2 text-center">SGST</th>
                   <th className="p-2 text-right">Amount</th>
                 </tr>
               </thead>
@@ -1372,9 +1604,17 @@ const BookingDashboard = () => {
                       Room #{billing.roomNo[food.roomIndex]}
                     </td>
                     <td className="p-2 text-left">{food.name}</td>
+                    <td className="p-2 text-left">{parseFloat(food.price).toFixed(2)}</td>
                     <td className="p-2 text-center">{food.quantity}</td>
-                    <td className="p-2 text-center">{food.tax}%</td>
-                    <td className="p-2 text-right">{food.price.toFixed(2)}</td>
+                    <td className="p-2 text-center">
+                      {parseFloat(food.cgst).toFixed(1)}%
+                    </td>
+                    <td className="p-2 text-center">
+                      {parseFloat(food.sgst).toFixed(1)}%
+                    </td>
+                    <td className="p-2 text-right">
+                      {(parseFloat(food.price) * food.quantity * (1 + (parseFloat(food.cgst) + parseFloat(food.sgst)) / 100)).toFixed(2)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

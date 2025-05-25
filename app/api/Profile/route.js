@@ -1,8 +1,8 @@
-import mongoose from 'mongoose';
-import connectSTR from '../../lib/dbConnect';
-import Profile from '../../lib/models/Profile';
-import bcrypt from 'bcrypt';
-import { NextResponse } from 'next/server';
+import mongoose from "mongoose";
+import connectSTR from "../../lib/dbConnect";
+import Profile from "../../lib/models/Profile";
+import bcrypt from "bcrypt";
+import { NextResponse } from "next/server";
 
 // Connect to the database
 const connectToDatabase = async () => {
@@ -12,7 +12,6 @@ const connectToDatabase = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("Database connected successfully");
   } catch (err) {
     console.error("Database connection error:", err.message);
     throw new Error("Database connection failed.");
@@ -33,7 +32,7 @@ export async function POST(req) {
       !data.password
     ) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields' },
+        { success: false, error: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -41,7 +40,7 @@ export async function POST(req) {
     const existingProfile = await Profile.findOne({ username: data.username });
     if (existingProfile) {
       return NextResponse.json(
-        { success: false, error: 'Username already exists' },
+        { success: false, error: "Username already exists" },
         { status: 400 }
       );
     }
@@ -70,9 +69,9 @@ export async function POST(req) {
     const result = await newProfile.save();
     return NextResponse.json({ success: true, data: result }, { status: 201 });
   } catch (error) {
-    console.error('Error creating profile:', error);
+    console.error("Error creating profile:", error);
     return NextResponse.json(
-      { success: false, error: error.message ||  'Failed to create profile' },
+      { success: false, error: error.message || "Failed to create profile" },
       { status: 400 }
     );
   }
@@ -83,52 +82,60 @@ export async function PUT(req) {
   try {
     await connectToDatabase();
     const data = await req.json();
-    // Validate required fields
-    // if (
-    //   !data.hotelName ||
-    //   !data.mobileNo ||
-    //   !data.email ||
-    //   !data.username
-    // ) {
-    //   return NextResponse.json(
-    //     { success: false, error: 'Missing required fields' },
-    //     { status: 400 }
-    //   );
-    // }
-    // Check if username already exists for another profile
-    const existingProfile = await Profile.findOne({ username: data.username });
-    if (existingProfile && existingProfile._id.toString() !== data._id) {
+    
+    // Validate that _id is provided for updates
+    if (!data._id) {
       return NextResponse.json(
-        { success: false, error: 'Username already exists' },
+        { success: false, error: "Profile ID is required for updates" },
         { status: 400 }
       );
     }
+    
+    // Check if username already exists for another profile
+    const existingProfile = await Profile.findOne({ 
+      username: data.username,
+      _id: { $ne: data._id } // Exclude current profile from check
+    });
+    
+    if (existingProfile) {
+      return NextResponse.json(
+        { success: false, error: "Username already exists" },
+        { status: 400 }
+      );
+    }
+    
     // Hash the password if it is provided
     let updatedData = { ...data };
     if (data.password) {
       const hashedPassword = await bcrypt.hash(data.password, 10);
       updatedData.password = hashedPassword;
     }
-    // Update the profile
-    const updatedProfile = await Profile.findOneAndUpdate(
-      {}, // Empty filter to target the only profile in the database
+    
+    // Remove _id from updatedData to avoid MongoDB errors
+    delete updatedData._id;
+    
+    // Update the specific profile by ID
+    const updatedProfile = await Profile.findByIdAndUpdate(
+      data._id, // Use the specific profile ID
       { $set: updatedData },
       { new: true, runValidators: true }
     );
+    
     if (!updatedProfile) {
       return NextResponse.json(
-        { success: false, error: 'Profile not found' },
+        { success: false, error: "Profile not found" },
         { status: 404 }
       );
     }
+    
     return NextResponse.json(
       { success: true, data: updatedProfile },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error updating profile:', error);
+    console.error("Error updating profile:", error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to update profile' },
+      { success: false, error: error.message || "Failed to update profile" },
       { status: 400 }
     );
   }
@@ -139,11 +146,14 @@ export async function GET(req) {
   try {
     await connectToDatabase();
     const profiles = await Profile.find({});
-    return NextResponse.json({ success: true, data: profiles }, { status: 200 });
-  } catch (error) {
-    console.error('Error fetching profiles:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch profiles' },
+      { success: true, data: profiles },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error fetching profiles:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch profiles" },
       { status: 400 }
     );
   }

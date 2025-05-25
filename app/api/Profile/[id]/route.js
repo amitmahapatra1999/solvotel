@@ -13,7 +13,6 @@ const connectToDatabase = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("Database connected successfully");
   } catch (err) {
     console.error("Database connection error:", err.message);
     throw new Error("Database connection failed.");
@@ -85,12 +84,22 @@ export async function GET(req, { params }) {
 export async function PUT(req, { params }) {
   try {
     await connectToDatabase();
-    const { id } = params;
+    const { id } = await params; // Await params before destructuring
     const data = await req.json();
+    
     // Extract the token from cookies
     const authToken = req.cookies.get("authToken")?.value;
     const userAuthToken = req.cookies.get("userAuthToken")?.value;
-    if (!authToken && !userAuthToken) {
+    const adminToken = req.cookies.get("adminauthToken")?.value;
+    
+    console.log("Auth tokens:", { 
+      authToken: !!authToken, 
+      userAuthToken: !!userAuthToken,
+      adminToken: !!adminToken 
+    });
+    console.log("Update data received:", data);
+    
+    if (!authToken && !userAuthToken && !adminToken) {
       return NextResponse.json(
         {
           success: false,
@@ -100,31 +109,50 @@ export async function PUT(req, { params }) {
       );
     }
 
-    let decoded, userId;
-    if (authToken) {
-      // Verify the authToken (legacy check)
-      decoded = await jwtVerify(
-        authToken,
-        new TextEncoder().encode(SECRET_KEY)
-      );
-      userId = decoded.payload.id;
-    } else if (userAuthToken) {
-      // Verify the userAuthToken
-      decoded = await jwtVerify(
-        userAuthToken,
-        new TextEncoder().encode(SECRET_KEY)
-      );
-      userId = decoded.payload.profileId; // Use userId from the new token structure
+    // If admin token is present, skip other token checks
+    if (adminToken) {
+      console.log("Admin token found, proceeding with admin privileges");
+      // Admin can update any profile without additional checks
     } else {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid token structure",
-        },
-        { status: 400 }
-      );
+      // Regular user token validation
+      let decoded, userId;
+      if (authToken) {
+        // Verify the authToken (legacy check)
+        decoded = await jwtVerify(
+          authToken,
+          new TextEncoder().encode(SECRET_KEY)
+        );
+        userId = decoded.payload.id;
+      } else if (userAuthToken) {
+        // Verify the userAuthToken
+        decoded = await jwtVerify(
+          userAuthToken,
+          new TextEncoder().encode(SECRET_KEY)
+        );
+        userId = decoded.payload.profileId; // Use userId from the new token structure
+      } else {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Invalid token structure",
+          },
+          { status: 400 }
+        );
+      }
+      
+      // For regular users, ensure they can only update their own profile
+      if (userId !== id) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Unauthorized to update this profile",
+          },
+          { status: 403 }
+        );
+      }
     }
-    // Find the profile by userId to get the username
+    
+    // Find the profile by ID
     const profile = await Profile.findById(id);
     if (!profile) {
       return NextResponse.json(
@@ -135,24 +163,42 @@ export async function PUT(req, { params }) {
         { status: 404 }
       );
     }
+    
+    // Check if username is being changed and if it already exists
+    if (data.username && data.username !== profile.username) {
+      const existingProfile = await Profile.findOne({ username: data.username });
+      if (existingProfile && existingProfile._id.toString() !== id) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Username already exists",
+          },
+          { status: 400 }
+        );
+      }
+    }
+    
     // Hash the password if it is provided
-    let updatedData = { ...data, username: profile.username };
+    let updatedData = { ...data };
     if (data.password) {
       const hashedPassword = await bcrypt.hash(data.password, 10);
       updatedData.password = hashedPassword;
     }
+    
     // Update the profile
     const updatedProfile = await Profile.findByIdAndUpdate(
       id,
       { $set: updatedData },
       { new: true }
     );
+    
     if (!updatedProfile) {
       return NextResponse.json(
         { success: false, error: "Profile not found" },
         { status: 404 }
       );
     }
+    
     return NextResponse.json(
       { success: true, data: updatedProfile },
       { status: 200 }
@@ -170,7 +216,7 @@ export async function PUT(req, { params }) {
 export async function DELETE(req, { params }) {
   try {
     await connectToDatabase();
-    const { id } = params;
+    const { id } = await params; // Await params before destructuring
     // Find and delete the profile by ID
     const deletedProfile = await Profile.findByIdAndDelete(id);
     if (!deletedProfile) {
@@ -197,8 +243,34 @@ export async function PATCH(req, { params }) {
   try {
     await connectToDatabase();
     const { id } = await params; // Await params
+    
+    // Extract the token from cookies
+    const authToken = req.cookies.get("authToken")?.value;
+    const userAuthToken = req.cookies.get("userAuthToken")?.value;
+    const adminToken = req.cookies.get("adminauthToken")?.value;
+    
+    if (!authToken && !userAuthToken && !adminToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Authentication token missing",
+        },
+        { status: 401 }
+      );
+    }
+    
+    // Only proceed if admin token is present (only admins should toggle active status)
+    if (!adminToken) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Admin privileges required",
+        },
+        { status: 403 }
+      );
+    }
 
-    // Find the profile by userId to get the username
+    // Find the profile by ID
     const profile = await Profile.findById(id);
     if (!profile) {
       return NextResponse.json(
@@ -210,19 +282,10 @@ export async function PATCH(req, { params }) {
       );
     }
 
-    // Fetch the profile by ID and ensure it belongs to the current user
-    const fetchedProfile = await Profile.findById(id);
-    if (!fetchedProfile || fetchedProfile.username !== profile.username) {
-      return NextResponse.json(
-        { success: false, error: "Profile not found or unauthorized" },
-        { status: 404 }
-      );
-    }
-
     // Toggle the active status
     const updatedProfile = await Profile.findByIdAndUpdate(
       id,
-      { Active: fetchedProfile.Active === "yes" ? "no" : "yes" },
+      { Active: profile.Active === "yes" ? "no" : "yes" },
       { new: true }
     );
 

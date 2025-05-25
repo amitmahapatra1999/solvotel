@@ -35,15 +35,57 @@ export default function BookingManagement() {
   const [clean, setClean] = useState("Yes");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [roomNumberError, setRoomNumberError] = useState("");
+  const [floorNumberError, setFloorNumberError] = useState("");
+
+  // Function to validate positive number
+  const isPositiveNumber = (value) => {
+    const num = Number(value);
+    return /^\d+$/.test(value) && num > 0;
+  };
+
+  // Handle room number input change
+  const handleRoomNumberChange = (e) => {
+    const value = e.target.value;
+    setRoomNumber(value);
+    if (value === "") {
+      setRoomNumberError("Room number is required");
+    } else if (!isPositiveNumber(value)) {
+      setRoomNumberError("Please enter a positive number");
+    } else {
+      setRoomNumberError("");
+    }
+  };
+
+  // Handle floor number input change
+  const handleFloorNumberChange = (e) => {
+    const value = e.target.value;
+    setFloorNumber(value);
+    if (value === "") {
+      setFloorNumberError("Floor number is required");
+    } else if (!isPositiveNumber(value)) {
+      setFloorNumberError("Please enter a positive number");
+    } else {
+      setFloorNumberError("");
+    }
+  };
+
+  // Check if form is valid
+  const isFormValid = () => {
+    return (
+      roomNumber !== "" &&
+      floorNumber !== "" &&
+      category !== "" &&
+      isPositiveNumber(roomNumber) &&
+      isPositiveNumber(floorNumber)
+    );
+  };
 
   // Function to sort room numbers
   const sortRoomNumbers = (roomsArray) => {
     return [...roomsArray].sort((a, b) => {
-      // Extract numbers from room numbers
       const aNum = parseInt(a.number.replace(/\D/g, ""));
       const bNum = parseInt(b.number.replace(/\D/g, ""));
-
-      // If the numbers are the same, sort by the full string
       if (aNum === bNum) {
         return a.number.localeCompare(b.number);
       }
@@ -55,12 +97,10 @@ export default function BookingManagement() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Fetch categories
         const categoriesResponse = await fetch("/api/roomCategories");
         const categoriesData = await categoriesResponse.json();
         setCategories(categoriesData.data);
 
-        // Fetch rooms
         const roomsResponse = await fetch("/api/rooms");
         const roomsData = await roomsResponse.json();
         if (roomsData.success) {
@@ -79,11 +119,19 @@ export default function BookingManagement() {
   }, []);
 
   const handleOpenModal = () => setOpenModal(true);
-  const handleCloseModal = () => setOpenModal(false);
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setRoomNumber("");
+    setCategory("");
+    setFloorNumber("");
+    setClean("Yes");
+    setRoomNumberError("");
+    setFloorNumberError("");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null); // Reset error state
+    setError(null);
 
     const newRoom = {
       number: roomNumber,
@@ -93,17 +141,13 @@ export default function BookingManagement() {
     };
 
     try {
-      // Check if room number already exists
       const roomsResponse = await fetch("/api/rooms");
       const roomsData = await roomsResponse.json();
       const existingRooms = roomsData.data;
-      console.log("existingRooms", existingRooms);
 
-      // Check if room number already exists
       const roomExists = existingRooms.some(
         (room) => room.number === roomNumber
       );
-      console.log("room exist", roomExists);
 
       if (roomExists) {
         toast.error("Room number already exists!", {
@@ -113,7 +157,6 @@ export default function BookingManagement() {
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
-          progress: undefined,
           theme: "colored",
         });
         return;
@@ -124,12 +167,11 @@ export default function BookingManagement() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(newRoom),
-        credentials: "include", // Include cookies
+        credentials: "include",
       });
 
       if (res.ok) {
         const data = await res.json();
-        console.log("New room added:", data.data);
         toast.success("New room added successfully!", {
           position: "top-center",
           autoClose: 3000,
@@ -139,7 +181,6 @@ export default function BookingManagement() {
           draggable: true,
         });
 
-        // Fetch updated rooms
         const roomsResponse = await fetch("/api/rooms");
         const roomsData = await roomsResponse.json();
         if (roomsData.success) {
@@ -149,11 +190,12 @@ export default function BookingManagement() {
           console.log("Failed to fetch updated rooms:", roomsData.error);
         }
 
-        // Reset form
         setRoomNumber("");
         setCategory("");
         setFloorNumber("");
         setClean("Yes");
+        setRoomNumberError("");
+        setFloorNumberError("");
         handleCloseModal();
       } else {
         const errorData = await res.json();
@@ -179,6 +221,7 @@ export default function BookingManagement() {
       });
     }
   };
+
   const modalStyle = {
     position: "absolute",
     top: "50%",
@@ -202,35 +245,29 @@ export default function BookingManagement() {
 
       if (data.success) {
         toast.success("Room deleted successfully!", {
-          //success toaster
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
-          progress: undefined,
           theme: "dark",
           onClose: () => window.location.reload(),
         });
-
-        //fetchCategories();
       } else {
         toast.error("Failed to delete room.", {
-          //error toaster
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
-          progress: undefined,
           theme: "dark",
         });
       }
     } catch (error) {
-      console.error("Error deleting room category:", error);
-      toast.error("An error occurred while trying to delete the category.");
+      console.error("Error deleting room:", error);
+      toast.error("An error occurred while trying to delete the room.");
     } finally {
       setIsLoading(false);
     }
@@ -255,22 +292,7 @@ export default function BookingManagement() {
         {isLoading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
             <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-              <svg
-                aria-hidden="true"
-                className="inline w-16 h-16 text-gray-200 animate-spin dark:text-gray-600 fill-green-500"
-                viewBox="0 0 100 101"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                  fill="currentFill"
-                />
-              </svg>
+              <div className="loader"></div>
               <span className="mt-4 text-gray-700">Loading Room Lists...</span>
             </div>
           </div>
@@ -366,7 +388,6 @@ export default function BookingManagement() {
                   </TableCell>
                 </TableRow>
               </TableHead>
-
               <TableBody>
                 {rooms.length > 0 ? (
                   rooms.map((room) => (
@@ -508,8 +529,10 @@ export default function BookingManagement() {
                   label="Room Number"
                   variant="outlined"
                   value={roomNumber}
-                  onChange={(e) => setRoomNumber(e.target.value)}
+                  onChange={handleRoomNumberChange}
                   required
+                  error={!!roomNumberError}
+                  helperText={roomNumberError}
                 />
               </div>
               <div className="mb-4">
@@ -535,8 +558,10 @@ export default function BookingManagement() {
                   label="Floor Number"
                   variant="outlined"
                   value={floorNumber}
-                  onChange={(e) => setFloorNumber(e.target.value)}
+                  onChange={handleFloorNumberChange}
                   required
+                  error={!!floorNumberError}
+                  helperText={floorNumberError}
                 />
               </div>
               <div className="mb-4">
@@ -561,7 +586,12 @@ export default function BookingManagement() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" variant="contained" color="primary">
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  disabled={!isFormValid()}
+                >
                   Add Room
                 </Button>
               </div>

@@ -21,6 +21,28 @@ import axios from "axios";
 import { getCookie } from "cookies-next"; // Import getCookie from cookies-next
 import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
 import { GetCustomDate, GetTodaysDate } from "../../../../../utils/DateFetcher";
+import { ToWords } from "to-words";
+
+const toWords = new ToWords({
+  localeCode: "en-IN",
+  converterOptions: {
+    currency: true,
+    ignoreDecimal: false,
+    ignoreZeroCurrency: false,
+    doNotAddOnly: false,
+    currencyOptions: {
+      // can be used to override defaults for the selected locale
+      name: "Rupee",
+      plural: "Rupees",
+      symbol: "₹",
+      fractionalUnit: {
+        name: "Paisa",
+        plural: "Paise",
+        symbol: "",
+      },
+    },
+  },
+});
 
 // Add print-specific styles
 const printStyles = `
@@ -28,6 +50,10 @@ const printStyles = `
     body * {
       visibility: hidden;
     }
+      
+      #print-button * {
+      display:none;
+      }
 
     #printable-invoice,
     #printable-invoice * {
@@ -51,13 +77,14 @@ const printStyles = `
 
 const CustomTableCell = styled(TableCell)`
   border: 1px solid black;
-  padding: 2px;
+  padding: 5px;
   & > p {
-    font-size: 14px;
+    font-size: 15px;
   }
 `;
 
 const PrintableRoomInvoice = ({ billId }) => {
+  const toWords = new ToWords();
   const todaysDate = GetTodaysDate();
   const [bookingData, setBookingData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -79,7 +106,7 @@ const PrintableRoomInvoice = ({ billId }) => {
           )
           .split("=")[1];
         const headers = { Authorization: `Bearer ${token}` };
-        console.log("billId", billId);
+
         // 1. First fetch billing details
         const authtoken = getCookie("authToken");
         const usertoken = getCookie("userAuthToken");
@@ -110,7 +137,7 @@ const PrintableRoomInvoice = ({ billId }) => {
           fetch(`/api/Billing/${billId}`),
           fetch(`/api/Profile/${userId}`),
         ]);
-        console.log("billingResponse", billingResponse);
+
         if (!billingResponse.ok || !profileResponse.ok) {
           throw new Error("Failed to fetch data");
         }
@@ -119,7 +146,7 @@ const PrintableRoomInvoice = ({ billId }) => {
           profileResponse.json(),
         ]);
         const billingData = billing.data;
-        console.log("billingData", billingData);
+
         // Set payment status
         setIsPaid(billingData.Bill_Paid?.toLowerCase() === "yes");
         // Set cancellation status
@@ -127,12 +154,10 @@ const PrintableRoomInvoice = ({ billId }) => {
         // 2. Fetch and find matched room
         const roomsResponse = await fetch("/api/rooms");
         const roomsData = await roomsResponse.json();
-        console.log("roomsData", roomsData.data);
+
         const matchedRooms = roomsData.data.filter((room) =>
           billingData.roomNo.includes(String(room.number))
         );
-
-        console.log("matchedRooms", matchedRooms);
 
         if (!matchedRooms) {
           throw new Error("No matching room found");
@@ -142,6 +167,13 @@ const PrintableRoomInvoice = ({ billId }) => {
         const newBookingsResponse = await axios.get("/api/NewBooking", {
           headers,
         });
+        const bookingResult = newBookingsResponse.data.data;
+        const filteredBookingData = bookingResult?.find((item, index) => {
+          if (item?.bookingId === billingData.bookingId) {
+            return item;
+          }
+        });
+
         // Find bookings for all rooms
         const matchedBookings = await Promise.all(
           matchedRooms.map(async (room) => {
@@ -169,8 +201,6 @@ const PrintableRoomInvoice = ({ billId }) => {
           })
         );
 
-        console.log("matchedBookings", matchedBookings);
-
         if (!matchedBookings) {
           throw new Error("No matching booking found");
         }
@@ -181,7 +211,6 @@ const PrintableRoomInvoice = ({ billId }) => {
             matchedBookings.filter((booking) => booking).map(JSON.stringify)
           )
         ).map(JSON.parse);
-        console.log("uniqueBookings", uniqueBookings);
 
         // Fetch room categories
         const roomCategoriesResponse = await axios.get("/api/roomCategories", {
@@ -194,13 +223,8 @@ const PrintableRoomInvoice = ({ billId }) => {
             (category) => category._id === room.category._id
           )
         );
-        console.log("CategoryData", matchedCategories);
-        // Fetch menu items for comparison
-        const menuResponse = await axios.get("/api/menuItem", { headers });
-        const menuItemsList = menuResponse.data.data;
 
         // Fetch billing details
-        console.log("billingData", billingData.itemList);
 
         // Process existing items
         const existingServices = billingData.itemList || [];
@@ -229,11 +253,10 @@ const PrintableRoomInvoice = ({ billId }) => {
           });
         });
         setServiceItems(serviceItemsArray);
-        console.log("serviceItemsArray", serviceItemsArray);
 
         setBookingData({
           billing: billingData,
-          booking: uniqueBookings[0],
+          booking: filteredBookingData,
           room: matchedRooms,
           category: matchedCategories,
         });
@@ -258,22 +281,7 @@ const PrintableRoomInvoice = ({ billId }) => {
   if (loading) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-        <svg
-          aria-hidden="true"
-          className="inline w-16 h-16 text-gray-200 animate-spin dark:text-gray-600 fill-green-500"
-          viewBox="0 0 100 101"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-            fill="currentColor"
-          />
-          <path
-            d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-            fill="currentFill"
-          />
-        </svg>
+        <div className="loader"></div>
         <span className="mt-4 text-gray-700">Loading Room Invoice...</span>
       </div>
     );
@@ -311,48 +319,33 @@ const PrintableRoomInvoice = ({ billId }) => {
     );
   }
 
-  const { booking, billing, room, category, services } = bookingData;
-  const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString("en-GB");
-  const formattedTime = currentDate.toLocaleTimeString();
+  let totalInWords = toWords.convert(bookingData?.billing?.totalAmount);
+  const numberOfDays =
+    (new Date(bookingData?.booking?.checkOut) -
+      new Date(bookingData?.booking?.checkIn)) /
+    (1000 * 60 * 60 * 24);
 
-  const totalServicesAmount = serviceItems.reduce(
-    (total, service) => total + service.price,
-    0
-  );
-
-  const serviceTax = serviceItems.reduce(
-    (tax, service) => tax + service.tax,
-    0
-  );
+  const isSameState =
+    bookingData?.booking?.state &&
+    profile.state &&
+    bookingData?.booking?.state === profile.state;
 
   return (
     <>
-    {console.log("Daman", bookingData.category[0].cgst)}
       <style>{printStyles}</style>
-      <Box
-        id="printable-invoice"
-        sx={{
-          maxWidth: "800px",
-          margin: "auto",
-
-          maxHeight: "90vh",
-          overflowY: "auto",
-          overflowX: "hidden",
-        }}
-      >
+      <Box id="printable-invoice">
         <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
-                <CustomTableCell colSpan={4} align="center">
+                <CustomTableCell colSpan={7} align="center">
                   <Typography fontWeight={600} align="center">
                     TAX INVOICE
                   </Typography>
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={4} align="center">
+                <CustomTableCell colSpan={7} align="center">
                   <Typography align="center" variant="h5">
                     {profile?.hotelName}
                   </Typography>
@@ -376,7 +369,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell rowSpan={3}>
+                <CustomTableCell rowSpan={3} colSpan={2}>
                   <Typography>
                     Guest Name: {bookingData?.booking?.guestName}
                   </Typography>
@@ -390,7 +383,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                   </Typography>
                   <Typography>GSTIN: {bookingData?.booking?.gstin}</Typography>
                 </CustomTableCell>
-                <CustomTableCell>
+                <CustomTableCell colSpan={3}>
                   <Typography fontWeight={600}>
                     Check-in: {GetCustomDate(bookingData?.booking?.checkIn)}
                   </Typography>
@@ -403,7 +396,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell>
+                <CustomTableCell colSpan={3}>
                   <Typography fontWeight={600}>
                     Check-out: {GetCustomDate(bookingData?.booking?.checkOut)}
                   </Typography>
@@ -418,11 +411,11 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell>
+                <CustomTableCell colSpan={3}>
                   <Typography>
                     Room No. (s):{" "}
                     {bookingData?.booking?.roomNumbers?.map((item, index) => (
-                      <span key={index}>
+                      <span key={index} style={{ fontWeight: 600 }}>
                         {item}
                         {index < bookingData?.booking?.roomNumbers.length - 1
                           ? ", "
@@ -440,59 +433,104 @@ const PrintableRoomInvoice = ({ billId }) => {
                     Description of Services
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width={200}>
+                <CustomTableCell align="center" width="10%">
                   <Typography fontWeight={600}>HSN CODE</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center">
+                <CustomTableCell align="center" width="10%">
                   <Typography fontWeight={600}>SGST%</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center">
+                <CustomTableCell align="center" width="10%">
                   <Typography fontWeight={600}>CGST%</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center">
-                  <Typography fontWeight={600}>Total GST%</Typography>
+                <CustomTableCell align="center" width="10%">
+                  <Typography fontWeight={600}>IGST%</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center">
+                <CustomTableCell align="center" width="12%">
+                  <Typography fontWeight={600}>Total GST</Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center" width="12%">
                   <Typography fontWeight={600}>Amount</Typography>
                 </CustomTableCell>
               </TableRow>
             </TableBody>
-            <TableBody sx={{ height: "200px" }}>
+            <TableBody>
               {bookingData?.room?.map((room, index) => (
                 <TableRow key={index}>
                   <CustomTableCell
-                    sx={{ borderBottom: "none", borderTop: "none" }}
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
                     <Typography>
                       Room No:{room?.number}- {room?.category?.category}
+                      <br />
+                      <span style={{ fontSize: "12px" }}>
+                        ({`Per night: Rs.${room?.category?.tariff}/-`})
+                      </span>
                     </Typography>
                   </CustomTableCell>
                   <CustomTableCell
-                    sx={{ borderBottom: "none", borderTop: "none" }}
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
                     <Typography></Typography>
                   </CustomTableCell>
                   <CustomTableCell
-                    sx={{ borderBottom: "none", borderTop: "none" }}
+                    align="center"
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
-                    <Typography>{bookingData.category[index]?.sgst}</Typography>
-                  </CustomTableCell>
-                  <CustomTableCell
-                    sx={{ borderBottom: "none", borderTop: "none" }}
-                  >
-                    <Typography>{bookingData.category[index]?.cgst}</Typography>
-                  </CustomTableCell>
-                  <CustomTableCell
-                    sx={{ borderBottom: "none", borderTop: "none" }}
-                  >
-                    <Typography>{bookingData.category[index]?.sgst + bookingData.category[index]?.cgst}</Typography>
+                    <Typography>
+                      {room?.category?.sgst}
+                    </Typography>
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
-                    sx={{ borderBottom: "none", borderTop: "none" }}
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
-                    <Typography>100</Typography>
+                    <Typography>
+                      {room?.category?.cgst}
+                    </Typography>
                   </CustomTableCell>
+                  <CustomTableCell
+                    align="center"
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
+                  >
+                    <Typography>
+                      {!isSameState
+                        ? room?.category?.cgst + room?.category?.sgst
+                        : "-"}
+                    </Typography>
+                  </CustomTableCell>
+                  <CustomTableCell
+                    align="center"
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
+                  >
+                    <Typography>
+                      {(room?.category?.total - room?.category?.tariff) *
+                        numberOfDays}
+                    </Typography>
+                  </CustomTableCell>
+                  <CustomTableCell
+                    align="center"
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
+                  >
+                    <Typography>
+                      {room?.category?.total * numberOfDays}
+                    </Typography>
+                  </CustomTableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableBody>
+              {Array.from({
+                length: 17 - (bookingData?.room?.length || 0),
+              }).map((_, idx) => (
+                <TableRow key={`empty-${idx}`}>
+                  {[...Array(7)].map((__, cellIdx) => (
+                    <CustomTableCell
+                      key={cellIdx}
+                      sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
+                    >
+                      &nbsp;
+                    </CustomTableCell>
+                  ))}
                 </TableRow>
               ))}
             </TableBody>
@@ -514,22 +552,34 @@ const PrintableRoomInvoice = ({ billId }) => {
                   <Typography></Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
+                  <Typography>
+                    {bookingData?.room?.reduce((sum, room) => {
+                      const gstPerNight =
+                        (room?.category?.total ?? 0) -
+                        (room?.category?.tariff ?? 0);
+                      return sum + gstPerNight * numberOfDays;
+                    }, 0)}
+                  </Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
                   <Typography>{bookingData?.billing?.totalAmount}</Typography>
                 </CustomTableCell>
               </TableRow>
               <TableRow>
                 <CustomTableCell>
                   <Typography>Amuount Chargeable (in words):</Typography>
-                  <Typography fontWeight={600}>Four Thousand</Typography>
+                  <Typography fontWeight={600}>
+                    {totalInWords} rupees
+                  </Typography>
                 </CustomTableCell>
-                <CustomTableCell rowSpan={2} align="center">
+                <CustomTableCell rowSpan={2} colSpan={3} align="center">
                   <Typography variant="body2">
                     I agree that I&apos;m responsible for the full payment of
                     this invoice,in the event it is not paid by the
                     company,organisation or person indicated above.
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell colSpan={2} rowSpan={2} align="center">
+                <CustomTableCell colSpan={3} rowSpan={2} align="center">
                   <Typography fontWeight={600}>Authorised Signatory</Typography>
                 </CustomTableCell>
               </TableRow>
@@ -541,7 +591,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={4} align="center">
+                <CustomTableCell colSpan={7} align="center">
                   <Typography variant="caption">
                     We are Happy to Serve You.Visit us again...
                   </Typography>
@@ -550,6 +600,11 @@ const PrintableRoomInvoice = ({ billId }) => {
             </TableBody>
           </Table>
         </TableContainer>
+        <Box sx={{ textAlign: "center", mt: 1 }} id="print-button">
+          <Button variant="contained" onClick={handlePrint}>
+            Print Invoice
+          </Button>
+        </Box>
       </Box>
     </>
   );

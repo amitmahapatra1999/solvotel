@@ -309,7 +309,7 @@ export default function BookingForm() {
       !anniversaryError;
 
     setIsFormValid(isValid);
-    console.log(isFormValid);
+
     return isValid && Object.keys(newErrors).length === 0;
   };
 
@@ -509,7 +509,15 @@ export default function BookingForm() {
         body: JSON.stringify(bookingData),
       });
 
+      if (!bookingResponse.ok) {
+        const errorData = await bookingResponse.json();
+        throw new Error(`Booking creation failed: ${errorData.error || 'Unknown error'}`);
+      }
       const bookingResult = await bookingResponse.json();
+      if (!bookingResult.success || !bookingResult.data || !bookingResult.data._id) {
+        throw new Error('Invalid booking response data');
+      }
+      
       const guestId = bookingResult.data._id;
 
       // Fetch necessary data
@@ -542,21 +550,24 @@ export default function BookingForm() {
         // Calculate billing details
         const checkInDate = new Date(formData.checkIn);
         const checkOutDate = new Date(formData.checkOut);
-        const numberOfNights = Math.ceil(
-          (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)
-        );
-        const roomCharge = matchedCategory.total * numberOfNights;
-        const roomTax = matchedCategory.gst;
+        const numberOfNights =
+          (new Date(checkOutDate) - new Date(checkInDate)) /
+          (1000 * 60 * 60 * 24);
 
+        const roomCharge = matchedCategory.total * numberOfNights;
+        const roomCgst = matchedCategory.cgst;
+        const roomSgst = matchedCategory.sgst;
+        const roomTax = matchedCategory.cgst + matchedCategory.sgst;
+        console.log("Room sgst", roomSgst);
+        console.log("Room cgst", roomCgst);
+        console.log("Room tax", roomTax);
         // Collect data for consolidated billing
         allRoomNumbers.push(selectedRoomNumber);
         roomCharges.push([roomCharge]);
-        roomTaxes.push([roomTax]);
+        roomTaxes.push([[roomSgst, roomCgst]]); 
+        console.log("Room tax", roomTaxes);
         quantities.push([1]);
         totalAmount += roomCharge;
-
-        // Update room records...
-        // (Keep existing room update logic here)
       }
 
       // Create single billing record for all rooms
@@ -577,6 +588,7 @@ export default function BookingForm() {
           amountAdvanced: 0,
           dueAmount: totalAmount,
           Bill_Paid: "no",
+          bookingId: formData?.bookingId,
         }),
       });
 
@@ -637,19 +649,14 @@ export default function BookingForm() {
           roomUpdate.billingStarted = "Yes";
         } else {
           // Fetch current guest's booking details
-          console.log("matchedRoom:", matchedRoom);
-          console.log(
-            "matchedRoom.currentGuestId:",
-            matchedRoom.currentGuestId
-          );
+
           const currentGuestResponse = await fetch(
             `/api/NewBooking/${matchedRoom.currentGuestId}`
           );
           const currentGuestData = await currentGuestResponse.json();
-          console.log("currentGuestData:", currentGuestData);
+
           const currentGuestCheckIn = new Date(currentGuestData.checkIn);
-          console.log("currentGuestCheckIn:", currentGuestCheckIn);
-          console.log("sortedGuestWaitlist:", sortedGuestWaitlist);
+
           // Fetch first waitlisted guest's booking details
           const firstWaitlistedGuestResponse = await fetch(
             `/api/NewBooking/${sortedGuestWaitlist[0]._id}`
@@ -672,20 +679,17 @@ export default function BookingForm() {
             roomUpdate.currentBillingId = sortedBillWaitlist[0];
           }
         }
-        const roomUpdateResponse = await fetch(
-          `/api/rooms/${matchedRoom._id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(roomUpdate),
-          }
-        );
+        await fetch(`/api/rooms/${matchedRoom._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(roomUpdate),
+        });
       }
 
       alert("Booking created with consolidated billing!");
       setLoading(false);
       setModalOpen(false);
-      router.push("/property/roomdashboard");
+      router.push("/property/billing");
     } catch (error) {
       setLoading(false);
       console.error("Error in booking submission:", error);
@@ -831,31 +835,6 @@ export default function BookingForm() {
       setFilteredMobileNumbers([]);
     }
   };
-
-  // Replace the mobile number TextField with Autocomplete
-  const mobileNumberField = (
-    <Autocomplete
-      freeSolo
-      options={filteredMobileNumbers}
-      value={formData.mobileNo}
-      onChange={(event, newValue) => handleMobileNumberChange(event, newValue)}
-      onInputChange={(event, newValue) =>
-        handleMobileNumberChange(event, newValue)
-      }
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label="Mobile Number"
-          required
-          fullWidth
-          variant="outlined"
-        />
-      )}
-      filterOptions={(options, { inputValue }) =>
-        options.filter((option) => option.startsWith(inputValue))
-      }
-    />
-  );
 
   // Add useEffect for continuous form validation
   useEffect(() => {
