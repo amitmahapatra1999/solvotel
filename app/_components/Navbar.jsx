@@ -30,6 +30,7 @@ import {
   PaintBucket,
   PartyPopper,
   Calculator,
+  Banknote,
 } from "lucide-react";
 import { jwtVerify } from "jose"; // Import jwtVerify for token verification
 import { ToastContainer, toast } from "react-toastify";
@@ -252,6 +253,12 @@ export default function Navbar() {
                     <li className="px-4 py-2 hover:text-blue-900 flex items-center space-x-2 transition-colors duration-200">
                       <PartyPopper className="w-4 h-4 hover:text-blue-900" />
                       <span>Guest Event Report</span>
+                    </li>
+                  </Link>
+                  <Link href="/PaymentMethod">
+                    <li className="px-4 py-2 hover:text-blue-900 flex items-center space-x-2 transition-colors duration-200">
+                      <Banknote className="w-4 h-4 hover:text-blue-900" />
+                      <span>Payment Methods</span>
                     </li>
                   </Link>
                 </ul>

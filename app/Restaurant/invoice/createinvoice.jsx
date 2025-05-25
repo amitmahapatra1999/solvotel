@@ -69,11 +69,17 @@ const indianStatesAndUTs = [
   "Puducherry",
 ];
 
-const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
+const CreateInvoicePage = ({
+  onInvoiceCreate,
+  existingInvoice,
+  onCancel,
+  paymentMethods,
+}) => {
   const [menu, setMenu] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [profileState, setProfileState] = useState(null); // State from Profile API
   const [formData, setFormData] = useState({
+    paymentMethod: "",
     invoiceno: "",
     date: "",
     time: "",
@@ -171,7 +177,6 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
           const quantity = existingInvoice.quantity[index] || 1;
           const cgstRate = menuItem.cgst || 0;
           const sgstRate = menuItem.sgst || 0;
-
           const cgstAmount = price * (cgstRate / 100) * quantity;
           const sgstAmount = price * (sgstRate / 100) * quantity;
           const totalWithGst = price * quantity + cgstAmount + sgstAmount;
@@ -221,6 +226,7 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
         payableamt: payableAmount,
         cgstArray: cgstArray,
         sgstArray: sgstArray,
+        paymentMethod: existingInvoice.paymentMethod,
         amountWithGstArray: amountWithGstArray,
         username: existingInvoice.username || formData.username,
       });
@@ -363,8 +369,6 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
         gst: formData.payableamt - formData.totalamt,
         payableamt: calculatePayableAmount(formData.amountWithGstArray),
       };
-
-      console.log(submissionData);
 
       const response = await fetch(url, {
         method,
@@ -795,6 +799,25 @@ const CreateInvoicePage = ({ onInvoiceCreate, existingInvoice, onCancel }) => {
                   <Typography variant="h6">
                     Payable Amount: ₹{formData.payableamt.toFixed(2)}
                   </Typography>
+                </Box>
+                <Box>
+                  <TextField
+                    fullWidth
+                    select
+                    label="Payment Method"
+                    name="paymentMethod"
+                    value={formData.paymentMethod}
+                    onChange={handleChange}
+                    variant="outlined"
+                    size="small"
+                  >
+                    <MenuItem value="">Select State</MenuItem>
+                    {paymentMethods.map((item, index) => (
+                      <MenuItem key={index} value={item?.itemName}>
+                        {item?.itemName}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Box>
                 <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                   <Button

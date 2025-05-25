@@ -223,6 +223,13 @@ const PrintableRoomInvoice = ({ billId }) => {
             (category) => category._id === room.category._id
           )
         );
+<<<<<<< HEAD
+=======
+        console.log("CategoryData", matchedCategories);
+        // Fetch menu items for comparison
+        const menuResponse = await axios.get("/api/menuItem", { headers });
+        const menuItemsList = menuResponse.data.data;
+>>>>>>> 6648c145aa85a0e3486c160232a3f52db08ee99a
 
         // Fetch billing details
 
@@ -332,6 +339,7 @@ const PrintableRoomInvoice = ({ billId }) => {
 
   return (
     <>
+    {console.log("Daman", bookingData.category[0].cgst)}
       <style>{printStyles}</style>
       <Box id="printable-invoice">
         <TableContainer>
@@ -472,13 +480,30 @@ const PrintableRoomInvoice = ({ billId }) => {
                   >
                     <Typography></Typography>
                   </CustomTableCell>
+<<<<<<< HEAD
+=======
+                  <CustomTableCell
+                    sx={{ borderBottom: "none", borderTop: "none" }}
+                  >
+                    <Typography>{bookingData.category[index]?.sgst}</Typography>
+                  </CustomTableCell>
+>>>>>>> 6648c145aa85a0e3486c160232a3f52db08ee99a
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
+<<<<<<< HEAD
                     <Typography>
                       {room?.category?.sgst}
                     </Typography>
+=======
+                    <Typography>{bookingData.category[index]?.cgst}</Typography>
+                  </CustomTableCell>
+                  <CustomTableCell
+                    sx={{ borderBottom: "none", borderTop: "none" }}
+                  >
+                    <Typography>{bookingData.category[index]?.sgst + bookingData.category[index]?.cgst}</Typography>
+>>>>>>> 6648c145aa85a0e3486c160232a3f52db08ee99a
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
@@ -552,6 +577,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                   <Typography></Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
+<<<<<<< HEAD
                   <Typography>
                     {bookingData?.room?.reduce((sum, room) => {
                       const gstPerNight =
@@ -562,6 +588,8 @@ const PrintableRoomInvoice = ({ billId }) => {
                   </Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
+=======
+>>>>>>> 6648c145aa85a0e3486c160232a3f52db08ee99a
                   <Typography>{bookingData?.billing?.totalAmount}</Typography>
                 </CustomTableCell>
               </TableRow>

@@ -1,12 +1,12 @@
-// app/api/restaurantinvoice/route.js
-import connectSTR from "../../lib/dbConnect";
-import restaurantinvoice from "../../lib/models/restaurantinvoice";
-import Profile from "../../lib/models/Profile";
+import PaymentMethod from "../../../lib/models/PaymentMethod";
+import connectSTR from "../../../lib/dbConnect";
 import mongoose from "mongoose";
+import Profile from "../../../lib/models/Profile";
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
 const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
+// Connect to the database
 const connectToDatabase = async () => {
   if (mongoose.connections[0].readyState) return;
   await mongoose.connect(connectSTR, {
@@ -15,12 +15,18 @@ const connectToDatabase = async () => {
   });
 };
 
-export async function GET(req) {
+export async function PUT(request, { params }) {
   try {
+    const { id } = params; // Extract ID from route params
+    const data = await request.json(); // Parse the request body
+    if (!id || (!data.itemName && data.isActive === undefined)) {
+      // Validate inputs: at least one field should be provided
+      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+    }
     await connectToDatabase();
     // Extract the token from cookies
-    const authToken = req.cookies.get("authToken")?.value;
-    const userAuthToken = req.cookies.get("userAuthToken")?.value;
+    const authToken = request.cookies.get("authToken")?.value;
+    const userAuthToken = request.cookies.get("userAuthToken")?.value;
     if (!authToken && !userAuthToken) {
       return NextResponse.json(
         {
@@ -55,33 +61,51 @@ export async function GET(req) {
         { status: 400 }
       );
     }
+    // Find the profile by userId to get the username
     const profile = await Profile.findById(userId);
     if (!profile) {
       return NextResponse.json(
-        { success: false, error: "Profile not found" },
+        {
+          success: false,
+          error: "Profile not found",
+        },
         { status: 404 }
       );
     }
-    const invoices = await restaurantinvoice.find({
-      username: profile.username,
-    });
-    return NextResponse.json({ invoices });
+    // Build the update object dynamically based on provided fields
+    const updateFields = { ...data, username: profile.username }; // Ensure username is included
+    // Update the product
+    const product = await PaymentMethod.findByIdAndUpdate(
+      id,
+      updateFields, // Apply dynamic updates
+      { new: true } // Return the updated document
+    );
+    if (!product || product.username !== profile.username) {
+      return NextResponse.json(
+        { error: "Product not found or unauthorized" },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json({ product }); // Return updated product
   } catch (error) {
-    console.error("Error fetching invoices:", error);
+    console.error("Error updating product:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to fetch invoices" },
-      { status: 400 }
+      { error: "Error updating product" },
+      { status: 500 }
     );
   }
 }
 
-export async function POST(req) {
+export async function DELETE(request, { params }) {
   try {
+    const { id } = params; // Extract ID from route params
+    if (!id) {
+      return NextResponse.json({ error: "ID is required" }, { status: 400 });
+    }
     await connectToDatabase();
-    const data = await req.json();
     // Extract the token from cookies
-    const authToken = req.cookies.get("authToken")?.value;
-    const userAuthToken = req.cookies.get("userAuthToken")?.value;
+    const authToken = request.cookies.get("authToken")?.value;
+    const userAuthToken = request.cookies.get("userAuthToken")?.value;
     if (!authToken && !userAuthToken) {
       return NextResponse.json(
         {
@@ -116,28 +140,31 @@ export async function POST(req) {
         { status: 400 }
       );
     }
+    // Find the profile by userId to get the username
     const profile = await Profile.findById(userId);
     if (!profile) {
       return NextResponse.json(
-        { success: false, error: "Profile not found" },
+        {
+          success: false,
+          error: "Profile not found",
+        },
         { status: 404 }
       );
     }
-
-    const newInvoice = await restaurantinvoice.create({
-      ...data,
-      username: profile.username, // Set the username from the profile
-    });
-
-    return NextResponse.json(
-      { success: true, data: newInvoice },
-      { status: 201 }
-    );
+    // Find and delete the product
+    const product = await PaymentMethod.findByIdAndDelete(id);
+    if (!product || product.username !== profile.username) {
+      return NextResponse.json(
+        { error: "Product not found or unauthorized" },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json({ message: "Product deleted successfully" });
   } catch (error) {
-    console.error("Error creating invoice:", error);
+    console.error("Error deleting product:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to create invoice" },
-      { status: 400 }
+      { error: "Error deleting product" },
+      { status: 500 }
     );
   }
 }

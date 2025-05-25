@@ -31,8 +31,6 @@ export default function Billing() {
   const [isLoading, setIsLoading] = useState(true);
   const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
-  console.log(originalBillingData);
-
   useEffect(() => {
     const fetchData = async () => {
       try {

@@ -21,6 +21,7 @@ export const GetTodaysDate = () => {
 };
 
 export const GetCustomDate = (date) => {
+  // a
   if (date !== null) {
     let today = new Date(date);
     let day = today.getDate();

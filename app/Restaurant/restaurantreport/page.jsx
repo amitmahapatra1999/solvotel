@@ -234,6 +234,15 @@ const InvoicePage = () => {
                           textAlign: "center",
                         }}
                       >
+                        Payment Method
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: "bold",
+                          color: "#28bfdb",
+                          textAlign: "center",
+                        }}
+                      >
                         Total Amount
                       </TableCell>
                       <TableCell
@@ -309,6 +318,9 @@ const InvoicePage = () => {
                                 {invoice.custname}
                               </TableCell>
                               <TableCell sx={{ textAlign: "center" }}>
+                                {invoice.paymentMethod}
+                              </TableCell>
+                              <TableCell sx={{ textAlign: "center" }}>
                                 {invoice.totalamt.toFixed(2)}
                               </TableCell>
                               <TableCell sx={{ textAlign: "center" }}>
@@ -328,10 +340,10 @@ const InvoicePage = () => {
                         })}
                         <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                           <TableCell
-                            colSpan={2}
-                            sx={{ fontWeight: "bold", textAlign: "right" }}
+                            colSpan={3}
+                            sx={{ fontWeight: "bold", textAlign: "center" }}
                           >
-                            Totals:
+                            Total:
                           </TableCell>
                           <TableCell
                             sx={{ fontWeight: "bold", textAlign: "center" }}

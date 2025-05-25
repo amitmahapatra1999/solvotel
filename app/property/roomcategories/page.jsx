@@ -99,6 +99,8 @@ export default function RoomCategories() {
     category.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  console.log(filteredCategories);
+
   return (
     <>
       <Navbar />
@@ -270,9 +272,9 @@ export default function RoomCategories() {
                     <TableCell>{room.category}</TableCell>
                     <TableCell>{room.description}</TableCell>
                     <TableCell>{room.tariff}</TableCell>
-                    <TableCell>{room.gst / 2}</TableCell>
-                    <TableCell>{room.gst / 2}</TableCell>
-                    <TableCell>{room.gst}</TableCell>
+                    <TableCell>{room.cgst}</TableCell>
+                    <TableCell>{room.sgst}</TableCell>
+                    <TableCell>{room.cgst + room.sgst}</TableCell>
                     <TableCell>{room.total}</TableCell>
                     <TableCell>{room.bookingEng}</TableCell>
                     <TableCell>{room.confRoom}</TableCell>

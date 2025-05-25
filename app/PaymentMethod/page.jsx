@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Navbar from "../../_components/Navbar";
-import { Footer } from "../../_components/Footer";
+import Navbar from "../_components/Navbar";
+import { Footer } from "../_components/Footer";
 import TextField from "@mui/material/TextField";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -26,7 +26,7 @@ import {
   Typography,
 } from "@mui/material";
 
-export default function InventoryCategory() {
+export default function PaymentMethod() {
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
@@ -75,16 +75,14 @@ export default function InventoryCategory() {
         }
         const username = profileData.data.username;
         // Fetch products with username filter
-        const response = await fetch(
-          `/api/InventoryCategory?username=${username}`
-        );
+        const response = await fetch(`/api/paymentMethod?username=${username}`);
 
         const data = await response.json();
 
         setProducts(data.products || []);
       } catch (error) {
-        console.error("Failed to fetch products", error);
-        toast.error("Failed to fetch products");
+        console.error("Failed to fetch Payment Method", error);
+        toast.error("Failed to fetch Payment Method");
         router.push("/"); // Redirect to login if any error occurs
       } finally {
         setIsLoading(false);
@@ -97,8 +95,8 @@ export default function InventoryCategory() {
     try {
       const method = currentProduct ? "PUT" : "POST";
       const url = currentProduct
-        ? `/api/InventoryCategory/${currentProduct._id}`
-        : "/api/InventoryCategory";
+        ? `/api/paymentMethod/${currentProduct._id}`
+        : "/api/paymentMethod";
 
       const token = getCookie("authToken");
       const usertoken = getCookie("userAuthToken");
@@ -188,7 +186,7 @@ export default function InventoryCategory() {
       }
       const username = profileData.data.username;
       const response = await fetch(
-        `/api/InventoryCategory/${id}?username=${username}`,
+        `/api/paymentMethod/${id}?username=${username}`,
         {
           method: "DELETE",
         }
@@ -200,10 +198,10 @@ export default function InventoryCategory() {
 
       // Remove the deleted product from the state
       setProducts((prev) => prev.filter((product) => product._id !== id));
-      toast.success("Product deleted successfully");
+      toast.success("Payment Method deleted successfully");
     } catch (error) {
-      console.error("Error deleting product:", error);
-      toast.error("Error deleting product:");
+      console.error("Error deleting Payment Method:", error);
+      toast.error("Error deleting Payment Method:");
     }
   };
   //calling the delete function:
@@ -236,7 +234,7 @@ export default function InventoryCategory() {
             <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
               <div className="loader"></div>
               <span className="mt-4 text-gray-700">
-                Loading Inventory Categories...
+                Loading Payment Methods...
               </span>
             </div>
           </div>
@@ -244,7 +242,7 @@ export default function InventoryCategory() {
         <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
           <div className="flex justify-between">
             <h1 className="text-3xl font-bold mb-4 text-cyan-900">
-              Inventory Category
+              Payment Method
             </h1>
             <button
               onClick={() => {
@@ -269,15 +267,7 @@ export default function InventoryCategory() {
                   >
                     Name
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: "bold",
-                      color: "#28bfdb",
-                      textAlign: "center",
-                    }}
-                  >
-                    Status
-                  </TableCell>
+
                   <TableCell
                     sx={{
                       fontWeight: "bold",
@@ -295,15 +285,7 @@ export default function InventoryCategory() {
                     <TableCell sx={{ textAlign: "center" }}>
                       {product.itemName}
                     </TableCell>
-                    <TableCell sx={{ textAlign: "center" }}>
-                      <Button
-                        variant="contained"
-                        color={product.isActive ? "success" : "error"}
-                        size="small"
-                      >
-                        {product.isActive ? "Active" : "Inactive"}
-                      </Button>
-                    </TableCell>
+
                     <TableCell sx={{ textAlign: "center" }}>
                       <IconButton
                         color="primary"
@@ -385,13 +367,15 @@ const AddProductModal = ({ onClose, onSubmit, initialValue }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white p-6 rounded shadow-lg w-96">
-        <h2 className="text-xl font-bold mb-4">Add/Edit Product</h2>
+        <h2 className="text-xl font-bold mb-4">Add/Edit Payment Method</h2>
         <div className="mb-8">
           <TextField
             id="Product name"
             label="Product Name"
             variant="outlined"
             type="text"
+            multiline
+            rows={5}
             value={productName}
             onChange={(e) => setProductName(e.target.value)}
             className="w-full"
@@ -414,7 +398,7 @@ const AddProductModal = ({ onClose, onSubmit, initialValue }) => {
                 : ""
             }`}
           >
-            {initialValue ? "Update" : "Add"} Product
+            {initialValue ? "Update" : "Add"} Method
           </button>
         </div>
       </div>

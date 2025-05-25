@@ -29,6 +29,7 @@ import { jwtVerify } from "jose";
 const InvoicePage = () => {
   const [menu, setMenu] = useState();
   const [invoices, setInvoices] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState([]);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
@@ -75,6 +76,22 @@ const InvoicePage = () => {
       }
     };
     fetchInvoices();
+  }, []);
+
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/paymentMethod");
+        const data = await response.json();
+        // Sort invoices by date in descending order (newest first)
+
+        setPaymentMethods(data.products);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchPaymentMethods();
   }, []);
 
   const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
@@ -383,6 +400,15 @@ const InvoicePage = () => {
                       textAlign: "center",
                     }}
                   >
+                    Payment Method
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      color: "#28bfdb",
+                      textAlign: "center",
+                    }}
+                  >
                     Action
                   </TableCell>
                 </TableRow>
@@ -447,36 +473,24 @@ const InvoicePage = () => {
                         <TableCell sx={{ textAlign: "center" }}>
                           {invoice.payableamt.toFixed(2)}
                         </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {invoice.paymentMethod}
+                        </TableCell>
                         <TableCell
                           sx={{
                             textAlign: "center",
                             display: "flex",
-                            gap: "8px",
+                            gap: "2px",
                             justifyContent: "center",
                           }}
                         >
-                          {/* <Button
-                          variant="contained"
-                          color="primary"
-                          size="small"
-                          onClick={() => handleEdit(invoice)}
-                        >
-                          Edit
-                        </Button> */}
                           <IconButton
                             color="primary"
                             onClick={() => handleEdit(invoice)}
                           >
                             <Edit />
                           </IconButton>
-                          {/* <Button
-                          variant="contained"
-                          color="error"
-                          size="small"
-                          onClick={() => handleDelete(invoice._id)}
-                        >
-                          Delete
-                        </Button> */}
+
                           <IconButton
                             color="secondary"
                             onClick={() => handleDelete(invoice._id)}
@@ -516,6 +530,7 @@ const InvoicePage = () => {
           {showModal && (
             <div className="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
               <CreateInvoicePage
+                paymentMethods={paymentMethods}
                 onInvoiceCreate={handleInvoiceSave}
                 existingInvoice={currentInvoice}
                 onCancel={handleCancelModal}

@@ -930,7 +930,11 @@ const SuperAdminDashboard = () => {
       try {
         setIsLoading(true);
         const token = getCookie("adminauthToken");
+<<<<<<< HEAD
 
+=======
+        console.log(token);
+>>>>>>> 6648c145aa85a0e3486c160232a3f52db08ee99a
         if (!token) {
           router.push("/admin/login");
           return;
