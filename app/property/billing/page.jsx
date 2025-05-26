@@ -44,6 +44,7 @@ export default function Billing() {
   const [searchGuest, setSearchGuest] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [checInOutLoader, setChecInOutLoader] = useState(false);
+  const [checkInOutLoadingId, setCheckInOutLoadingId] = useState(null);
   const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
   useEffect(() => {
@@ -229,6 +230,7 @@ export default function Billing() {
 
   const handleCheckIn = async (bill) => {
     try {
+      setCheckInOutLoadingId(bill.currentBillingId);
       setChecInOutLoader(true);
       const payload = {
         ...bill.bookingDetails,
@@ -280,12 +282,14 @@ export default function Billing() {
     } catch (err) {
       console.log(`Error while checkin: ${err}`);
       setChecInOutLoader(false);
+      setCheckInOutLoadingId(null);
       return;
     }
   };
 
   const handleCheckOut = async (bill) => {
     try {
+      setCheckInOutLoadingId(bill.currentBillingId);
       setChecInOutLoader(true);
       const payload = {
         ...bill.bookingDetails,
@@ -338,8 +342,21 @@ export default function Billing() {
     } catch (err) {
       console.log(`Error while checkin: ${err}`);
       setChecInOutLoader(false);
+      setCheckInOutLoadingId(null);
       return;
     }
+  };
+
+  const handleAllowCheckIn = (bill) => {
+    const checkInDate = new Date(bill.bookingDetails.checkIn);
+    const checkOutDate = new Date(bill.bookingDetails.checkOut);
+    const today = new Date();
+    checkInDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    if (checkInDate.getTime() < today.getTime()) {
+      return true; // Allow check-in if today is the check-in date
+    }
+    return false; // Do not allow check-in if it's not the check-in date
   };
 
   return (
@@ -436,7 +453,7 @@ export default function Billing() {
                   <CustomHeadingCell>Room No</CustomHeadingCell>
                   <CustomHeadingCell>Check In/Out</CustomHeadingCell>
                   <CustomHeadingCell>Booked On</CustomHeadingCell>
-                  <CustomHeadingCell>Pax</CustomHeadingCell>
+                  <CustomHeadingCell>No. Of Guest</CustomHeadingCell>
                   <CustomHeadingCell>Meal Plan</CustomHeadingCell>
                   <CustomHeadingCell>Notes</CustomHeadingCell>
                   <CustomHeadingCell>Status</CustomHeadingCell>
@@ -453,6 +470,8 @@ export default function Billing() {
                     const checkOutDate = GetCustomDate(
                       bill.bookingDetails.checkOut
                     );
+
+                    const isCheckInAllowed = handleAllowCheckIn(bill);
                     return (
                       <TableRow
                         key={index}
@@ -522,21 +541,32 @@ export default function Billing() {
                         <CustomBodyCell>
                           {getGuestStatus(bill)}
                           <br />
-                          {bill?.bookingDetails?.CheckedIn == false && (
-                            <Button
-                              variant="contained"
-                              color="success"
-                              sx={{
-                                textTransform: "none",
-                                fontSize: "10px",
-                                p: 0,
-                              }}
-                              disabled={checInOutLoader}
-                              onClick={() => handleCheckIn(bill)}
-                            >
-                              {!checInOutLoader ? "Check In" : "Checking In..."}
-                            </Button>
+                          {isCheckInAllowed && (
+                            <>
+                              {bill?.bookingDetails?.CheckedIn == false && (
+                                <Button
+                                  variant="contained"
+                                  color="success"
+                                  sx={{
+                                    textTransform: "none",
+                                    fontSize: "10px",
+                                    p: "0px 4px",
+                                    minWidth: 0,
+                                  }}
+                                  disabled={
+                                    checkInOutLoadingId ===
+                                    bill.currentBillingId
+                                  }
+                                  onClick={() => handleCheckIn(bill)}
+                                >
+                                  {checkInOutLoadingId !== bill.currentBillingId
+                                    ? "Check In"
+                                    : "Checking In..."}
+                                </Button>
+                              )}
+                            </>
                           )}
+
                           {bill?.bookingDetails?.CheckedIn &&
                             !bill?.bookingDetails?.CheckedOut && (
                               <Button
@@ -545,12 +575,15 @@ export default function Billing() {
                                 sx={{
                                   textTransform: "none",
                                   fontSize: "10px",
-                                  p: 0,
+                                  p: "0px 4px",
+                                  minWidth: 0,
                                 }}
-                                disabled={checInOutLoader}
+                                disabled={
+                                  checkInOutLoadingId === bill.currentBillingId
+                                }
                                 onClick={() => handleCheckOut(bill)}
                               >
-                                {!checInOutLoader
+                                {checkInOutLoadingId !== bill.currentBillingId
                                   ? "Check Out"
                                   : "Checking Out..."}
                               </Button>

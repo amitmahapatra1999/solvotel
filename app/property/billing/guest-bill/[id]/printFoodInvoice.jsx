@@ -446,6 +446,9 @@ const PrintableFoodInvoice = ({ billId }) => {
                 <TableRow sx={{ bgcolor: "#00bcd4" }}>
                   <TableCell sx={{ color: "white" }}>ITEM</TableCell>
                   <TableCell align="center" sx={{ color: "white" }}>
+                    HSN CODE
+                  </TableCell>
+                  <TableCell align="center" sx={{ color: "white" }}>
                     QTY
                   </TableCell>
                   <TableCell align="center" sx={{ color: "white" }}>
@@ -453,15 +456,15 @@ const PrintableFoodInvoice = ({ billId }) => {
                   </TableCell>
                   {isSameState ? (
                     <>
-                      <TableCell align="right" sx={{ color: "white" }}>
+                      <TableCell align="center" sx={{ color: "white" }}>
                         SGST
                       </TableCell>
-                      <TableCell align="right" sx={{ color: "white" }}>
+                      <TableCell align="center" sx={{ color: "white" }}>
                         CGST
                       </TableCell>
                     </>
                   ) : (
-                    <TableCell align="right" sx={{ color: "white" }}>
+                    <TableCell align="center" sx={{ color: "white" }}>
                       IGST
                     </TableCell>
                   )}
@@ -477,17 +480,18 @@ const PrintableFoodInvoice = ({ billId }) => {
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
                     <TableCell>{item?.name}</TableCell>
+                    <TableCell align="center">996331</TableCell>
                     <TableCell align="center">{item?.quantity}</TableCell>
                     <TableCell align="center">
                       ₹{item?.price?.toFixed(2)}
                     </TableCell>
                     {isSameState ? (
                       <>
-                        <TableCell align="right">{item?.sgst}</TableCell>
-                        <TableCell align="right">{item?.cgst}</TableCell>
+                        <TableCell align="center">{item?.sgst}</TableCell>
+                        <TableCell align="center">{item?.cgst}</TableCell>
                       </>
                     ) : (
-                      <TableCell align="right">
+                      <TableCell align="center">
                         ₹{item?.igst?.toFixed(2)}
                       </TableCell>
                     )}

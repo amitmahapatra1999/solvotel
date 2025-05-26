@@ -298,12 +298,15 @@ const PrintableInvoice = ({ invoiceId }) => {
             <Table>
               <TableHead>
                 <TableRow sx={{ bgcolor: "#00bcd4" }}>
-                  <TableCell sx={{ color: "white" }}>Item</TableCell>
-                  <TableCell align="right" sx={{ color: "white" }}>
-                    Quantity
+                  <TableCell sx={{ color: "white" }}>ITEM</TableCell>
+                  <TableCell align="center" sx={{ color: "white" }}>
+                    HSN CODE
                   </TableCell>
                   <TableCell align="right" sx={{ color: "white" }}>
-                    Rate
+                    QTY
+                  </TableCell>
+                  <TableCell align="right" sx={{ color: "white" }}>
+                    RATE
                   </TableCell>
                   {isSameState ? (
                     <>
@@ -320,7 +323,7 @@ const PrintableInvoice = ({ invoiceId }) => {
                     </TableCell>
                   )}
                   <TableCell align="right" sx={{ color: "white" }}>
-                    Amount
+                    AMOUNT
                   </TableCell>
                 </TableRow>
               </TableHead>
@@ -331,6 +334,7 @@ const PrintableInvoice = ({ invoiceId }) => {
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
                     <TableCell>{item.name}</TableCell>
+                    <TableCell align="center">996331</TableCell>
                     <TableCell align="right">{item.qty}</TableCell>
                     <TableCell align="right">₹{item.rate.toFixed(2)}</TableCell>
                     {isSameState ? (

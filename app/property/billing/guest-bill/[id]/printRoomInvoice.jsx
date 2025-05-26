@@ -320,7 +320,7 @@ const PrintableRoomInvoice = ({ billId }) => {
   }
 
   let totalInWords = toWords.convert(bookingData?.billing?.totalAmount);
-  const numberOfDays =
+  const noOfNights =
     (new Date(bookingData?.booking?.checkOut) -
       new Date(bookingData?.booking?.checkIn)) /
     (1000 * 60 * 60 * 24);
@@ -330,6 +330,28 @@ const PrintableRoomInvoice = ({ billId }) => {
     profile.state &&
     bookingData?.booking?.state === profile.state;
 
+  const totalBaseAmt = bookingData?.room?.reduce((sum, room) => {
+    const baseAmtPerNight = room?.category?.tariff ?? 0;
+    return sum + baseAmtPerNight * noOfNights;
+  }, 0);
+
+  const totalCgst = bookingData?.room?.reduce((sum, room) => {
+    const gstPerNight =
+      (room?.category?.total ?? 0) - (room?.category?.tariff ?? 0);
+    return (sum + gstPerNight * noOfNights) / 2;
+  }, 0);
+
+  const totalSgst = bookingData?.room?.reduce((sum, room) => {
+    const gstPerNight =
+      (room?.category?.total ?? 0) - (room?.category?.tariff ?? 0);
+    return (sum + gstPerNight * noOfNights) / 2;
+  }, 0);
+  const totalGst = bookingData?.room?.reduce((sum, room) => {
+    const gstPerNight =
+      (room?.category?.total ?? 0) - (room?.category?.tariff ?? 0);
+    return sum + gstPerNight * noOfNights;
+  }, 0);
+
   return (
     <>
       <style>{printStyles}</style>
@@ -338,14 +360,14 @@ const PrintableRoomInvoice = ({ billId }) => {
           <Table>
             <TableHead>
               <TableRow>
-                <CustomTableCell colSpan={7} align="center">
+                <CustomTableCell colSpan={8} align="center">
                   <Typography fontWeight={600} align="center">
                     TAX INVOICE
                   </Typography>
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={7} align="center">
+                <CustomTableCell colSpan={8} align="center">
                   <Typography align="center" variant="h5">
                     {profile?.hotelName}
                   </Typography>
@@ -388,7 +410,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                     Check-in: {GetCustomDate(bookingData?.booking?.checkIn)}
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center">
+                <CustomTableCell align="center" colSpan={2}>
                   <Typography fontWeight={600}>Invoice:</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
@@ -401,8 +423,10 @@ const PrintableRoomInvoice = ({ billId }) => {
                     Check-out: {GetCustomDate(bookingData?.booking?.checkOut)}
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell rowSpan={2} align="center">
-                  <Typography fontWeight={600}>1001</Typography>
+                <CustomTableCell rowSpan={2} colSpan={2} align="center">
+                  <Typography fontWeight={600}>
+                    {bookingData?.booking?.bookingId}
+                  </Typography>
                 </CustomTableCell>
                 <CustomTableCell rowSpan={2} align="center">
                   <Typography fontWeight={600}>
@@ -433,23 +457,26 @@ const PrintableRoomInvoice = ({ billId }) => {
                     Description of Services
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="10%">
-                  <Typography fontWeight={600}>HSN CODE</Typography>
+                <CustomTableCell align="center" width="9%">
+                  <Typography fontWeight={600}>HSN/SAC</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center" width="10%">
+                  <Typography fontWeight={600}>Base Amt.</Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center" width="9%">
                   <Typography fontWeight={600}>SGST%</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="10%">
+                <CustomTableCell align="center" width="9%">
                   <Typography fontWeight={600}>CGST%</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="10%">
+                <CustomTableCell align="center" width="9%">
                   <Typography fontWeight={600}>IGST%</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="12%">
+                <CustomTableCell align="center" width="10%">
                   <Typography fontWeight={600}>Total GST</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="12%">
-                  <Typography fontWeight={600}>Amount</Typography>
+                <CustomTableCell align="center" width="10%">
+                  <Typography fontWeight={600}>Total</Typography>
                 </CustomTableCell>
               </TableRow>
             </TableBody>
@@ -469,15 +496,16 @@ const PrintableRoomInvoice = ({ billId }) => {
                   </CustomTableCell>
                   <CustomTableCell
                     sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
+                    align="center"
                   >
-                    <Typography></Typography>
+                    <Typography>996311</Typography>
                   </CustomTableCell>
                   <CustomTableCell
-                    align="center"
                     sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
+                    align="center"
                   >
                     <Typography>
-                      {isSameState ? room?.category?.sgst : "-"}
+                      {room?.category?.tariff * noOfNights}
                     </Typography>
                   </CustomTableCell>
                   <CustomTableCell
@@ -485,7 +513,15 @@ const PrintableRoomInvoice = ({ billId }) => {
                     sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
                     <Typography>
-                      {isSameState ? room?.category?.cgst : "-"}
+                      {isSameState ? room?.category?.sgst : ""}
+                    </Typography>
+                  </CustomTableCell>
+                  <CustomTableCell
+                    align="center"
+                    sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
+                  >
+                    <Typography>
+                      {isSameState ? room?.category?.cgst : ""}
                     </Typography>
                   </CustomTableCell>
                   <CustomTableCell
@@ -495,7 +531,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                     <Typography>
                       {!isSameState
                         ? room?.category?.cgst + room?.category?.sgst
-                        : "-"}
+                        : ""}
                     </Typography>
                   </CustomTableCell>
                   <CustomTableCell
@@ -504,7 +540,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                   >
                     <Typography>
                       {(room?.category?.total - room?.category?.tariff) *
-                        numberOfDays}
+                        noOfNights}
                     </Typography>
                   </CustomTableCell>
                   <CustomTableCell
@@ -512,7 +548,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                     sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
                   >
                     <Typography>
-                      {room?.category?.total * numberOfDays}
+                      {room?.category?.total * noOfNights}
                     </Typography>
                   </CustomTableCell>
                 </TableRow>
@@ -523,7 +559,7 @@ const PrintableRoomInvoice = ({ billId }) => {
                 length: 17 - (bookingData?.room?.length || 0),
               }).map((_, idx) => (
                 <TableRow key={`empty-${idx}`}>
-                  {[...Array(7)].map((__, cellIdx) => (
+                  {[...Array(8)].map((__, cellIdx) => (
                     <CustomTableCell
                       key={cellIdx}
                       sx={{ borderBottom: "none", borderTop: "none", py: 2 }}
@@ -537,36 +573,32 @@ const PrintableRoomInvoice = ({ billId }) => {
             <TableBody>
               <TableRow>
                 <CustomTableCell>
-                  <Typography fontWeight={600}>Total</Typography>
+                  <Typography fontWeight={600}>Grand Total</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
                   <Typography></Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography></Typography>
+                  <Typography>{totalBaseAmt}</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography></Typography>
+                  <Typography>{isSameState ? <>{totalSgst}</> : ""}</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography></Typography>
+                  <Typography>{isSameState ? <>{totalCgst}</> : ""}</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>
-                    {bookingData?.room?.reduce((sum, room) => {
-                      const gstPerNight =
-                        (room?.category?.total ?? 0) -
-                        (room?.category?.tariff ?? 0);
-                      return sum + gstPerNight * numberOfDays;
-                    }, 0)}
-                  </Typography>
+                  <Typography>{!isSameState ? <>{totalGst}</> : ""}</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>{bookingData?.billing?.totalAmount}</Typography>
+                  <Typography>{totalGst}</Typography>
+                </CustomTableCell>
+                <CustomTableCell align="center">
+                  <Typography>{parseInt(totalBaseAmt + totalGst)}</Typography>
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell>
+                <CustomTableCell colSpan={2}>
                   <Typography>Amuount Chargeable (in words):</Typography>
                   <Typography fontWeight={600}>
                     {totalInWords} rupees
@@ -584,14 +616,14 @@ const PrintableRoomInvoice = ({ billId }) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell>
+                <CustomTableCell colSpan={2}>
                   <Typography fontWeight={600} sx={{ mb: 10 }}>
                     GUEST SIGNATURE:
                   </Typography>
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={7} align="center">
+                <CustomTableCell colSpan={8} align="center">
                   <Typography variant="caption">
                     We are Happy to Serve You.Visit us again...
                   </Typography>
