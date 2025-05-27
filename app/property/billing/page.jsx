@@ -37,13 +37,12 @@ const CustomBodyCell = styled(TableCell)`
 
 export default function Billing() {
   const router = useRouter();
+  const [profile, setProfile] = useState(null);
   const [billingData, setBillingData] = useState([]);
-  const [originalBillingData, setOriginalBillingData] = useState([]);
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchRoom, setSearchRoom] = useState("");
   const [searchGuest, setSearchGuest] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [checInOutLoader, setChecInOutLoader] = useState(false);
   const [checkInOutLoadingId, setCheckInOutLoadingId] = useState(null);
   const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
@@ -54,13 +53,12 @@ export default function Billing() {
         const authtoken = getCookie("authToken");
         const usertoken = getCookie("userAuthToken");
         if (!authtoken && !usertoken) {
-          router.push("/"); // Redirect to login if no token is found
+          router.push("/");
           return;
         }
 
         let decoded, userId;
         if (authtoken) {
-          // Verify the authToken (legacy check)
           decoded = await jwtVerify(
             authtoken,
             new TextEncoder().encode(SECRET_KEY)
@@ -68,19 +66,20 @@ export default function Billing() {
           userId = decoded.payload.id;
         }
         if (usertoken) {
-          // Verify the userAuthToken
           decoded = await jwtVerify(
             usertoken,
             new TextEncoder().encode(SECRET_KEY)
           );
-          userId = decoded.payload.profileId; // Use userId from the new token structure
+          userId = decoded.payload.profileId;
         }
+
         const profileResponse = await fetch(`/api/Profile/${userId}`);
         const profileData = await profileResponse.json();
         if (!profileData.success || !profileData.data) {
           router.push("/");
           return;
         }
+        setProfile(profileData.data);
         const username = profileData.data.username;
         const token = document.cookie
           .split("; ")
@@ -91,132 +90,117 @@ export default function Billing() {
           .split("=")[1];
         const headers = { Authorization: `Bearer ${token}` };
 
-        const [roomsResponse, billingResponse, bookingResponse] =
-          await Promise.all([
-            axios.get(`/api/rooms?username=${username}`, { headers }),
-            axios.get(`/api/Billing?username=${username}`, { headers }),
-            axios.get(`/api/NewBooking?username=${username}`, { headers }),
-          ]);
+        const [
+          roomsResponse,
+          billingResponse,
+          bookingResponse,
+          menuResponse,
+          roomCategoriesResponse,
+        ] = await Promise.all([
+          axios.get(`/api/rooms?username=${username}`, { headers }),
+          axios.get(`/api/Billing?username=${username}`, { headers }),
+          axios.get(`/api/NewBooking?username=${username}`, { headers }),
+          axios.get("/api/menuItem", { headers }),
+          axios.get("/api/roomCategories", { headers }),
+        ]);
 
-        const roomsResult = roomsResponse.data.data;
-        const billingResult = billingResponse.data.data;
-        const bookingResult = bookingResponse.data.data;
+        const rooms = roomsResponse.data.data;
+        const billings = billingResponse.data.data;
+        const bookings = bookingResponse.data.data;
+        const menuItems = menuResponse.data.data;
+        const categories = roomCategoriesResponse.data.data;
 
-        const billingsMap = new Map(
-          billingResult.map((bill) => [bill._id, bill])
-        );
-        const bookingsMap = new Map(
-          bookingResult.map((booking) => [booking._id, booking])
-        );
+        const enrichedBilling = billings
+          .map((billing) => {
+            if (!billing || !billing.bookingId) return null;
 
-        const enrichedBills = roomsResult
-          .flatMap((room) => {
-            if (!room.billWaitlist || room.billWaitlist.length === 0) return [];
-            return room.billWaitlist.map((billId, index) => {
-              const bill = billingsMap.get(billId._id);
-              if (!bill) return null;
-              const guestId = room.guestWaitlist[index];
-              const guest = bookingsMap.get(guestId._id);
-              return {
-                bill,
-                guestId: guestId._id,
-                roomNo: room.number.toString(),
-                guestName: guest ? guest.guestName : "N/A",
-                bookingId: guest ? guest.bookingId : "N/A",
-                checkInDate: guest ? guest.checkIn : null,
-                currentBillingId: billId._id,
-                timestamp: bill.createdAt || new Date().toISOString(),
-                bookingDetails: guest,
-              };
+            const relatedBooking = bookings.find(
+              (b) => b.bookingId === billing.bookingId
+            );
+            if (!relatedBooking) return null;
+
+            const matchedRooms = rooms.filter((room) =>
+              billing.roomNo.includes(String(room.number))
+            );
+            if (matchedRooms.length === 0) return null;
+
+            const matchedCategories = matchedRooms.map((room) =>
+              categories.find((cat) => cat._id === room.category._id)
+            );
+
+            // Process items
+            const foodItemsArray = [];
+            const serviceItemsArray = [];
+
+            const itemList = billing.itemList || [];
+            const priceList = billing.priceList || [];
+            const quantityList = billing.quantityList || [];
+            const taxList = billing.taxList || [];
+            const cgstArray = billing.cgstArray || [];
+            const sgstArray = billing.sgstArray || [];
+
+            itemList.forEach((roomItems, roomIndex) => {
+              if (!roomItems) return;
+
+              const prices = priceList[roomIndex] || [];
+              const quantities = quantityList[roomIndex] || [];
+              const taxes = taxList[roomIndex] || [];
+              const cgsts = cgstArray[roomIndex] || [];
+              const sgsts = sgstArray[roomIndex] || [];
+
+              roomItems.forEach((item, itemIndex) => {
+                if (!item) return;
+                const menuItem = menuItems.find(
+                  (menu) => menu.itemName === item
+                );
+                const itemDetails = {
+                  name: item,
+                  price: prices[itemIndex] || 0,
+                  quantity: quantities[itemIndex] || 1,
+                  tax: taxes[itemIndex] || 0,
+                  cgst: cgsts[itemIndex] || taxes[itemIndex] / 2 || 0,
+                  sgst: sgsts[itemIndex] || taxes[itemIndex] / 2 || 0,
+                  roomIndex,
+                };
+
+                if (menuItem) {
+                  foodItemsArray.push(itemDetails);
+                } else if (item !== "Room Charge") {
+                  serviceItemsArray.push(itemDetails);
+                }
+              });
             });
+
+            return {
+              billing,
+              foodItems: foodItemsArray,
+              serviceItems: serviceItemsArray,
+              rooms: matchedRooms,
+              categories: matchedCategories,
+              booking: relatedBooking,
+            };
           })
-          .filter(Boolean)
-          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        const groupedBills = enrichedBills.reduce((acc, cur) => {
-          const key = cur.guestId;
-          if (!acc[key]) {
-            acc[key] = { ...cur, roomNo: [cur.roomNo] };
-          } else {
-            acc[key].roomNo.push(cur.roomNo);
-          }
-          return acc;
-        }, {});
+          .filter(Boolean);
 
-        const mergedBillings = Object.values(groupedBills);
-
-        setBillingData(mergedBillings);
-        setOriginalBillingData(mergedBillings);
+        setBillingData(enrichedBilling);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
-  const filteredBillingData = useMemo(() => {
-    let result = originalBillingData;
-
-    if (filterStatus !== "all") {
-      if (
-        ["Booked", "Checked In", "Checked Out", "Cancelled"].includes(
-          filterStatus
-        )
-      ) {
-        result = result.filter((bill) => {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const checkIn = new Date(bill.checkInDate);
-          const checkOut = new Date(bill.checkOutDate);
-          checkIn.setHours(0, 0, 0, 0);
-
-          if (filterStatus === "Cancelled") {
-            return bill.bill.Cancelled === "yes";
-          } else if (filterStatus === "Booked") {
-            return today < checkIn && bill.bill.Cancelled !== "yes";
-          } else if (filterStatus === "Checked In") {
-            return (
-              today.toISOString() === checkIn.toISOString() &&
-              bill.bill.Cancelled !== "yes"
-            );
-          } else if (filterStatus === "Checked Out") {
-            return today > checkOut && bill.bill.Cancelled !== "yes";
-          }
-          return false;
-        });
-      } else {
-        result = result.filter(
-          (bill) =>
-            bill.bill.Bill_Paid.toLowerCase() === filterStatus &&
-            bill.bill.Cancelled !== "yes"
-        );
-      }
-    }
-
-    if (searchRoom) {
-      result = result.filter((bill) =>
-        bill.roomNo.toString().toLowerCase().includes(searchRoom.toLowerCase())
-      );
-    }
-    if (searchGuest) {
-      result = result.filter(
-        (bill) =>
-          bill.guestName.toLowerCase().includes(searchGuest.toLowerCase()) ||
-          bill.guestId.includes(searchGuest)
-      );
-    }
-    return result;
-  }, [originalBillingData, filterStatus, searchRoom, searchGuest]);
-
   const handleViewBill = (bill) => {
-    router.push(`/property/billing/guest-bill/${bill.currentBillingId}`);
+    router.push(`/property/billing/guest-bill/${bill.billing._id}`);
   };
 
   const getGuestStatus = (bill) => {
-    const chechInStatus = bill?.bookingDetails?.CheckedIn;
-    const chechOutStatus = bill?.bookingDetails?.CheckedOut;
-    if (bill.bill.Cancelled === "yes") {
+    const chechInStatus = bill?.booking?.CheckedIn;
+    const chechOutStatus = bill?.booking?.CheckedOut;
+    if (bill.billing.Cancelled === "yes") {
       return "Cancelled";
     }
 
@@ -231,9 +215,9 @@ export default function Billing() {
   const handleCheckIn = async (bill) => {
     try {
       setCheckInOutLoadingId(bill.currentBillingId);
-      setChecInOutLoader(true);
+
       const payload = {
-        ...bill.bookingDetails,
+        ...bill.booking,
         CheckedIn: true,
       };
 
@@ -266,14 +250,11 @@ export default function Billing() {
         return;
       }
 
-      const response = await fetch(
-        `/api/NewBooking/${bill.bookingDetails._id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(`/api/NewBooking/${bill.booking._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
       const res = await response.json();
       const result = res.data;
 
@@ -281,7 +262,7 @@ export default function Billing() {
       window.location.reload();
     } catch (err) {
       console.log(`Error while checkin: ${err}`);
-      setChecInOutLoader(false);
+
       setCheckInOutLoadingId(null);
       return;
     }
@@ -290,9 +271,9 @@ export default function Billing() {
   const handleCheckOut = async (bill) => {
     try {
       setCheckInOutLoadingId(bill.currentBillingId);
-      setChecInOutLoader(true);
+
       const payload = {
-        ...bill.bookingDetails,
+        ...bill.booking,
         CheckedOut: true,
       };
 
@@ -325,14 +306,11 @@ export default function Billing() {
         return;
       }
 
-      const response = await fetch(
-        `/api/NewBooking/${bill.bookingDetails._id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(`/api/NewBooking/${bill.booking._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
       const res = await response.json();
       const result = res.data;
       console.log(result);
@@ -341,19 +319,19 @@ export default function Billing() {
       window.location.reload();
     } catch (err) {
       console.log(`Error while checkin: ${err}`);
-      setChecInOutLoader(false);
+
       setCheckInOutLoadingId(null);
       return;
     }
   };
 
   const handleAllowCheckIn = (bill) => {
-    const checkInDate = new Date(bill.bookingDetails.checkIn);
-    const checkOutDate = new Date(bill.bookingDetails.checkOut);
+    const checkInDate = new Date(bill.booking.checkIn);
+
     const today = new Date();
     checkInDate.setHours(0, 0, 0, 0);
     today.setHours(0, 0, 0, 0);
-    if (checkInDate.getTime() < today.getTime()) {
+    if (checkInDate.getTime() <= today.getTime()) {
       return true; // Allow check-in if today is the check-in date
     }
     return false; // Do not allow check-in if it's not the check-in date
@@ -373,7 +351,7 @@ export default function Billing() {
         )}
         <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
           <div className="flex justify-between items-center mb-4">
-            <Box sx={{ display: "flex", gap: 1 }}>
+            {/* <Box sx={{ display: "flex", gap: 1 }}>
               <Button
                 variant={filterStatus === "all" ? "contained" : "outlined"}
                 color="primary"
@@ -429,7 +407,7 @@ export default function Billing() {
               >
                 Cancelled
               </Button>
-            </Box>
+            </Box> */}
             <Link href="roomdashboard/newguest">
               <Button
                 variant="contained"
@@ -461,15 +439,11 @@ export default function Billing() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredBillingData.length > 0 ? (
-                  filteredBillingData.map((bill, index) => {
-                    const bookingDate = GetCustomDate(bill.timestamp);
-                    const checkInDate = GetCustomDate(
-                      bill.bookingDetails.checkIn
-                    );
-                    const checkOutDate = GetCustomDate(
-                      bill.bookingDetails.checkOut
-                    );
+                {billingData.length > 0 ? (
+                  billingData.map((bill, index) => {
+                    const bookingDate = GetCustomDate(bill.booking.createdAt);
+                    const checkInDate = GetCustomDate(bill.booking.checkIn);
+                    const checkOutDate = GetCustomDate(bill.booking.checkOut);
 
                     const isCheckInAllowed = handleAllowCheckIn(bill);
                     return (
@@ -481,9 +455,9 @@ export default function Billing() {
                             textAlign: "center",
                           },
                           background: `linear-gradient(to right, ${
-                            bill.bill.Cancelled === "yes"
+                            bill.billing.Cancelled === "yes"
                               ? "#808080"
-                              : bill.bill.Bill_Paid === "yes"
+                              : bill.billing.Bill_Paid === "yes"
                               ? "#1ebc1e"
                               : "#f24a23"
                           } 5%, white 5%)`,
@@ -492,24 +466,24 @@ export default function Billing() {
                         <CustomBodyCell>{index + 1}</CustomBodyCell>
                         <CustomBodyCell>
                           <Link
-                            href={`/property/billing/guest-bill/${bill.currentBillingId}`}
+                            href={`/property/billing/guest-bill/${bill.billing._id}`}
                             style={{
                               color: " #00158a",
 
                               fontWeight: "400",
                             }}
                           >
-                            {bill.bookingId || "N/A"}
+                            {bill.billing.bookingId || "N/A"}
                           </Link>
                         </CustomBodyCell>
                         <CustomBodyCell>
-                          {bill.bookingDetails.guestName || "N/A"} <br />
-                          {bill.bookingDetails.mobileNo || "N/A"}
+                          {bill.booking.guestName || "N/A"} <br />
+                          {bill.booking.mobileNo || "N/A"}
                         </CustomBodyCell>
                         <CustomBodyCell sx={{ fontWeight: 600 }}>
-                          {Array.isArray(bill.bill.roomNo)
-                            ? bill.bill.roomNo.join(", ")
-                            : bill.bill.roomNo || "N/A"}
+                          {Array.isArray(bill.billing.roomNo)
+                            ? bill.billing.roomNo.join(", ")
+                            : bill.billing.roomNo || "N/A"}
                         </CustomBodyCell>
                         <CustomBodyCell>
                           {checkInDate || "N/A"}
@@ -518,32 +492,31 @@ export default function Billing() {
                         </CustomBodyCell>
                         <CustomBodyCell>{bookingDate || "N/A"}</CustomBodyCell>
                         <CustomBodyCell>
-                          Adults: {bill?.bookingDetails?.adults || "N/A"} <br />{" "}
-                          Child:
-                          {bill?.bookingDetails?.children}
+                          Adults: {bill?.booking?.adults || "N/A"} <br /> Child:
+                          {bill?.booking?.children}
                         </CustomBodyCell>
                         <CustomBodyCell>
-                          {bill?.bookingDetails?.mealPlan || "N/A"}
+                          {bill?.booking?.mealPlan || "N/A"}
                         </CustomBodyCell>
                         <CustomBodyCell>
-                          {bill?.bookingDetails?.remarks || "N/A"}
+                          {bill?.booking?.remarks || "N/A"}
                         </CustomBodyCell>
                         {/* <CustomBodyCell>
-                          ₹{parseFloat(bill.bill.totalAmount).toFixed(2) || 0}
+                          ₹{parseFloat(bill.billing.totalAmount).toFixed(2) || 0}
                         </CustomBodyCell>
                         <CustomBodyCell>
                           ₹
-                          {parseFloat(bill.bill.amountAdvanced).toFixed(2) || 0}
+                          {parseFloat(bill.billing.amountAdvanced).toFixed(2) || 0}
                         </CustomBodyCell>
                         <CustomBodyCell>
-                          ₹{parseFloat(bill.bill.dueAmount).toFixed(2) || 0}
+                          ₹{parseFloat(bill.billing.dueAmount).toFixed(2) || 0}
                         </CustomBodyCell> */}
                         <CustomBodyCell>
                           {getGuestStatus(bill)}
                           <br />
                           {isCheckInAllowed && (
                             <>
-                              {bill?.bookingDetails?.CheckedIn == false && (
+                              {bill?.booking?.CheckedIn == false && (
                                 <Button
                                   variant="contained"
                                   color="success"
@@ -567,8 +540,8 @@ export default function Billing() {
                             </>
                           )}
 
-                          {bill?.bookingDetails?.CheckedIn &&
-                            !bill?.bookingDetails?.CheckedOut && (
+                          {bill?.booking?.CheckedIn &&
+                            !bill?.booking?.CheckedOut && (
                               <Button
                                 variant="contained"
                                 color="error"
