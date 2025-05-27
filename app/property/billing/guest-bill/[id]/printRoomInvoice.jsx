@@ -396,14 +396,16 @@ const PrintableRoomInvoice = ({ billId }) => {
                     Guest Name: {bookingData?.booking?.guestName}
                   </Typography>
                   <Typography>
-                    Company Name: {bookingData?.booking?.companyName}
+                    Company Name: {bookingData?.booking?.companyName || "N/A"}
                   </Typography>
                   <Typography>
                     Address: {bookingData?.booking?.address},
-                    {bookingData?.booking?.state}, PIN:
+                    {bookingData?.booking?.state},
                     {bookingData?.booking?.pinCode}
                   </Typography>
-                  <Typography>GSTIN: {bookingData?.booking?.gstin}</Typography>
+                  <Typography>
+                    GSTIN: {bookingData?.booking?.gstin || "N/A"}
+                  </Typography>
                 </CustomTableCell>
                 <CustomTableCell colSpan={3}>
                   <Typography fontWeight={600}>

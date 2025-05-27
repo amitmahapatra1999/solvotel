@@ -890,10 +890,7 @@ const BookingDashboard = () => {
                 variant: "contained",
                 onClick: handleOpenServicesModal,
                 disabled:
-                  billing.Bill_Paid === "yes" ||
-                  billing.Cancelled === "yes" ||
-                  checkInStatus == false ||
-                  checkOutStatus == true,
+                  billing.Bill_Paid === "yes" || billing.Cancelled === "yes",
               },
               {
                 label: "Add Food",
@@ -915,10 +912,7 @@ const BookingDashboard = () => {
                     ? handleOpenBillPaymentModal
                     : undefined,
                 disabled:
-                  remainingDueAmount <= 0 ||
-                  billing.Cancelled === "yes" ||
-                  checkInStatus == false ||
-                  checkOutStatus == true,
+                  remainingDueAmount <= 0 || billing.Cancelled === "yes",
               },
             ].map((btn, index) => (
               <Button
