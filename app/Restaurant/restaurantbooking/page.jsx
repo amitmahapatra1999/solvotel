@@ -26,6 +26,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddNewBookingForm from "./addnewbooking";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Preloader from "../../_components/Preloader";
 
 const RestaurantBooking = () => {
   const [bookings, setBookings] = useState([]);
@@ -200,16 +201,7 @@ const RestaurantBooking = () => {
       />
 
       <div className="bg-white min-h-screen">
-        {isLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-            <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-              <div className="loader"></div>
-              <span className="mt-4 text-gray-700">
-                Loading Restaurant Bookings...
-              </span>
-            </div>
-          </div>
-        )}
+        {isLoading && <Preloader />}
         <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
           <Box sx={{ mb: 3 }}>
             <Box

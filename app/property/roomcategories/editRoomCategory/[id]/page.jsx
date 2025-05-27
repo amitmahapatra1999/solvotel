@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Navbar from "../../../../_components/Navbar";
 import { Footer } from "../../../../_components/Footer";
+import Preloader from "../../../../_components/Preloader";
+
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -161,14 +163,7 @@ const EditRoomCategory = () => {
       <Navbar />
 
       <div className="min-h-screen bg-white">
-        {loading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-            <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-              <div className="loader"></div>
-              <span className="mt-4 text-gray-700">Loading Bills...</span>
-            </div>
-          </div>
-        )}
+        {loading && <Preloader />}
         <ToastContainer
           position="top-right"
           autoClose={5000}

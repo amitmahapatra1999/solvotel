@@ -42,6 +42,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Navbar from "../../_components/admin-navbar";
+import Preloader from "../../_components/Preloader";
 import { getCookie } from "cookies-next";
 import { Footer } from "../../_components/Footer";
 const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
@@ -1320,14 +1321,7 @@ const SuperAdminDashboard = () => {
   return (
     <div>
       <Navbar />
-      {isLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-          <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-            <div className="loader"></div>
-            <span className="mt-4 text-gray-700">Loading Hotel List...</span>
-          </div>
-        </div>
-      )}
+      {isLoading && <Preloader />}
       <div className="bg-amber-50 min-h-screen mt-6">
         <Container maxWidth="lg" style={{ marginTop: "0rem" }}>
           <Grid container spacing={3}>

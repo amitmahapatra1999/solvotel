@@ -4,6 +4,7 @@ import { Hotel, Users, DollarSign, AlertCircle } from "lucide-react";
 import Navbar from "../../../_components/Navbar";
 import { Footer } from "../../../_components/Footer";
 import { Typography } from "@mui/material";
+import Preloader from "../../../_components/Preloader";
 
 const RoomDashboard = () => {
   const [rooms, setRooms] = useState([]);
@@ -110,16 +111,7 @@ const RoomDashboard = () => {
     <div className="min-h-screen bg-white">
       <Navbar />
       <div className="bg-white min-h-screen">
-        {isLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-            <div className="bg-white/90 p-8 rounded-2xl shadow-2xl flex flex-col items-center animate-bounce-slow">
-              <div className="loader"></div>
-              <span className="mt-4 text-gray-700 font-medium animate-pulse">
-                Loading Classic Layout...
-              </span>
-            </div>
-          </div>
-        )}
+        {isLoading && <Preloader />}
         <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-cyan-900 ">

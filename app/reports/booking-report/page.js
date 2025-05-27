@@ -5,6 +5,7 @@ import Navbar from "../../_components/Navbar";
 import Link from "next/link";
 import { Add } from "@mui/icons-material";
 import { Footer } from "../../_components/Footer";
+import Preloader from "../../_components/Preloader";
 import {
   Button,
   TableContainer,
@@ -239,14 +240,7 @@ const BookingReport = () => {
     <>
       <Navbar />
       <div className="min-h-screen bg-white">
-        {loading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-            <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-              <div className="loader"></div>
-              <span className="mt-4 text-gray-700">Loading Bills...</span>
-            </div>
-          </div>
-        )}
+        {loading && <Preloader />}
         <div className="container mx-auto py-10" style={{ maxWidth: "95%" }}>
           <h1 className="text-3xl font-bold text-cyan-900 mb-4">
             Room Invoice Report

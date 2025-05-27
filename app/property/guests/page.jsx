@@ -13,6 +13,7 @@ import { IconButton, Tooltip } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import Navbar from "../../_components/Navbar";
 import { Footer } from "../../_components/Footer";
+import Preloader from "../../_components/Preloader";
 import { getCookie } from "cookies-next"; // Import getCookie from cookies-next
 import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
 import { useRouter } from "next/navigation";
@@ -445,8 +446,6 @@ export default function GuestList() {
               dueAmount: totalNewRoomPrice,
             };
 
-            console.log("Updated billing:", updatedBilling);
-
             // Update billing record
             await fetch(`/api/Billing/${billing._id}`, {
               method: "PATCH",
@@ -540,22 +539,19 @@ export default function GuestList() {
     <>
       <Navbar />
       <div className="min-h-screen bg-white">
-        {isLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-            <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-              <div className="loader"></div>
-              <span className="mt-4 text-gray-700">Loading Guest Lists...</span>
-            </div>
-          </div>
-        )}
+        {isLoading && <Preloader />}
         <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
           <h1 className="text-3xl font-semibold text-cyan-900 mb-4">
             Guest List
+            <span>&nbsp;|&nbsp;{`Total: ${guests.length}`}</span>
           </h1>
           <TableContainer component={Paper}>
             <Table aria-label="guest list">
               <TableHead>
                 <TableRow>
+                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
+                    Sl No.
+                  </TableCell>
                   <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
                     Name
                   </TableCell>
@@ -568,19 +564,20 @@ export default function GuestList() {
                   <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
                     Address
                   </TableCell>
-                  <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
+                  {/* <TableCell sx={{ fontWeight: "bold", color: "#28bfdb" }}>
                     Actions
-                  </TableCell>
+                  </TableCell> */}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {guests.map((guest) => (
+                {guests.map((guest, index) => (
                   <TableRow key={guest._id}>
+                    <TableCell component="th">{index + 1}</TableCell>
                     <TableCell component="th">{guest.guestName}</TableCell>
                     <TableCell>{guest.mobileNo}</TableCell>
                     <TableCell>{guest.guestEmail || "N/A"}</TableCell>
-                    <TableCell>{guest.address}</TableCell>
-                    <TableCell>
+                    <TableCell>{guest.address || "N/A"}</TableCell>
+                    {/* <TableCell>
                       <Tooltip
                         title={
                           guest.disableActions
@@ -613,7 +610,7 @@ export default function GuestList() {
                           </IconButton>
                         </span>
                       </Tooltip>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>

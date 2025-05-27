@@ -20,6 +20,7 @@ import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Preloader from "../../_components/Preloader";
 
 export default function InventoryList() {
   const [items, setItems] = useState([]);
@@ -258,16 +259,7 @@ export default function InventoryList() {
           theme="dark"
         />
 
-        {isLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-            <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-              <div className="loader"></div>
-              <span className="mt-4 text-gray-700">
-                Loading Inventory List...
-              </span>
-            </div>
-          </div>
-        )}
+        {isLoading && <Preloader />}
         <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
           <div className="flex justify-between">
             <h1 className="text-3xl font-bold mb-4 text-cyan-900">

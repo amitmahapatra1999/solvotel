@@ -19,6 +19,7 @@ import TableCell from "@mui/material/TableCell";
 import { getCookie } from "cookies-next"; // Import getCookie from cookies-next
 import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
 import { useRouter } from "next/navigation";
+import Preloader from "../../_components/Preloader";
 
 const SalesReportPage = () => {
   const [purchaseReports, setPurchaseReports] = useState([]);
@@ -397,16 +398,7 @@ const SalesReportPage = () => {
           pauseOnHover
           theme="dark"
         />
-        {isLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-            <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-              <div className="loader"></div>
-              <span className="mt-4 text-gray-700">
-                Loading Sales Reports...
-              </span>
-            </div>
-          </div>
-        )}
+        {isLoading && <Preloader />}
         <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
           <h1 className="text-3xl font-bold text-cyan-900 mb-4">
             Sales Report

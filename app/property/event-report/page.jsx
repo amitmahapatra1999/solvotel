@@ -17,6 +17,7 @@ import { IconButton, Tooltip } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import Navbar from "../../_components/Navbar";
 import { Footer } from "../../_components/Footer";
+import Preloader from "../../_components/Preloader";
 import { getCookie } from "cookies-next"; // Import getCookie from cookies-next
 import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
 import { useRouter } from "next/navigation";
@@ -189,14 +190,7 @@ export default function EventReport() {
     <>
       <Navbar />
       <div className="min-h-screen bg-white">
-        {isLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-            <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-              <div className="loader"></div>
-              <span className="mt-4 text-gray-700">Loading Guest Lists...</span>
-            </div>
-          </div>
-        )}
+        {isLoading && <Preloader />}
         <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
           <Grid container spacing={2} sx={{ mb: 2 }}>
             <Grid item xs={12} md={6}>

@@ -77,7 +77,7 @@ export default function BookingForm() {
   const [errors, setErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
   const [formData, setFormData] = useState({
-    bookingType: "",
+    bookingType: "FIT",
     bookingId: "",
     bookingSource: "",
     bookingPoint: "",
@@ -103,10 +103,10 @@ export default function BookingForm() {
     checkOut: "",
     expectedArrival: "",
     expectedDeparture: "",
-    bookingStatus: "",
+    bookingStatus: "Confirm",
     address: "",
     remarks: "",
-    state: "",
+    state: "West Bengal",
     mealPlan: "EP",
     bookingReference: "",
     stopPosting: false,
@@ -925,7 +925,7 @@ export default function BookingForm() {
                       select
                       required
                     >
-                      {["Confirm", "Block", "Pencil"].map((status) => (
+                      {["Confirm", "Block"].map((status) => (
                         <MenuItem key={status} value={status}>
                           {status}
                         </MenuItem>

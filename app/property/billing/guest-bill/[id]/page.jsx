@@ -19,6 +19,7 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
+import Preloader from "../../../../_components/Preloader";
 
 const BookingDashboard = () => {
   const { id } = useParams();
@@ -773,14 +774,7 @@ const BookingDashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-        <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-          <div className="loader" />
-          <span className="mt-4 text-gray-700">Loading Bill...</span>
-        </div>
-      </div>
-    );
+    return <Preloader />;
   }
   if (error) {
     return <div>Error: {error}</div>;
@@ -798,16 +792,15 @@ const BookingDashboard = () => {
     bookingData?.bookings?.CheckedIn == true &&
     bookingData?.bookings?.CheckedOut == true;
 
-  console.log(bookingData);
-
   return (
     <div className="min-h-screen bg-amber-50">
       <Navbar />
+
       <div className="p-6">
         <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-6">
           {/* Header */}
           <h2 className="text-xl font-semibold text-gray-800">
-            Booking Dashboard{" "}
+            Booking Overview{" "}
             <span className="text-gray-500">
               ({bookingData.bookings.bookingId})
             </span>
@@ -834,16 +827,12 @@ const BookingDashboard = () => {
               | Phone No: <strong>+91 {bookingData.bookings.mobileNo}</strong>
             </p>
             <p className="mt-1 text-sm text-gray-700">
-              Guest ID: <strong>{bookingData.bookings.guestid}</strong> | Date
-              of Birth:{" "}
-              <strong>
-                {new Date(bookingData.bookings.dateofbirth).toLocaleDateString(
-                  "en-GB"
-                )}
-              </strong>{" "}
-              | Booking Type:{" "}
-              <strong>{bookingData.bookings.bookingType}</strong> | Booking
-              Source: <strong>{bookingData.bookings.bookingSource}</strong>
+              Booking Type: <strong>{bookingData.bookings.bookingType}</strong>{" "}
+              <strong>{bookingData.bookings.bookingSource}</strong> | Booking
+              Reference:{" "}
+              <strong>{bookingData.bookings.bookingReference || "N/A"}</strong>{" "}
+              | Booking Reference Number:{" "}
+              <strong>{bookingData.bookings.referenceno || "N/A"}</strong>
             </p>
             <p className="mt-1 text-sm text-gray-700">
               Booked On:{" "}

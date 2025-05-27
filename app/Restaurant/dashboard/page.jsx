@@ -16,6 +16,7 @@ import BookmarkAddedIcon from "@mui/icons-material/BookmarkAdded";
 import EventIcon from "@mui/icons-material/Event";
 import PersonIcon from "@mui/icons-material/Person";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import Preloader from "../../_components/Preloader";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("Today");
@@ -91,16 +92,7 @@ export default function Dashboard() {
     <>
       <Navbar />
       <div className="min-h-screen bg-white">
-        {isLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-            <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-              <div className="loader"></div>
-              <span className="mt-4 text-gray-700">
-                Loading Restaurant Dashboard...
-              </span>
-            </div>
-          </div>
-        )}
+        {isLoading && <Preloader />}
 
         <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
           <h1 className="text-3xl font-bold text-cyan-900 mb-4">

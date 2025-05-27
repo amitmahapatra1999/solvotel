@@ -372,7 +372,8 @@ const PrintableRoomInvoice = ({ billId }) => {
                     {profile?.hotelName}
                   </Typography>
                   <Typography align="center">
-                    Contact: {profile?.mobileNo}&nbsp; Email: {profile?.email}
+                    Contact: {profile?.mobileNo}
+                    {`, ${profile?.altMobile} `} | Email: {profile?.email}
                   </Typography>
                   <Typography align="center">
                     {profile?.addressLine1},{profile?.addressLine2},

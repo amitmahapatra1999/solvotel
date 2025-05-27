@@ -26,6 +26,7 @@ import { Footer } from "../../_components/Footer";
 import Navbar from "../../_components/Navbar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Preloader from "../../_components/Preloader";
 
 export default function RestaurantList() {
   const router = useRouter();
@@ -138,16 +139,7 @@ export default function RestaurantList() {
       />
       <div className="bg-white min-h-screen">
         <Box>
-          {isLoading && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
-              <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-                <div className="loader"></div>
-                <span className="mt-4 text-gray-700">
-                  Loading Restaurant Menus...
-                </span>
-              </div>
-            </div>
-          )}
+          {isLoading && <Preloader />}
           <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
             <div className="flex justify-between mb-4">
               <h2 className="text-3xl font-bold  text-cyan-900">
@@ -435,8 +427,18 @@ export default function RestaurantList() {
               />
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setOpenEditModal(false)}>Cancel</Button>
-              <Button onClick={handleEditSave} color="primary">
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => setOpenEditModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleEditSave}
+              >
                 Save
               </Button>
             </DialogActions>
