@@ -798,8 +798,7 @@ const BookingDashboard = () => {
     bookingData?.bookings?.CheckedIn == true &&
     bookingData?.bookings?.CheckedOut == true;
 
-  console.log(`checkinStatus: ${checkInStatus}`);
-  console.log(`checkOutStatus: ${checkOutStatus}`);
+  console.log(bookingData);
 
   return (
     <div className="min-h-screen bg-amber-50">

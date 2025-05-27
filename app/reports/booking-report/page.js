@@ -42,22 +42,25 @@ const BookingReport = () => {
   const [endDate, setEndDate] = useState("");
   const [originalBillingData, setOriginalBillingData] = useState([]);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [allEnrichedBills, setAllEnrichedBills] = useState([]);
+  const [profile, setProfile] = useState({});
   const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setIsLoading(true);
+        setLoading(true);
         const authtoken = getCookie("authToken");
         const usertoken = getCookie("userAuthToken");
         if (!authtoken && !usertoken) {
-          router.push("/"); // Redirect to login if no token is found
+          router.push("/");
           return;
         }
+
         let decoded, userId;
         if (authtoken) {
-          // Verify the authToken (legacy check)
           decoded = await jwtVerify(
             authtoken,
             new TextEncoder().encode(SECRET_KEY)
@@ -65,19 +68,20 @@ const BookingReport = () => {
           userId = decoded.payload.id;
         }
         if (usertoken) {
-          // Verify the userAuthToken
           decoded = await jwtVerify(
             usertoken,
             new TextEncoder().encode(SECRET_KEY)
           );
-          userId = decoded.payload.profileId; // Use userId from the new token structure
+          userId = decoded.payload.profileId;
         }
+
         const profileResponse = await fetch(`/api/Profile/${userId}`);
         const profileData = await profileResponse.json();
         if (!profileData.success || !profileData.data) {
           router.push("/");
           return;
         }
+        setProfile(profileData.data);
         const username = profileData.data.username;
         const token = document.cookie
           .split("; ")
@@ -88,74 +92,240 @@ const BookingReport = () => {
           .split("=")[1];
         const headers = { Authorization: `Bearer ${token}` };
 
-        const [roomsResponse, billingResponse, bookingResponse] =
-          await Promise.all([
-            axios.get(`/api/rooms?username=${username}`, { headers }),
-            axios.get(`/api/Billing?username=${username}`, { headers }),
-            axios.get(`/api/NewBooking?username=${username}`, { headers }),
-          ]);
+        const [
+          roomsResponse,
+          billingResponse,
+          bookingResponse,
+          menuResponse,
+          roomCategoriesResponse,
+        ] = await Promise.all([
+          axios.get(`/api/rooms?username=${username}`, { headers }),
+          axios.get(`/api/Billing?username=${username}`, { headers }),
+          axios.get(`/api/NewBooking?username=${username}`, { headers }),
+          axios.get("/api/menuItem", { headers }),
+          axios.get("/api/roomCategories", { headers }),
+        ]);
 
-        const roomsResult = roomsResponse.data.data;
-        const billingResult = billingResponse.data.data;
-        const bookingResult = bookingResponse.data.data;
+        const rooms = roomsResponse.data.data;
+        const billings = billingResponse.data.data;
+        const bookings = bookingResponse.data.data;
+        const menuItems = menuResponse.data.data;
+        const categories = roomCategoriesResponse.data.data;
 
-        const billingsMap = new Map(
-          billingResult.map((bill) => [bill._id, bill])
-        );
-        const bookingsMap = new Map(
-          bookingResult.map((booking) => [booking._id, booking])
-        );
+        const enrichedBilling = billings
+          .map((billing) => {
+            if (!billing || !billing.bookingId) return null;
 
-        const enrichedBills = roomsResult
-          .flatMap((room) => {
-            if (!room.billWaitlist || room.billWaitlist.length === 0) return [];
-            return room.billWaitlist.map((billId, index) => {
-              const bill = billingsMap.get(billId._id);
-              if (!bill) return null;
-              const guestId = room.guestWaitlist[index];
-              const guest = bookingsMap.get(guestId._id);
-              return {
-                bill,
-                guestId: guestId._id,
-                roomNo: room.number.toString(),
-                guestName: guest ? guest.guestName : "N/A",
-                bookingId: guest ? guest.bookingId : "N/A",
-                checkInDate: guest ? guest.checkIn : null,
-                currentBillingId: billId._id,
-                timestamp: bill.createdAt || new Date().toISOString(),
-                bookingDetails: guest,
-                rooms: room,
-              };
+            const relatedBooking = bookings.find(
+              (b) => b.bookingId === billing.bookingId
+            );
+            if (!relatedBooking) return null;
+
+            const matchedRooms = rooms.filter((room) =>
+              billing.roomNo.includes(String(room.number))
+            );
+            if (matchedRooms.length === 0) return null;
+
+            const matchedCategories = matchedRooms.map((room) =>
+              categories.find((cat) => cat._id === room.category._id)
+            );
+
+            // Process items
+            const foodItemsArray = [];
+            const serviceItemsArray = [];
+
+            const itemList = billing.itemList || [];
+            const priceList = billing.priceList || [];
+            const quantityList = billing.quantityList || [];
+            const taxList = billing.taxList || [];
+            const cgstArray = billing.cgstArray || [];
+            const sgstArray = billing.sgstArray || [];
+
+            itemList.forEach((roomItems, roomIndex) => {
+              if (!roomItems) return;
+
+              const prices = priceList[roomIndex] || [];
+              const quantities = quantityList[roomIndex] || [];
+              const taxes = taxList[roomIndex] || [];
+              const cgsts = cgstArray[roomIndex] || [];
+              const sgsts = sgstArray[roomIndex] || [];
+
+              roomItems.forEach((item, itemIndex) => {
+                if (!item) return;
+                const menuItem = menuItems.find(
+                  (menu) => menu.itemName === item
+                );
+                const itemDetails = {
+                  name: item,
+                  price: prices[itemIndex] || 0,
+                  quantity: quantities[itemIndex] || 1,
+                  tax: taxes[itemIndex] || 0,
+                  cgst: cgsts[itemIndex] || taxes[itemIndex] / 2 || 0,
+                  sgst: sgsts[itemIndex] || taxes[itemIndex] / 2 || 0,
+                  roomIndex,
+                };
+
+                if (menuItem) {
+                  foodItemsArray.push(itemDetails);
+                } else if (item !== "Room Charge") {
+                  serviceItemsArray.push(itemDetails);
+                }
+              });
             });
+
+            return {
+              billing,
+              foodItems: foodItemsArray,
+              serviceItems: serviceItemsArray,
+              rooms: matchedRooms,
+              categories: matchedCategories,
+              booking: relatedBooking,
+            };
           })
-          .filter(Boolean)
-          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        const groupedBills = enrichedBills.reduce((acc, cur) => {
-          const key = cur.guestId;
-          if (!acc[key]) {
-            acc[key] = { ...cur, roomNo: [cur.roomNo] };
-          } else {
-            acc[key].roomNo.push(cur.roomNo);
-          }
-          return acc;
-        }, {});
+          .filter(Boolean);
 
-        const mergedBillings = Object.values(groupedBills);
-
-        setOriginalBillingData(mergedBillings);
+        setAllEnrichedBills(enrichedBilling);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
+  // useEffect(() => {
+  //   const fetchAllBillingDetails = async () => {
+  //     try {
+  //       const token = document.cookie
+  //         .split("; ")
+  //         .find(
+  //           (row) =>
+  //             row.startsWith("authToken=") || row.startsWith("userAuthToken=")
+  //         )
+  //         ?.split("=")[1];
+
+  //       if (!token) throw new Error("No auth token found");
+
+  //       const headers = { Authorization: `Bearer ${token}` };
+
+  //       // Fetch shared static data
+  //       const [
+  //         menuResponse,
+  //         roomsResponse,
+  //         roomCategoriesResponse,
+  //         newBookingsResponse,
+  //         billingResponse,
+  //       ] = await Promise.all([
+  //         axios.get("/api/menuItem", { headers }),
+  //         axios.get("/api/rooms", { headers }),
+  //         axios.get("/api/roomCategories", { headers }),
+  //         axios.get("/api/NewBooking", { headers }),
+  //         axios.get("/api/Billing", { headers }),
+  //       ]);
+
+  //       const menuItemsList = menuResponse.data.data;
+  //       const allRooms = roomsResponse.data.data;
+  //       const allCategories = roomCategoriesResponse.data.data;
+  //       const allBookings = newBookingsResponse.data.data;
+  //       const billingList = billingResponse.data.data;
+
+  //       // Process and filter bills
+  //       const enrichedBillingData = billingList
+  //         .map((billingData) => {
+  //           const existingServices = billingData.itemList || [];
+  //           const existingPrices = billingData.priceList || [];
+  //           const existingTaxes = billingData.taxList || [];
+  //           const existingQuantities = billingData.quantityList || [];
+  //           const existingCGSTArray = billingData.cgstArray || [];
+  //           const existingSGSTArray = billingData.sgstArray || [];
+
+  //           const foodItemsArray = [];
+  //           const serviceItemsArray = [];
+
+  //           existingServices.forEach((roomServices, roomIndex) => {
+  //             if (!roomServices) return;
+
+  //             const roomPrices = existingPrices[roomIndex] || [];
+  //             const roomTaxes = existingTaxes[roomIndex] || [];
+  //             const roomQuantities = existingQuantities[roomIndex] || [];
+  //             const roomCGST = existingCGSTArray[roomIndex] || [];
+  //             const roomSGST = existingSGSTArray[roomIndex] || [];
+
+  //             roomServices.forEach((item, itemIndex) => {
+  //               if (!item) return;
+
+  //               const menuItem = menuItemsList.find(
+  //                 (menuItem) => menuItem.itemName === item
+  //               );
+
+  //               const itemDetails = {
+  //                 name: item,
+  //                 price: roomPrices[itemIndex] || 0,
+  //                 quantity: roomQuantities[itemIndex] || 1,
+  //                 tax: roomTaxes[itemIndex] || 0,
+  //                 cgst: roomCGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0,
+  //                 sgst: roomSGST[itemIndex] || roomTaxes[itemIndex] / 2 || 0,
+  //                 roomIndex: roomIndex,
+  //               };
+
+  //               if (menuItem) {
+  //                 foodItemsArray.push(itemDetails);
+  //               } else if (item !== "Room Charge") {
+  //                 serviceItemsArray.push(itemDetails);
+  //               }
+  //             });
+  //           });
+
+  //           const matchedRooms = allRooms.filter((room) =>
+  //             billingData.roomNo?.includes(String(room.number))
+  //           );
+
+  //           const matchedCategories = matchedRooms.map((room) =>
+  //             allCategories.find(
+  //               (category) => category._id === room.category._id
+  //             )
+  //           );
+
+  //           const relatedBooking = allBookings.find(
+  //             (booking) => booking.bookingId === billingData.bookingId
+  //           );
+
+  //           return {
+  //             billing: billingData,
+  //             foodItems: foodItemsArray,
+  //             serviceItems: serviceItemsArray,
+  //             rooms: matchedRooms,
+  //             categories: matchedCategories,
+  //             booking: relatedBooking,
+  //           };
+  //         })
+  //         .filter(
+  //           (bill) =>
+  //             bill.billing !== undefined &&
+  //             bill.booking !== undefined &&
+  //             bill.rooms.length > 0
+  //         );
+
+  //       setAllEnrichedBills(enrichedBillingData);
+  //       setLoading(false);
+  //     } catch (err) {
+  //       setError(err.message || "Unknown error");
+  //       setLoading(false);
+  //       console.error("Error fetching all billing details:", err);
+  //     }
+  //   };
+
+  //   fetchAllBillingDetails();
+  // }, []);
+
+  console.log(allEnrichedBills);
+
   const filterByDate = () => {
     if (startDate && endDate) {
-      const filtered = originalBillingData.filter((invoice) => {
-        const invoiceDate = new Date(invoice.timestamp);
+      const filtered = allEnrichedBills.filter((invoice) => {
+        const invoiceDate = new Date(invoice.booking.createdAt);
         return (
           invoiceDate >= new Date(startDate) && invoiceDate <= new Date(endDate)
         );
@@ -165,8 +335,6 @@ const BookingReport = () => {
       setFilteredInvoices(invoices);
     }
   };
-
-  console.log(filteredInvoices);
 
   const printTable = () => {
     if (!tableRef.current) return;
@@ -198,7 +366,7 @@ const BookingReport = () => {
     <>
       <Navbar />
       <div className="min-h-screen bg-white">
-        {isLoading && (
+        {loading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
             <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
               <div className="loader"></div>
@@ -265,11 +433,10 @@ const BookingReport = () => {
                   <TableHead>
                     <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                       <CustomHeadingCell>Booking Date</CustomHeadingCell>
-                      {/* <CustomHeadingCell>Check-In Date</CustomHeadingCell>
-                      <CustomHeadingCell>Check-Out Date</CustomHeadingCell> */}
-
+                      <CustomHeadingCell>Check-In Date</CustomHeadingCell>
+                      <CustomHeadingCell>Check-Out Date</CustomHeadingCell>
                       <CustomHeadingCell>Invoice ID</CustomHeadingCell>
-                      {/* <CustomHeadingCell>Room Number</CustomHeadingCell> */}
+                      <CustomHeadingCell>Room Number</CustomHeadingCell>
                       <CustomHeadingCell>Guest</CustomHeadingCell>
                       <CustomHeadingCell>Taxable Value</CustomHeadingCell>
                       <CustomHeadingCell>CGST</CustomHeadingCell>
@@ -282,17 +449,53 @@ const BookingReport = () => {
                     {filteredInvoices.length > 0 ? (
                       <>
                         {filteredInvoices.map((item, index) => {
-                          const lastCheckInDate =
-                            item.bill.billStartDate[
-                              item.bill.billStartDate.length - 1
-                            ];
-                          const lastCheckOutDate =
-                            item.bill.billEndDate[
-                              item.bill.billEndDate.length - 1
-                            ];
-                          const invoiceDate = GetCustomDate(item.timestamp);
-                          const checkInDate = GetCustomDate(lastCheckInDate);
-                          const checkOutDate = GetCustomDate(lastCheckOutDate);
+                          const invoiceDate = GetCustomDate(
+                            item.booking.createdAt
+                          );
+                          const checkInDate = GetCustomDate(
+                            item.booking.checkIn
+                          );
+                          const checkOutDate = GetCustomDate(
+                            item.booking.checkOut
+                          );
+                          const noOfNights =
+                            (new Date(item?.booking?.checkOut) -
+                              new Date(item?.booking?.checkIn)) /
+                            (1000 * 60 * 60 * 24);
+
+                          const isSameState =
+                            item?.booking?.state &&
+                            profile.state &&
+                            item?.booking?.state === profile.state;
+
+                          const totalBaseAmt = item?.rooms?.reduce(
+                            (sum, room) => {
+                              const baseAmtPerNight =
+                                room?.category?.tariff ?? 0;
+                              return sum + baseAmtPerNight * noOfNights;
+                            },
+                            0
+                          );
+
+                          const totalCgst = item?.rooms?.reduce((sum, room) => {
+                            const gstPerNight =
+                              (room?.category?.total ?? 0) -
+                              (room?.category?.tariff ?? 0);
+                            return (sum + gstPerNight * noOfNights) / 2;
+                          }, 0);
+
+                          const totalSgst = item?.rooms?.reduce((sum, room) => {
+                            const gstPerNight =
+                              (room?.category?.total ?? 0) -
+                              (room?.category?.tariff ?? 0);
+                            return (sum + gstPerNight * noOfNights) / 2;
+                          }, 0);
+                          const totalGst = item?.rooms?.reduce((sum, room) => {
+                            const gstPerNight =
+                              (room?.category?.total ?? 0) -
+                              (room?.category?.tariff ?? 0);
+                            return sum + gstPerNight * noOfNights;
+                          }, 0);
                           return (
                             <TableRow
                               key={index}
@@ -301,37 +504,42 @@ const BookingReport = () => {
                               <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {invoiceDate}
                               </CustomBodyCell>
-                              {/* <CustomBodyCell sx={{ textAlign: "center" }}>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {checkInDate}
                               </CustomBodyCell>
                               <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {checkOutDate}
-                              </CustomBodyCell> */}
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {item.bookingId || "N/A"}
-                              </CustomBodyCell>
-                              {/* <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {Array.isArray(item.bill.roomNo)
-                                  ? item.bill.roomNo.join(", ")
-                                  : item.bill.roomNo || "N/A"}
-                              </CustomBodyCell> */}
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {item.guestName || "N/A"}
                               </CustomBodyCell>
                               <CustomBodyCell sx={{ textAlign: "center" }}>
-                                0.00
+                                {item.booking.bookingId || "N/A"}
                               </CustomBodyCell>
                               <CustomBodyCell sx={{ textAlign: "center" }}>
-                                0.00
+                                {Array.isArray(item.billing.roomNo)
+                                  ? item.billing.roomNo.join(", ")
+                                  : item.billing.roomNo || "N/A"}
                               </CustomBodyCell>
                               <CustomBodyCell sx={{ textAlign: "center" }}>
-                                0.00
+                                {item.booking.guestName || "N/A"}
                               </CustomBodyCell>
                               <CustomBodyCell sx={{ textAlign: "center" }}>
-                                0.00
+                                {totalBaseAmt.toFixed(2)}
                               </CustomBodyCell>
                               <CustomBodyCell sx={{ textAlign: "center" }}>
-                                0.00
+                                {isSameState ? totalCgst.toFixed(2) : "0.00"}
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
+                                {isSameState ? totalSgst.toFixed(2) : "0.00"}
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
+                                {!isSameState ? totalGst.toFixed(2) : "0.00"}
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
+                                {(
+                                  totalBaseAmt +
+                                  (isSameState
+                                    ? totalCgst + totalSgst
+                                    : totalGst)
+                                ).toFixed(2)}
                               </CustomBodyCell>
                             </TableRow>
                           );
@@ -341,6 +549,154 @@ const BookingReport = () => {
                       <TableRow>
                         <CustomBodyCell colSpan={5} align="center">
                           No Booking found for the selected date range.
+                        </CustomBodyCell>
+                      </TableRow>
+                    )}
+                    {filteredInvoices.length > 0 && (
+                      <TableRow
+                        sx={{ backgroundColor: "#f5f5f5", fontWeight: "bold" }}
+                      >
+                        <CustomBodyCell
+                          sx={{ textAlign: "center" }}
+                          colSpan={6}
+                        >
+                          Grand Total
+                        </CustomBodyCell>
+                        <CustomBodyCell sx={{ textAlign: "center" }}>
+                          {filteredInvoices
+                            .reduce((sum, item) => {
+                              const nights =
+                                (new Date(item.booking.checkOut) -
+                                  new Date(item.booking.checkIn)) /
+                                (1000 * 60 * 60 * 24);
+                              return (
+                                sum +
+                                item.rooms?.reduce((roomSum, room) => {
+                                  const base = room?.category?.tariff ?? 0;
+                                  return roomSum + base * nights;
+                                }, 0)
+                              );
+                            }, 0)
+                            .toFixed(2)}
+                        </CustomBodyCell>
+                        <CustomBodyCell sx={{ textAlign: "center" }}>
+                          {filteredInvoices
+                            .reduce((sum, item) => {
+                              const nights =
+                                (new Date(item.booking.checkOut) -
+                                  new Date(item.booking.checkIn)) /
+                                (1000 * 60 * 60 * 24);
+                              if (
+                                item.booking.state &&
+                                profile.state &&
+                                item.booking.state === profile.state
+                              ) {
+                                return (
+                                  sum +
+                                  item.rooms?.reduce((roomSum, room) => {
+                                    const gst =
+                                      (room?.category?.total ?? 0) -
+                                      (room?.category?.tariff ?? 0);
+                                    return roomSum + (gst * nights) / 2;
+                                  }, 0)
+                                );
+                              }
+                              return sum;
+                            }, 0)
+                            .toFixed(2)}
+                        </CustomBodyCell>
+                        <CustomBodyCell sx={{ textAlign: "center" }}>
+                          {filteredInvoices
+                            .reduce((sum, item) => {
+                              const nights =
+                                (new Date(item.booking.checkOut) -
+                                  new Date(item.booking.checkIn)) /
+                                (1000 * 60 * 60 * 24);
+                              if (
+                                item.booking.state &&
+                                profile.state &&
+                                item.booking.state === profile.state
+                              ) {
+                                return (
+                                  sum +
+                                  item.rooms?.reduce((roomSum, room) => {
+                                    const gst =
+                                      (room?.category?.total ?? 0) -
+                                      (room?.category?.tariff ?? 0);
+                                    return roomSum + (gst * nights) / 2;
+                                  }, 0)
+                                );
+                              }
+                              return sum;
+                            }, 0)
+                            .toFixed(2)}
+                        </CustomBodyCell>
+                        <CustomBodyCell sx={{ textAlign: "center" }}>
+                          {filteredInvoices
+                            .reduce((sum, item) => {
+                              const nights =
+                                (new Date(item.booking.checkOut) -
+                                  new Date(item.booking.checkIn)) /
+                                (1000 * 60 * 60 * 24);
+                              if (
+                                item.booking.state &&
+                                profile.state &&
+                                item.booking.state !== profile.state
+                              ) {
+                                return (
+                                  sum +
+                                  item.rooms?.reduce((roomSum, room) => {
+                                    const gst =
+                                      (room?.category?.total ?? 0) -
+                                      (room?.category?.tariff ?? 0);
+                                    return roomSum + gst * nights;
+                                  }, 0)
+                                );
+                              }
+                              return sum;
+                            }, 0)
+                            .toFixed(2)}
+                        </CustomBodyCell>
+                        <CustomBodyCell
+                          sx={{ textAlign: "center", fontWeight: "bold" }}
+                        >
+                          {filteredInvoices
+                            .reduce((sum, item) => {
+                              const nights =
+                                (new Date(item.booking.checkOut) -
+                                  new Date(item.booking.checkIn)) /
+                                (1000 * 60 * 60 * 24);
+                              const isSameState =
+                                item.booking.state &&
+                                profile.state &&
+                                item.booking.state === profile.state;
+
+                              const baseAmt = item.rooms?.reduce(
+                                (roomSum, room) => {
+                                  const base = room?.category?.tariff ?? 0;
+                                  return roomSum + base * nights;
+                                },
+                                0
+                              );
+
+                              const gstAmt = item.rooms?.reduce(
+                                (roomSum, room) => {
+                                  const gst =
+                                    (room?.category?.total ?? 0) -
+                                    (room?.category?.tariff ?? 0);
+                                  return (
+                                    roomSum +
+                                    (isSameState ? gst * nights : gst * nights)
+                                  );
+                                },
+                                0
+                              );
+
+                              return (
+                                sum + baseAmt + (isSameState ? gstAmt : gstAmt)
+                              );
+                            }, 0)
+                            .toFixed(2)}
                         </CustomBodyCell>
                       </TableRow>
                     )}

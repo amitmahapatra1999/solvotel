@@ -449,12 +449,7 @@ export default function Navbar() {
                       <span>Restaurant Invoice Report</span>
                     </li>
                   </Link>
-                  <Link href="/Restaurant/restaurantreport">
-                    <li className="px-4 py-2 hover:text-blue-900 flex items-center space-x-2 transition-colors duration-200">
-                      <ClipboardList className="w-4 h-4 hover:text-blue-900" />
-                      <span>Room Invoice Report</span>
-                    </li>
-                  </Link>
+
                   <Link href="/reports/booking-report">
                     <li className="px-4 py-2 hover:text-blue-900 flex items-center space-x-2 transition-colors duration-200">
                       <ClipboardList className="w-4 h-4 hover:text-blue-900" />
