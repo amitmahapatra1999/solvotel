@@ -1093,7 +1093,7 @@ export default function RoomDashboard() {
           </div>
 
           {/* Rooms List */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {filteredRooms.map((room) => (
               <RoomCard
                 key={room._id}

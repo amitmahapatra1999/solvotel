@@ -247,9 +247,9 @@ const BookingReport = () => {
             </div>
           </div>
         )}
-        <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
+        <div className="container mx-auto py-10" style={{ maxWidth: "95%" }}>
           <h1 className="text-3xl font-bold text-cyan-900 mb-4">
-            Room Booking Report
+            Room Invoice Report
           </h1>
           <div className="space-x-3 flex  mb-4 ">
             <TextField
@@ -305,12 +305,15 @@ const BookingReport = () => {
                 <Table ref={tableRef}>
                   <TableHead>
                     <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                      <CustomHeadingCell>Booking Date</CustomHeadingCell>
+                      <CustomHeadingCell>Invoice Date</CustomHeadingCell>
+                      <CustomHeadingCell>Invoice No</CustomHeadingCell>
                       <CustomHeadingCell>Check-In Date</CustomHeadingCell>
                       <CustomHeadingCell>Check-Out Date</CustomHeadingCell>
-                      <CustomHeadingCell>Invoice ID</CustomHeadingCell>
+
                       <CustomHeadingCell>Room Number</CustomHeadingCell>
                       <CustomHeadingCell>Guest</CustomHeadingCell>
+                      <CustomHeadingCell>Company Name</CustomHeadingCell>
+                      <CustomHeadingCell>GSTIN</CustomHeadingCell>
                       <CustomHeadingCell>Taxable Value</CustomHeadingCell>
                       <CustomHeadingCell>CGST</CustomHeadingCell>
                       <CustomHeadingCell>SGST</CustomHeadingCell>
@@ -374,25 +377,26 @@ const BookingReport = () => {
                               key={index}
                               sx={{ backgroundColor: "white" }}
                             >
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {invoiceDate}
-                              </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {checkInDate}
-                              </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {checkOutDate}
-                              </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
+                              <CustomBodyCell>{checkOutDate}</CustomBodyCell>
+                              <CustomBodyCell>
                                 {item.booking.bookingId || "N/A"}
                               </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
+                              <CustomBodyCell>{checkInDate}</CustomBodyCell>
+                              <CustomBodyCell>{checkOutDate}</CustomBodyCell>
+
+                              <CustomBodyCell>
                                 {Array.isArray(item.billing.roomNo)
                                   ? item.billing.roomNo.join(", ")
                                   : item.billing.roomNo || "N/A"}
                               </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
+                              <CustomBodyCell>
                                 {item.booking.guestName || "N/A"}
+                              </CustomBodyCell>
+                              <CustomBodyCell>
+                                {item.booking.companyName || "N/A"}
+                              </CustomBodyCell>
+                              <CustomBodyCell>
+                                {item.booking.gstin || "N/A"}
                               </CustomBodyCell>
                               <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {totalBaseAmt.toFixed(2)}
@@ -431,11 +435,13 @@ const BookingReport = () => {
                       >
                         <CustomBodyCell
                           sx={{ textAlign: "center" }}
-                          colSpan={6}
+                          colSpan={8}
                         >
                           Grand Total
                         </CustomBodyCell>
-                        <CustomBodyCell sx={{ textAlign: "center" }}>
+                        <CustomBodyCell
+                          sx={{ textAlign: "center", fontWeight: "bold" }}
+                        >
                           {filteredInvoices
                             .reduce((sum, item) => {
                               const nights =
@@ -452,7 +458,9 @@ const BookingReport = () => {
                             }, 0)
                             .toFixed(2)}
                         </CustomBodyCell>
-                        <CustomBodyCell sx={{ textAlign: "center" }}>
+                        <CustomBodyCell
+                          sx={{ textAlign: "center", fontWeight: "bold" }}
+                        >
                           {filteredInvoices
                             .reduce((sum, item) => {
                               const nights =
@@ -478,7 +486,9 @@ const BookingReport = () => {
                             }, 0)
                             .toFixed(2)}
                         </CustomBodyCell>
-                        <CustomBodyCell sx={{ textAlign: "center" }}>
+                        <CustomBodyCell
+                          sx={{ textAlign: "center", fontWeight: "bold" }}
+                        >
                           {filteredInvoices
                             .reduce((sum, item) => {
                               const nights =
@@ -504,7 +514,9 @@ const BookingReport = () => {
                             }, 0)
                             .toFixed(2)}
                         </CustomBodyCell>
-                        <CustomBodyCell sx={{ textAlign: "center" }}>
+                        <CustomBodyCell
+                          sx={{ textAlign: "center", fontWeight: "bold" }}
+                        >
                           {filteredInvoices
                             .reduce((sum, item) => {
                               const nights =

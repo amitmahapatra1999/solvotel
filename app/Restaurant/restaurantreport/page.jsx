@@ -17,6 +17,19 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { getCookie } from "cookies-next";
 import { jwtVerify } from "jose";
+import { GetCustomDate } from "../../../utils/DateFetcher";
+import { styled } from "@mui/material";
+
+const CustomHeadingCell = styled(TableCell)`
+  font-weight: bold;
+  color: #28bfdb;
+
+  padding: 5px;
+`;
+const CustomBodyCell = styled(TableCell)`
+  font-size: 13px;
+  padding: 5px;
+`;
 
 const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
@@ -125,6 +138,8 @@ const InvoicePage = () => {
     window.location.reload();
   };
 
+  console.log(filteredInvoices);
+
   return (
     <>
       <Navbar />
@@ -209,84 +224,26 @@ const InvoicePage = () => {
                 <Table ref={tableRef}>
                   <TableHead>
                     <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        Invoice No.
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        Customer Name
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        Payment Method
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        Total Amount
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        SGST
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        CGST
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        IGST
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: "bold",
-                          color: "#28bfdb",
-                          textAlign: "center",
-                        }}
-                      >
-                        Payable Amount
-                      </TableCell>
+                      <CustomHeadingCell>Invoice Date</CustomHeadingCell>
+                      <CustomHeadingCell>Invoice No.</CustomHeadingCell>
+                      <CustomHeadingCell>Customer Name</CustomHeadingCell>
+                      <CustomHeadingCell>GSTIN</CustomHeadingCell>
+                      <CustomHeadingCell align="center">
+                        Taxable Amt
+                      </CustomHeadingCell>
+                      <CustomHeadingCell align="center">SGST</CustomHeadingCell>
+                      <CustomHeadingCell align="center">CGST</CustomHeadingCell>
+                      <CustomHeadingCell align="center">IGST</CustomHeadingCell>
+                      <CustomHeadingCell align="center">
+                        Total Amt
+                      </CustomHeadingCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredInvoices.length > 0 ? (
                       <>
                         {filteredInvoices.map((invoice) => {
+                          let billingDate = GetCustomDate(invoice.date);
                           let totalSgst = 0;
                           let totalCgst = 0;
                           let totalIgst = 0;
@@ -311,41 +268,40 @@ const InvoicePage = () => {
                               key={invoice._id}
                               sx={{ backgroundColor: "white" }}
                             >
-                              <TableCell sx={{ textAlign: "center" }}>
+                              <CustomBodyCell>{billingDate}</CustomBodyCell>
+                              <CustomBodyCell>
                                 {invoice.invoiceno}
-                              </TableCell>
-                              <TableCell sx={{ textAlign: "center" }}>
+                              </CustomBodyCell>
+                              <CustomBodyCell>
                                 {invoice.custname}
-                              </TableCell>
-                              <TableCell sx={{ textAlign: "center" }}>
-                                {invoice.paymentMethod}
-                              </TableCell>
-                              <TableCell sx={{ textAlign: "center" }}>
+                              </CustomBodyCell>
+                              <CustomBodyCell>{invoice.custgst}</CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {invoice.totalamt.toFixed(2)}
-                              </TableCell>
-                              <TableCell sx={{ textAlign: "center" }}>
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {totalSgst.toFixed(2)}
-                              </TableCell>
-                              <TableCell sx={{ textAlign: "center" }}>
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {totalCgst.toFixed(2)}
-                              </TableCell>
-                              <TableCell sx={{ textAlign: "center" }}>
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {totalIgst.toFixed(2)}
-                              </TableCell>
-                              <TableCell sx={{ textAlign: "center" }}>
+                              </CustomBodyCell>
+                              <CustomBodyCell sx={{ textAlign: "center" }}>
                                 {invoice.payableamt.toFixed(2)}
-                              </TableCell>
+                              </CustomBodyCell>
                             </TableRow>
                           );
                         })}
                         <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                          <TableCell
-                            colSpan={3}
+                          <CustomBodyCell
+                            colSpan={4}
                             sx={{ fontWeight: "bold", textAlign: "center" }}
                           >
-                            Total:
-                          </TableCell>
-                          <TableCell
+                            Grand Total
+                          </CustomBodyCell>
+                          <CustomBodyCell
                             sx={{ fontWeight: "bold", textAlign: "center" }}
                           >
                             {filteredInvoices
@@ -354,8 +310,8 @@ const InvoicePage = () => {
                                 0
                               )
                               .toFixed(2)}
-                          </TableCell>
-                          <TableCell
+                          </CustomBodyCell>
+                          <CustomBodyCell
                             sx={{ fontWeight: "bold", textAlign: "center" }}
                           >
                             {filteredInvoices
@@ -363,8 +319,8 @@ const InvoicePage = () => {
                               .flatMap((item) => item.sgstArray) // flatten all cgst arrays
                               .reduce((sum, val) => sum + val, 0)
                               .toFixed(2)}
-                          </TableCell>
-                          <TableCell
+                          </CustomBodyCell>
+                          <CustomBodyCell
                             sx={{ fontWeight: "bold", textAlign: "center" }}
                           >
                             {filteredInvoices
@@ -372,16 +328,16 @@ const InvoicePage = () => {
                               .flatMap((item) => item.cgstArray) // flatten all cgst arrays
                               .reduce((sum, val) => sum + val, 0)
                               .toFixed(2)}
-                          </TableCell>
-                          <TableCell
+                          </CustomBodyCell>
+                          <CustomBodyCell
                             sx={{ fontWeight: "bold", textAlign: "center" }}
                           >
                             {filteredInvoices
                               .filter((item) => item.state !== profileState)
                               .reduce((sum, invoice) => sum + invoice.gst, 0)
                               .toFixed(2)}
-                          </TableCell>
-                          <TableCell
+                          </CustomBodyCell>
+                          <CustomBodyCell
                             sx={{ fontWeight: "bold", textAlign: "center" }}
                           >
                             {filteredInvoices
@@ -390,14 +346,14 @@ const InvoicePage = () => {
                                 0
                               )
                               .toFixed(2)}
-                          </TableCell>
+                          </CustomBodyCell>
                         </TableRow>
                       </>
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} align="center">
+                        <CustomBodyCell colSpan={6} align="center">
                           No invoices found for the selected date range.
-                        </TableCell>
+                        </CustomBodyCell>
                       </TableRow>
                     )}
                   </TableBody>
