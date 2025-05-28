@@ -41,7 +41,8 @@
     "react-icons": "^5.4.0",
     "react-to-print": "^3.1.0",
     "react-toastify": "^10.0.6",
-    "to-words": "^4.5.1"
+    "to-words": "^4.5.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

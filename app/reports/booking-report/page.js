@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Add } from "@mui/icons-material";
 import { Footer } from "../../_components/Footer";
 import Preloader from "../../_components/Preloader";
+import { exportToExcel } from "../../../utils/exportToExcel";
 import {
   Button,
   TableContainer,
@@ -43,6 +44,7 @@ const BookingReport = () => {
   const [endDate, setEndDate] = useState("");
   const [originalBillingData, setOriginalBillingData] = useState([]);
   const [filteredInvoices, setFilteredInvoices] = useState([]);
+  const [dataToExport, setDataToExport] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [allEnrichedBills, setAllEnrichedBills] = useState([]);
@@ -204,10 +206,73 @@ const BookingReport = () => {
           invoiceDate >= new Date(startDate) && invoiceDate <= new Date(endDate)
         );
       });
+      const exportData = filtered.map((item) => {
+        let invoiceDate = GetCustomDate(item.booking.createdAt);
+        let checkInDate = GetCustomDate(item.booking.checkIn);
+        let checkOutDate = GetCustomDate(item.booking.checkOut);
+        let noOfNights =
+          (new Date(item?.booking?.checkOut) -
+            new Date(item?.booking?.checkIn)) /
+          (1000 * 60 * 60 * 24);
+
+        let isSameState =
+          item?.booking?.state &&
+          profile.state &&
+          item?.booking?.state === profile.state;
+
+        let totalBaseAmt = item?.rooms?.reduce((sum, room) => {
+          let baseAmtPerNight = room?.category?.tariff ?? 0;
+          return sum + baseAmtPerNight * noOfNights;
+        }, 0);
+
+        let totalCgst = item?.rooms?.reduce((sum, room) => {
+          let gstPerNight =
+            (room?.category?.total ?? 0) - (room?.category?.tariff ?? 0);
+          return (sum + gstPerNight * noOfNights) / 2;
+        }, 0);
+
+        let totalSgst = item?.rooms?.reduce((sum, room) => {
+          let gstPerNight =
+            (room?.category?.total ?? 0) - (room?.category?.tariff ?? 0);
+          return (sum + gstPerNight * noOfNights) / 2;
+        }, 0);
+        let totalGst = item?.rooms?.reduce((sum, room) => {
+          let gstPerNight =
+            (room?.category?.total ?? 0) - (room?.category?.tariff ?? 0);
+          return sum + gstPerNight * noOfNights;
+        }, 0);
+
+        let rooms = Array.isArray(item.billing.roomNo)
+          ? item.billing.roomNo.join(", ")
+          : item.billing.roomNo ?? "N/A";
+
+        let totalAmount =
+          totalBaseAmt + (isSameState ? totalCgst + totalSgst : totalGst);
+        return {
+          "Invoice Date": checkOutDate,
+          "Invoice No": item?.booking.bookingId,
+          "Check-In Date": checkInDate,
+          "Check-Out Date": checkOutDate,
+          Rooms: rooms,
+          "Customer Name": item.booking.guestName || "N/A",
+          Conpany: item.booking.companyName || "N/A",
+          GSTIN: item.booking.gstin || "N/A",
+          "Taxable Amount": totalBaseAmt.toFixed(2),
+          SGST: totalSgst.toFixed(2),
+          CGST: totalCgst.toFixed(2),
+          IGST: totalGst.toFixed(2),
+          "Total Amount": totalAmount.toFixed(2),
+        };
+      });
+      setDataToExport(exportData);
       setFilteredInvoices(filtered);
     } else {
       setFilteredInvoices(invoices);
     }
+  };
+
+  const handleExport = () => {
+    exportToExcel(dataToExport, "room_report");
   };
 
   const printTable = () => {
@@ -278,318 +343,308 @@ const BookingReport = () => {
             >
               Reset
             </Button>
-            <Button
-              variant="contained"
-              onClick={printTable}
-              size="small"
-              sx={{
-                backgroundColor: "orange",
-                "&:hover": {
-                  backgroundColor: "darkorange",
-                },
-              }}
-            >
-              Download/Export
-            </Button>
+            {filteredInvoices.length > 0 && (
+              <>
+                <Button
+                  variant="contained"
+                  onClick={printTable}
+                  size="small"
+                  color="warning"
+                >
+                  Download PDF
+                </Button>
+                <Button
+                  onClick={handleExport}
+                  variant="contained"
+                  color="success"
+                  size="small"
+                >
+                  Export to Excel
+                </Button>
+              </>
+            )}
           </div>
 
           <Box>
-            {startDate && endDate ? (
-              <TableContainer component={Paper}>
-                <Table ref={tableRef}>
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                      <CustomHeadingCell>Invoice Date</CustomHeadingCell>
-                      <CustomHeadingCell>Invoice No</CustomHeadingCell>
-                      <CustomHeadingCell>Check-In Date</CustomHeadingCell>
-                      <CustomHeadingCell>Check-Out Date</CustomHeadingCell>
+            <TableContainer component={Paper}>
+              <Table ref={tableRef}>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                    <CustomHeadingCell>Invoice Date</CustomHeadingCell>
+                    <CustomHeadingCell>Invoice No</CustomHeadingCell>
+                    <CustomHeadingCell>Check-In Date</CustomHeadingCell>
+                    <CustomHeadingCell>Check-Out Date</CustomHeadingCell>
 
-                      <CustomHeadingCell>Room Number</CustomHeadingCell>
-                      <CustomHeadingCell>Guest</CustomHeadingCell>
-                      <CustomHeadingCell>Company Name</CustomHeadingCell>
-                      <CustomHeadingCell>GSTIN</CustomHeadingCell>
-                      <CustomHeadingCell>Taxable Value</CustomHeadingCell>
-                      <CustomHeadingCell>CGST</CustomHeadingCell>
-                      <CustomHeadingCell>SGST</CustomHeadingCell>
-                      <CustomHeadingCell>IGST</CustomHeadingCell>
-                      <CustomHeadingCell>Total Sales</CustomHeadingCell>
+                    <CustomHeadingCell>Room Number</CustomHeadingCell>
+                    <CustomHeadingCell>Guest</CustomHeadingCell>
+                    <CustomHeadingCell>Company Name</CustomHeadingCell>
+                    <CustomHeadingCell>GSTIN</CustomHeadingCell>
+                    <CustomHeadingCell>Taxable Value</CustomHeadingCell>
+                    <CustomHeadingCell>CGST</CustomHeadingCell>
+                    <CustomHeadingCell>SGST</CustomHeadingCell>
+                    <CustomHeadingCell>IGST</CustomHeadingCell>
+                    <CustomHeadingCell>Total Sales</CustomHeadingCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredInvoices.length > 0 ? (
+                    <>
+                      {filteredInvoices.map((item, index) => {
+                        const invoiceDate = GetCustomDate(
+                          item.booking.createdAt
+                        );
+                        const checkInDate = GetCustomDate(item.booking.checkIn);
+                        const checkOutDate = GetCustomDate(
+                          item.booking.checkOut
+                        );
+                        const noOfNights =
+                          (new Date(item?.booking?.checkOut) -
+                            new Date(item?.booking?.checkIn)) /
+                          (1000 * 60 * 60 * 24);
+
+                        const isSameState =
+                          item?.booking?.state &&
+                          profile.state &&
+                          item?.booking?.state === profile.state;
+
+                        const totalBaseAmt = item?.rooms?.reduce(
+                          (sum, room) => {
+                            const baseAmtPerNight = room?.category?.tariff ?? 0;
+                            return sum + baseAmtPerNight * noOfNights;
+                          },
+                          0
+                        );
+
+                        const totalCgst = item?.rooms?.reduce((sum, room) => {
+                          const gstPerNight =
+                            (room?.category?.total ?? 0) -
+                            (room?.category?.tariff ?? 0);
+                          return (sum + gstPerNight * noOfNights) / 2;
+                        }, 0);
+
+                        const totalSgst = item?.rooms?.reduce((sum, room) => {
+                          const gstPerNight =
+                            (room?.category?.total ?? 0) -
+                            (room?.category?.tariff ?? 0);
+                          return (sum + gstPerNight * noOfNights) / 2;
+                        }, 0);
+                        const totalGst = item?.rooms?.reduce((sum, room) => {
+                          const gstPerNight =
+                            (room?.category?.total ?? 0) -
+                            (room?.category?.tariff ?? 0);
+                          return sum + gstPerNight * noOfNights;
+                        }, 0);
+                        return (
+                          <TableRow
+                            key={index}
+                            sx={{ backgroundColor: "white" }}
+                          >
+                            <CustomBodyCell>{checkOutDate}</CustomBodyCell>
+                            <CustomBodyCell>
+                              {item.booking.bookingId || "N/A"}
+                            </CustomBodyCell>
+                            <CustomBodyCell>{checkInDate}</CustomBodyCell>
+                            <CustomBodyCell>{checkOutDate}</CustomBodyCell>
+
+                            <CustomBodyCell>
+                              {Array.isArray(item.billing.roomNo)
+                                ? item.billing.roomNo.join(", ")
+                                : item.billing.roomNo || "N/A"}
+                            </CustomBodyCell>
+                            <CustomBodyCell>
+                              {item.booking.guestName || "N/A"}
+                            </CustomBodyCell>
+                            <CustomBodyCell>
+                              {item.booking.companyName || "N/A"}
+                            </CustomBodyCell>
+                            <CustomBodyCell>
+                              {item.booking.gstin || "N/A"}
+                            </CustomBodyCell>
+                            <CustomBodyCell sx={{ textAlign: "center" }}>
+                              {totalBaseAmt.toFixed(2)}
+                            </CustomBodyCell>
+                            <CustomBodyCell sx={{ textAlign: "center" }}>
+                              {isSameState ? totalCgst.toFixed(2) : "0.00"}
+                            </CustomBodyCell>
+                            <CustomBodyCell sx={{ textAlign: "center" }}>
+                              {isSameState ? totalSgst.toFixed(2) : "0.00"}
+                            </CustomBodyCell>
+                            <CustomBodyCell sx={{ textAlign: "center" }}>
+                              {!isSameState ? totalGst.toFixed(2) : "0.00"}
+                            </CustomBodyCell>
+                            <CustomBodyCell sx={{ textAlign: "center" }}>
+                              {(
+                                totalBaseAmt +
+                                (isSameState ? totalCgst + totalSgst : totalGst)
+                              ).toFixed(2)}
+                            </CustomBodyCell>
+                          </TableRow>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    <TableRow>
+                      <CustomBodyCell colSpan={5} align="center">
+                        No Booking found for the selected date range.
+                      </CustomBodyCell>
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredInvoices.length > 0 ? (
-                      <>
-                        {filteredInvoices.map((item, index) => {
-                          const invoiceDate = GetCustomDate(
-                            item.booking.createdAt
-                          );
-                          const checkInDate = GetCustomDate(
-                            item.booking.checkIn
-                          );
-                          const checkOutDate = GetCustomDate(
-                            item.booking.checkOut
-                          );
-                          const noOfNights =
-                            (new Date(item?.booking?.checkOut) -
-                              new Date(item?.booking?.checkIn)) /
-                            (1000 * 60 * 60 * 24);
-
-                          const isSameState =
-                            item?.booking?.state &&
-                            profile.state &&
-                            item?.booking?.state === profile.state;
-
-                          const totalBaseAmt = item?.rooms?.reduce(
-                            (sum, room) => {
-                              const baseAmtPerNight =
-                                room?.category?.tariff ?? 0;
-                              return sum + baseAmtPerNight * noOfNights;
-                            },
-                            0
-                          );
-
-                          const totalCgst = item?.rooms?.reduce((sum, room) => {
-                            const gstPerNight =
-                              (room?.category?.total ?? 0) -
-                              (room?.category?.tariff ?? 0);
-                            return (sum + gstPerNight * noOfNights) / 2;
-                          }, 0);
-
-                          const totalSgst = item?.rooms?.reduce((sum, room) => {
-                            const gstPerNight =
-                              (room?.category?.total ?? 0) -
-                              (room?.category?.tariff ?? 0);
-                            return (sum + gstPerNight * noOfNights) / 2;
-                          }, 0);
-                          const totalGst = item?.rooms?.reduce((sum, room) => {
-                            const gstPerNight =
-                              (room?.category?.total ?? 0) -
-                              (room?.category?.tariff ?? 0);
-                            return sum + gstPerNight * noOfNights;
-                          }, 0);
-                          return (
-                            <TableRow
-                              key={index}
-                              sx={{ backgroundColor: "white" }}
-                            >
-                              <CustomBodyCell>{checkOutDate}</CustomBodyCell>
-                              <CustomBodyCell>
-                                {item.booking.bookingId || "N/A"}
-                              </CustomBodyCell>
-                              <CustomBodyCell>{checkInDate}</CustomBodyCell>
-                              <CustomBodyCell>{checkOutDate}</CustomBodyCell>
-
-                              <CustomBodyCell>
-                                {Array.isArray(item.billing.roomNo)
-                                  ? item.billing.roomNo.join(", ")
-                                  : item.billing.roomNo || "N/A"}
-                              </CustomBodyCell>
-                              <CustomBodyCell>
-                                {item.booking.guestName || "N/A"}
-                              </CustomBodyCell>
-                              <CustomBodyCell>
-                                {item.booking.companyName || "N/A"}
-                              </CustomBodyCell>
-                              <CustomBodyCell>
-                                {item.booking.gstin || "N/A"}
-                              </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {totalBaseAmt.toFixed(2)}
-                              </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {isSameState ? totalCgst.toFixed(2) : "0.00"}
-                              </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {isSameState ? totalSgst.toFixed(2) : "0.00"}
-                              </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {!isSameState ? totalGst.toFixed(2) : "0.00"}
-                              </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {(
-                                  totalBaseAmt +
-                                  (isSameState
-                                    ? totalCgst + totalSgst
-                                    : totalGst)
-                                ).toFixed(2)}
-                              </CustomBodyCell>
-                            </TableRow>
-                          );
-                        })}
-                      </>
-                    ) : (
-                      <TableRow>
-                        <CustomBodyCell colSpan={5} align="center">
-                          No Booking found for the selected date range.
-                        </CustomBodyCell>
-                      </TableRow>
-                    )}
-                    {filteredInvoices.length > 0 && (
-                      <TableRow
-                        sx={{ backgroundColor: "#f5f5f5", fontWeight: "bold" }}
+                  )}
+                  {filteredInvoices.length > 0 && (
+                    <TableRow
+                      sx={{ backgroundColor: "#f5f5f5", fontWeight: "bold" }}
+                    >
+                      <CustomBodyCell sx={{ textAlign: "center" }} colSpan={8}>
+                        Grand Total
+                      </CustomBodyCell>
+                      <CustomBodyCell
+                        sx={{ textAlign: "center", fontWeight: "bold" }}
                       >
-                        <CustomBodyCell
-                          sx={{ textAlign: "center" }}
-                          colSpan={8}
-                        >
-                          Grand Total
-                        </CustomBodyCell>
-                        <CustomBodyCell
-                          sx={{ textAlign: "center", fontWeight: "bold" }}
-                        >
-                          {filteredInvoices
-                            .reduce((sum, item) => {
-                              const nights =
-                                (new Date(item.booking.checkOut) -
-                                  new Date(item.booking.checkIn)) /
-                                (1000 * 60 * 60 * 24);
+                        {filteredInvoices
+                          .reduce((sum, item) => {
+                            const nights =
+                              (new Date(item.booking.checkOut) -
+                                new Date(item.booking.checkIn)) /
+                              (1000 * 60 * 60 * 24);
+                            return (
+                              sum +
+                              item.rooms?.reduce((roomSum, room) => {
+                                const base = room?.category?.tariff ?? 0;
+                                return roomSum + base * nights;
+                              }, 0)
+                            );
+                          }, 0)
+                          .toFixed(2)}
+                      </CustomBodyCell>
+                      <CustomBodyCell
+                        sx={{ textAlign: "center", fontWeight: "bold" }}
+                      >
+                        {filteredInvoices
+                          .reduce((sum, item) => {
+                            const nights =
+                              (new Date(item.booking.checkOut) -
+                                new Date(item.booking.checkIn)) /
+                              (1000 * 60 * 60 * 24);
+                            if (
+                              item.booking.state &&
+                              profile.state &&
+                              item.booking.state === profile.state
+                            ) {
                               return (
                                 sum +
                                 item.rooms?.reduce((roomSum, room) => {
-                                  const base = room?.category?.tariff ?? 0;
-                                  return roomSum + base * nights;
-                                }, 0)
-                              );
-                            }, 0)
-                            .toFixed(2)}
-                        </CustomBodyCell>
-                        <CustomBodyCell
-                          sx={{ textAlign: "center", fontWeight: "bold" }}
-                        >
-                          {filteredInvoices
-                            .reduce((sum, item) => {
-                              const nights =
-                                (new Date(item.booking.checkOut) -
-                                  new Date(item.booking.checkIn)) /
-                                (1000 * 60 * 60 * 24);
-                              if (
-                                item.booking.state &&
-                                profile.state &&
-                                item.booking.state === profile.state
-                              ) {
-                                return (
-                                  sum +
-                                  item.rooms?.reduce((roomSum, room) => {
-                                    const gst =
-                                      (room?.category?.total ?? 0) -
-                                      (room?.category?.tariff ?? 0);
-                                    return roomSum + (gst * nights) / 2;
-                                  }, 0)
-                                );
-                              }
-                              return sum;
-                            }, 0)
-                            .toFixed(2)}
-                        </CustomBodyCell>
-                        <CustomBodyCell
-                          sx={{ textAlign: "center", fontWeight: "bold" }}
-                        >
-                          {filteredInvoices
-                            .reduce((sum, item) => {
-                              const nights =
-                                (new Date(item.booking.checkOut) -
-                                  new Date(item.booking.checkIn)) /
-                                (1000 * 60 * 60 * 24);
-                              if (
-                                item.booking.state &&
-                                profile.state &&
-                                item.booking.state === profile.state
-                              ) {
-                                return (
-                                  sum +
-                                  item.rooms?.reduce((roomSum, room) => {
-                                    const gst =
-                                      (room?.category?.total ?? 0) -
-                                      (room?.category?.tariff ?? 0);
-                                    return roomSum + (gst * nights) / 2;
-                                  }, 0)
-                                );
-                              }
-                              return sum;
-                            }, 0)
-                            .toFixed(2)}
-                        </CustomBodyCell>
-                        <CustomBodyCell
-                          sx={{ textAlign: "center", fontWeight: "bold" }}
-                        >
-                          {filteredInvoices
-                            .reduce((sum, item) => {
-                              const nights =
-                                (new Date(item.booking.checkOut) -
-                                  new Date(item.booking.checkIn)) /
-                                (1000 * 60 * 60 * 24);
-                              if (
-                                item.booking.state &&
-                                profile.state &&
-                                item.booking.state !== profile.state
-                              ) {
-                                return (
-                                  sum +
-                                  item.rooms?.reduce((roomSum, room) => {
-                                    const gst =
-                                      (room?.category?.total ?? 0) -
-                                      (room?.category?.tariff ?? 0);
-                                    return roomSum + gst * nights;
-                                  }, 0)
-                                );
-                              }
-                              return sum;
-                            }, 0)
-                            .toFixed(2)}
-                        </CustomBodyCell>
-                        <CustomBodyCell
-                          sx={{ textAlign: "center", fontWeight: "bold" }}
-                        >
-                          {filteredInvoices
-                            .reduce((sum, item) => {
-                              const nights =
-                                (new Date(item.booking.checkOut) -
-                                  new Date(item.booking.checkIn)) /
-                                (1000 * 60 * 60 * 24);
-                              const isSameState =
-                                item.booking.state &&
-                                profile.state &&
-                                item.booking.state === profile.state;
-
-                              const baseAmt = item.rooms?.reduce(
-                                (roomSum, room) => {
-                                  const base = room?.category?.tariff ?? 0;
-                                  return roomSum + base * nights;
-                                },
-                                0
-                              );
-
-                              const gstAmt = item.rooms?.reduce(
-                                (roomSum, room) => {
                                   const gst =
                                     (room?.category?.total ?? 0) -
                                     (room?.category?.tariff ?? 0);
-                                  return (
-                                    roomSum +
-                                    (isSameState ? gst * nights : gst * nights)
-                                  );
-                                },
-                                0
+                                  return roomSum + (gst * nights) / 2;
+                                }, 0)
                               );
-
+                            }
+                            return sum;
+                          }, 0)
+                          .toFixed(2)}
+                      </CustomBodyCell>
+                      <CustomBodyCell
+                        sx={{ textAlign: "center", fontWeight: "bold" }}
+                      >
+                        {filteredInvoices
+                          .reduce((sum, item) => {
+                            const nights =
+                              (new Date(item.booking.checkOut) -
+                                new Date(item.booking.checkIn)) /
+                              (1000 * 60 * 60 * 24);
+                            if (
+                              item.booking.state &&
+                              profile.state &&
+                              item.booking.state === profile.state
+                            ) {
                               return (
-                                sum + baseAmt + (isSameState ? gstAmt : gstAmt)
+                                sum +
+                                item.rooms?.reduce((roomSum, room) => {
+                                  const gst =
+                                    (room?.category?.total ?? 0) -
+                                    (room?.category?.tariff ?? 0);
+                                  return roomSum + (gst * nights) / 2;
+                                }, 0)
                               );
-                            }, 0)
-                            .toFixed(2)}
-                        </CustomBodyCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            ) : (
-              <Typography
-                variant="h6"
-                sx={{ textAlign: "center", color: "gray", mt: 4 }}
-              >
-                Please select both start and end dates to view the invoice data.
-              </Typography>
-            )}
+                            }
+                            return sum;
+                          }, 0)
+                          .toFixed(2)}
+                      </CustomBodyCell>
+                      <CustomBodyCell
+                        sx={{ textAlign: "center", fontWeight: "bold" }}
+                      >
+                        {filteredInvoices
+                          .reduce((sum, item) => {
+                            const nights =
+                              (new Date(item.booking.checkOut) -
+                                new Date(item.booking.checkIn)) /
+                              (1000 * 60 * 60 * 24);
+                            if (
+                              item.booking.state &&
+                              profile.state &&
+                              item.booking.state !== profile.state
+                            ) {
+                              return (
+                                sum +
+                                item.rooms?.reduce((roomSum, room) => {
+                                  const gst =
+                                    (room?.category?.total ?? 0) -
+                                    (room?.category?.tariff ?? 0);
+                                  return roomSum + gst * nights;
+                                }, 0)
+                              );
+                            }
+                            return sum;
+                          }, 0)
+                          .toFixed(2)}
+                      </CustomBodyCell>
+                      <CustomBodyCell
+                        sx={{ textAlign: "center", fontWeight: "bold" }}
+                      >
+                        {filteredInvoices
+                          .reduce((sum, item) => {
+                            const nights =
+                              (new Date(item.booking.checkOut) -
+                                new Date(item.booking.checkIn)) /
+                              (1000 * 60 * 60 * 24);
+                            const isSameState =
+                              item.booking.state &&
+                              profile.state &&
+                              item.booking.state === profile.state;
+
+                            const baseAmt = item.rooms?.reduce(
+                              (roomSum, room) => {
+                                const base = room?.category?.tariff ?? 0;
+                                return roomSum + base * nights;
+                              },
+                              0
+                            );
+
+                            const gstAmt = item.rooms?.reduce(
+                              (roomSum, room) => {
+                                const gst =
+                                  (room?.category?.total ?? 0) -
+                                  (room?.category?.tariff ?? 0);
+                                return (
+                                  roomSum +
+                                  (isSameState ? gst * nights : gst * nights)
+                                );
+                              },
+                              0
+                            );
+
+                            return (
+                              sum + baseAmt + (isSameState ? gstAmt : gstAmt)
+                            );
+                          }, 0)
+                          .toFixed(2)}
+                      </CustomBodyCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Box>
         </div>
       </div>

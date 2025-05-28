@@ -15,6 +15,7 @@ import { getCookie } from "cookies-next"; // Import getCookie from cookies-next
 import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
 import { useRouter } from "next/navigation";
 import Preloader from "../../_components/Preloader";
+import { exportToExcel } from "../../../utils/exportToExcel";
 
 export default function InventoryList() {
   const [items, setItems] = useState([]);
@@ -29,6 +30,8 @@ export default function InventoryList() {
   const tableRef = useRef(null);
   const router = useRouter();
   const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
+
+  const [dataToExport, setDataToExport] = useState([]);
 
   // Fetch items, categories, and stock report data
   useEffect(() => {
@@ -149,6 +152,22 @@ export default function InventoryList() {
       const itemDate = new Date(purchaseDate);
       return itemDate >= start && itemDate <= end;
     });
+
+    const exportData = filtered.map((item) => {
+      return {
+        "Item Code": item.itemCode,
+        Name: item?.name,
+        Group: item?.group,
+        Category: item.segment?.itemName,
+        CGST: `${item.tax / 2}%`,
+        SGST: `${item.tax / 2}%`,
+        "In Stock": stockQuantities[item._id]?.instock || "N/A",
+        "Out Stock": stockQuantities[item._id]?.outstock || "N/A",
+        "Available Qty": item.stock,
+        Unit: item.quantityUnit,
+      };
+    });
+    setDataToExport(exportData);
     setFilteredItems(filtered);
     setShowTable(true);
   };
@@ -158,6 +177,10 @@ export default function InventoryList() {
     setEndDate("");
     setShowTable(false);
     setFilteredItems([]);
+  };
+
+  const handleExport = () => {
+    exportToExcel(dataToExport, "stock_report");
   };
 
   const printTable = () => {
@@ -228,19 +251,26 @@ export default function InventoryList() {
             >
               Reset
             </Button>
-            <Button
-              variant="contained"
-              onClick={printTable}
-              size="small"
-              sx={{
-                backgroundColor: "orange",
-                "&:hover": {
-                  backgroundColor: "darkorange",
-                },
-              }}
-            >
-              Download/Export
-            </Button>
+            {filteredItems.length > 0 && (
+              <>
+                <Button
+                  variant="contained"
+                  onClick={printTable}
+                  size="small"
+                  color="warning"
+                >
+                  Download PDF
+                </Button>
+                <Button
+                  onClick={handleExport}
+                  variant="contained"
+                  color="success"
+                  size="small"
+                >
+                  Export to Excel
+                </Button>
+              </>
+            )}
           </div>
 
           {showTable && (

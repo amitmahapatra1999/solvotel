@@ -8,6 +8,7 @@ import {
   MenuItem,
   Button,
   TextField,
+  Box,
 } from "@mui/material";
 import { IconButton, Tooltip } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
@@ -18,6 +19,7 @@ import { getCookie } from "cookies-next"; // Import getCookie from cookies-next
 import { jwtVerify } from "jose"; // Import jwtVerify for decoding JWT
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { exportToExcel } from "../../../utils/exportToExcel";
 import {
   Radio,
   RadioGroup,
@@ -37,6 +39,7 @@ import {
 
 export default function GuestList() {
   const [guests, setGuests] = useState([]);
+  const [dataToExport, setDataToExport] = useState([]);
   const [error, setError] = useState(null);
   const [deleteGuestId, setDeleteGuestId] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -140,7 +143,22 @@ export default function GuestList() {
             }
           });
 
-          setGuests(Array.from(guestMap.values()));
+          const guestData = Array.from(guestMap.values());
+          const exportData = guestData.map((item) => {
+            return {
+              Name: item.guestName,
+              Mobile: item.mobileNo || "N/A",
+              Email: item.guestEmail || "N/A",
+              Address: item.address || "N/A",
+              State: item.state || "N/A",
+              "Date Of Birth": item.dateofbirth || "N/A",
+              "Date Of Anniversary": item.dateofanniversary || "N/A",
+              "Company Name": item.companyName || "N/A",
+              GSTIN: item.gstin || "N/A",
+            };
+          });
+          setDataToExport(exportData);
+          setGuests(guestData);
         } else {
           setError("Failed to load guest data");
         }
@@ -152,6 +170,10 @@ export default function GuestList() {
     };
     fetchGuests();
   }, []);
+
+  const handleExport = () => {
+    exportToExcel(dataToExport, "guest_report");
+  };
 
   // Handle delete button click
   const handleDeleteClick = (id) => {
@@ -284,8 +306,7 @@ export default function GuestList() {
           checkInDateList: currentRoomData.checkInDateList,
           checkOutDateList: currentRoomData.checkOutDateList,
         };
-        console.log("Current position:", currentPosition);
-        console.log("Current room data:", currentRoomData.billWaitlist.length);
+
         // Check if there's a next booking
         const hasNextBooking =
           guestPosition < currentRoomData.billWaitlist.length - 1;
@@ -541,10 +562,22 @@ export default function GuestList() {
       <div className="min-h-screen bg-white">
         {isLoading && <Preloader />}
         <div className="container mx-auto py-10" style={{ maxWidth: "85%" }}>
-          <h1 className="text-3xl font-semibold text-cyan-900 mb-4">
-            Guest List
-            <span>&nbsp;|&nbsp;{`Total: ${guests.length}`}</span>
-          </h1>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mb: 4,
+            }}
+          >
+            <h1 className="text-3xl font-semibold text-cyan-900 ">
+              Guest List
+              <span>&nbsp;|&nbsp;{`Total: ${guests.length}`}</span>
+            </h1>
+            <Button onClick={handleExport} variant="contained" color="success">
+              Export to Excel
+            </Button>
+          </Box>
           <TableContainer component={Paper}>
             <Table aria-label="guest list">
               <TableHead>

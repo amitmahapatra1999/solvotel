@@ -20,6 +20,7 @@ import { jwtVerify } from "jose";
 import { GetCustomDate } from "../../../utils/DateFetcher";
 import { styled } from "@mui/material";
 import Preloader from "../../_components/Preloader";
+import { exportToExcel } from "../../../utils/exportToExcel";
 
 const CustomHeadingCell = styled(TableCell)`
   font-weight: bold;
@@ -42,6 +43,8 @@ const InvoicePage = () => {
   const [endDate, setEndDate] = useState("");
   const tableRef = useRef(null);
   const [profileState, setProfileState] = useState(null);
+
+  const [dataToExport, setDataToExport] = useState([]);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -107,6 +110,34 @@ const InvoicePage = () => {
           invoiceDate >= new Date(startDate) && invoiceDate <= new Date(endDate)
         );
       });
+      const exportData = filtered.map((item) => {
+        let billingDate = GetCustomDate(item.date);
+        let totalSgst = 0;
+        let totalCgst = 0;
+        let totalIgst = 0;
+
+        let isSameState = item.state === profileState;
+        if (isSameState) {
+          totalSgst = item.sgstArray.reduce((acc, num) => acc + num, 0);
+          totalCgst = item.cgstArray.reduce((acc, num) => acc + num, 0);
+        } else {
+          totalSgst = 0;
+          totalCgst = 0;
+          totalIgst = item.gst;
+        }
+        return {
+          "Invoice Date": billingDate,
+          "Invoice No": item?.invoiceno,
+          "Customer Name": item?.custname,
+          GSTIN: item?.custgst,
+          "Taxable Amount": item?.totalamt.toFixed(2),
+          SGST: totalSgst.toFixed(2),
+          CGST: totalCgst.toFixed(2),
+          IGST: totalIgst.toFixed(2),
+          "Total Amount": item?.payableamt.toFixed(2),
+        };
+      });
+      setDataToExport(exportData);
       setFilteredInvoices(filtered);
     } else {
       setFilteredInvoices(invoices);
@@ -139,7 +170,9 @@ const InvoicePage = () => {
     window.location.reload();
   };
 
-  console.log(filteredInvoices);
+  const handleExport = () => {
+    exportToExcel(dataToExport, "resturant_report");
+  };
 
   return (
     <>
@@ -195,170 +228,161 @@ const InvoicePage = () => {
             >
               Reset
             </Button>
-            <Button
-              variant="contained"
-              onClick={printTable}
-              size="small"
-              sx={{
-                backgroundColor: "orange",
-                "&:hover": {
-                  backgroundColor: "darkorange",
-                },
-              }}
-            >
-              Download/Export
-            </Button>
+            {filteredInvoices.length > 0 && (
+              <>
+                <Button
+                  variant="contained"
+                  onClick={printTable}
+                  size="small"
+                  color="warning"
+                >
+                  Download PDF
+                </Button>
+                <Button
+                  onClick={handleExport}
+                  variant="contained"
+                  color="success"
+                  size="small"
+                >
+                  Export to Excel
+                </Button>
+              </>
+            )}
           </div>
 
           <Box>
-            {startDate && endDate ? (
-              <TableContainer component={Paper}>
-                <Table ref={tableRef}>
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                      <CustomHeadingCell>Invoice Date</CustomHeadingCell>
-                      <CustomHeadingCell>Invoice No.</CustomHeadingCell>
-                      <CustomHeadingCell>Customer Name</CustomHeadingCell>
-                      <CustomHeadingCell>GSTIN</CustomHeadingCell>
-                      <CustomHeadingCell align="center">
-                        Taxable Amt
-                      </CustomHeadingCell>
-                      <CustomHeadingCell align="center">SGST</CustomHeadingCell>
-                      <CustomHeadingCell align="center">CGST</CustomHeadingCell>
-                      <CustomHeadingCell align="center">IGST</CustomHeadingCell>
-                      <CustomHeadingCell align="center">
-                        Total Amt
-                      </CustomHeadingCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredInvoices.length > 0 ? (
-                      <>
-                        {filteredInvoices.map((invoice) => {
-                          let billingDate = GetCustomDate(invoice.date);
-                          let totalSgst = 0;
-                          let totalCgst = 0;
-                          let totalIgst = 0;
+            <TableContainer component={Paper}>
+              <Table ref={tableRef}>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                    <CustomHeadingCell>Invoice Date</CustomHeadingCell>
+                    <CustomHeadingCell>Invoice No.</CustomHeadingCell>
+                    <CustomHeadingCell>Customer Name</CustomHeadingCell>
+                    <CustomHeadingCell>GSTIN</CustomHeadingCell>
+                    <CustomHeadingCell align="center">
+                      Taxable Amt
+                    </CustomHeadingCell>
+                    <CustomHeadingCell align="center">SGST</CustomHeadingCell>
+                    <CustomHeadingCell align="center">CGST</CustomHeadingCell>
+                    <CustomHeadingCell align="center">IGST</CustomHeadingCell>
+                    <CustomHeadingCell align="center">
+                      Total Amt
+                    </CustomHeadingCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredInvoices.length > 0 ? (
+                    <>
+                      {filteredInvoices.map((invoice) => {
+                        let billingDate = GetCustomDate(invoice.date);
+                        let totalSgst = 0;
+                        let totalCgst = 0;
+                        let totalIgst = 0;
 
-                          let isSameState = invoice.state === profileState;
-                          if (isSameState) {
-                            totalSgst = invoice.sgstArray.reduce(
-                              (acc, num) => acc + num,
-                              0
-                            );
-                            totalCgst = invoice.cgstArray.reduce(
-                              (acc, num) => acc + num,
-                              0
-                            );
-                          } else {
-                            totalSgst = 0;
-                            totalCgst = 0;
-                            totalIgst = invoice.gst;
-                          }
-                          return (
-                            <TableRow
-                              key={invoice._id}
-                              sx={{ backgroundColor: "white" }}
-                            >
-                              <CustomBodyCell>{billingDate}</CustomBodyCell>
-                              <CustomBodyCell>
-                                {invoice.invoiceno}
-                              </CustomBodyCell>
-                              <CustomBodyCell>
-                                {invoice.custname}
-                              </CustomBodyCell>
-                              <CustomBodyCell>{invoice.custgst}</CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {invoice.totalamt.toFixed(2)}
-                              </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {totalSgst.toFixed(2)}
-                              </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {totalCgst.toFixed(2)}
-                              </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {totalIgst.toFixed(2)}
-                              </CustomBodyCell>
-                              <CustomBodyCell sx={{ textAlign: "center" }}>
-                                {invoice.payableamt.toFixed(2)}
-                              </CustomBodyCell>
-                            </TableRow>
+                        let isSameState = invoice.state === profileState;
+                        if (isSameState) {
+                          totalSgst = invoice.sgstArray.reduce(
+                            (acc, num) => acc + num,
+                            0
                           );
-                        })}
-                        <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                          <CustomBodyCell
-                            colSpan={4}
-                            sx={{ fontWeight: "bold", textAlign: "center" }}
+                          totalCgst = invoice.cgstArray.reduce(
+                            (acc, num) => acc + num,
+                            0
+                          );
+                        } else {
+                          totalSgst = 0;
+                          totalCgst = 0;
+                          totalIgst = invoice.gst;
+                        }
+                        return (
+                          <TableRow
+                            key={invoice._id}
+                            sx={{ backgroundColor: "white" }}
                           >
-                            Grand Total
-                          </CustomBodyCell>
-                          <CustomBodyCell
-                            sx={{ fontWeight: "bold", textAlign: "center" }}
-                          >
-                            {filteredInvoices
-                              .reduce(
-                                (sum, invoice) => sum + invoice.totalamt,
-                                0
-                              )
-                              .toFixed(2)}
-                          </CustomBodyCell>
-                          <CustomBodyCell
-                            sx={{ fontWeight: "bold", textAlign: "center" }}
-                          >
-                            {filteredInvoices
-                              .filter((item) => item.state === profileState)
-                              .flatMap((item) => item.sgstArray) // flatten all cgst arrays
-                              .reduce((sum, val) => sum + val, 0)
-                              .toFixed(2)}
-                          </CustomBodyCell>
-                          <CustomBodyCell
-                            sx={{ fontWeight: "bold", textAlign: "center" }}
-                          >
-                            {filteredInvoices
-                              .filter((item) => item.state === profileState)
-                              .flatMap((item) => item.cgstArray) // flatten all cgst arrays
-                              .reduce((sum, val) => sum + val, 0)
-                              .toFixed(2)}
-                          </CustomBodyCell>
-                          <CustomBodyCell
-                            sx={{ fontWeight: "bold", textAlign: "center" }}
-                          >
-                            {filteredInvoices
-                              .filter((item) => item.state !== profileState)
-                              .reduce((sum, invoice) => sum + invoice.gst, 0)
-                              .toFixed(2)}
-                          </CustomBodyCell>
-                          <CustomBodyCell
-                            sx={{ fontWeight: "bold", textAlign: "center" }}
-                          >
-                            {filteredInvoices
-                              .reduce(
-                                (sum, invoice) => sum + invoice.payableamt,
-                                0
-                              )
-                              .toFixed(2)}
-                          </CustomBodyCell>
-                        </TableRow>
-                      </>
-                    ) : (
-                      <TableRow>
-                        <CustomBodyCell colSpan={6} align="center">
-                          No invoices found for the selected date range.
+                            <CustomBodyCell>{billingDate}</CustomBodyCell>
+                            <CustomBodyCell>{invoice.invoiceno}</CustomBodyCell>
+                            <CustomBodyCell>{invoice.custname}</CustomBodyCell>
+                            <CustomBodyCell>{invoice.custgst}</CustomBodyCell>
+                            <CustomBodyCell sx={{ textAlign: "center" }}>
+                              {invoice.totalamt.toFixed(2)}
+                            </CustomBodyCell>
+                            <CustomBodyCell sx={{ textAlign: "center" }}>
+                              {totalSgst.toFixed(2)}
+                            </CustomBodyCell>
+                            <CustomBodyCell sx={{ textAlign: "center" }}>
+                              {totalCgst.toFixed(2)}
+                            </CustomBodyCell>
+                            <CustomBodyCell sx={{ textAlign: "center" }}>
+                              {totalIgst.toFixed(2)}
+                            </CustomBodyCell>
+                            <CustomBodyCell sx={{ textAlign: "center" }}>
+                              {invoice.payableamt.toFixed(2)}
+                            </CustomBodyCell>
+                          </TableRow>
+                        );
+                      })}
+                      <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                        <CustomBodyCell
+                          colSpan={4}
+                          sx={{ fontWeight: "bold", textAlign: "center" }}
+                        >
+                          Grand Total
+                        </CustomBodyCell>
+                        <CustomBodyCell
+                          sx={{ fontWeight: "bold", textAlign: "center" }}
+                        >
+                          {filteredInvoices
+                            .reduce((sum, invoice) => sum + invoice.totalamt, 0)
+                            .toFixed(2)}
+                        </CustomBodyCell>
+                        <CustomBodyCell
+                          sx={{ fontWeight: "bold", textAlign: "center" }}
+                        >
+                          {filteredInvoices
+                            .filter((item) => item.state === profileState)
+                            .flatMap((item) => item.sgstArray) // flatten all cgst arrays
+                            .reduce((sum, val) => sum + val, 0)
+                            .toFixed(2)}
+                        </CustomBodyCell>
+                        <CustomBodyCell
+                          sx={{ fontWeight: "bold", textAlign: "center" }}
+                        >
+                          {filteredInvoices
+                            .filter((item) => item.state === profileState)
+                            .flatMap((item) => item.cgstArray) // flatten all cgst arrays
+                            .reduce((sum, val) => sum + val, 0)
+                            .toFixed(2)}
+                        </CustomBodyCell>
+                        <CustomBodyCell
+                          sx={{ fontWeight: "bold", textAlign: "center" }}
+                        >
+                          {filteredInvoices
+                            .filter((item) => item.state !== profileState)
+                            .reduce((sum, invoice) => sum + invoice.gst, 0)
+                            .toFixed(2)}
+                        </CustomBodyCell>
+                        <CustomBodyCell
+                          sx={{ fontWeight: "bold", textAlign: "center" }}
+                        >
+                          {filteredInvoices
+                            .reduce(
+                              (sum, invoice) => sum + invoice.payableamt,
+                              0
+                            )
+                            .toFixed(2)}
                         </CustomBodyCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            ) : (
-              <Typography
-                variant="h6"
-                sx={{ textAlign: "center", color: "gray", mt: 4 }}
-              >
-                Please select both start and end dates to view the invoice data.
-              </Typography>
-            )}
+                    </>
+                  ) : (
+                    <TableRow>
+                      <CustomBodyCell colSpan={9} align="center">
+                        No invoices found for the selected date range.
+                      </CustomBodyCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Box>
         </div>
       </div>

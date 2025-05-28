@@ -31,7 +31,10 @@ import {
   PartyPopper,
   Calculator,
   Banknote,
+  Bed,
+  UserPen,
 } from "lucide-react";
+
 import { jwtVerify } from "jose"; // Import jwtVerify for token verification
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -273,7 +276,7 @@ export default function Navbar() {
               onMouseLeave={handleMouseLeave}
             >
               <button className="px-1 py-2 rounded-t-sm flex items-center space-x-1 hover:bg-cyan-800 transition-colors duration-300">
-                <Monitor className="w-4 h-4" />
+                <UserPen className="w-4 h-4" />
                 <span>Frontoffice</span>
               </button>
               {openDropdown === 3 && (
@@ -308,7 +311,7 @@ export default function Navbar() {
               onMouseLeave={handleMouseLeave}
             >
               <button className="px-1 py-2 rounded-t-sm flex items-center space-x-1 hover:bg-cyan-800 transition-colors duration-300">
-                <PaintBucket className="w-4 h-4" />
+                <Bed className="w-4 h-4" />
                 <span>Housekeeping</span>
               </button>
               {openDropdown === 4 && (

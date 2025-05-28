@@ -18,7 +18,13 @@ import {
   Tags,
   Info,
   Calendar,
+  UserX,
+  CalendarArrowDown,
+  CalendarArrowUp,
+  DoorOpen,
+  DoorClosed,
 } from "lucide-react";
+
 import Navbar from "../../_components/Navbar";
 import axios from "axios";
 import { Footer } from "../../_components/Footer";
@@ -977,23 +983,23 @@ export default function RoomDashboard() {
   // Summary Data
   const summaryItems = [
     {
-      icon: Bed,
+      icon: DoorClosed,
       title: "Occupied Rooms",
       count: rooms.filter((room) => room.occupied === "Occupied").length,
     },
     {
-      icon: Home,
-      title: "Vacant Rooms",
+      icon: DoorOpen,
+      title: "Available Rooms",
       count: rooms.filter((room) => room.occupied === "Vacant").length,
     },
     {
-      icon: PlaneTakeoff,
-      title: "Expected Arrivals",
+      icon: CalendarArrowDown,
+      title: "Expected Check-in",
       count: rooms.filter((room) => room.occupied === "Occupied").length,
     },
-    { icon: PlaneLanding, title: "Expected Departures", count: "0" },
-    { icon: UserCheck, title: "Today's Check In", count: "0" },
-    { icon: UserPlus, title: "Today's Check Out", count: "0" },
+    { icon: CalendarArrowUp, title: "Expected Check-out", count: "0" },
+    { icon: UserCheck, title: "Check-In", count: "0" },
+    { icon: UserX, title: "Check-Out", count: "0" },
   ];
 
   return (
