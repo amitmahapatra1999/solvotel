@@ -204,9 +204,12 @@ export default function AddUser() {
   };
 
   const roleOptions = [
-    { value: "Property & Frontdesk", label: "Property & Frontdesk" }, // Updated to match schema
+    { value: "Property", label: "Property" },
+    { value: "Frontoffice", label: "Frontoffice" },
+    { value: "Housekeeping", label: "Housekeeping" },
     { value: "Restaurant", label: "Restaurant" },
     { value: "Inventory", label: "Inventory" },
+    { value: "Accounts", label: "Accounts" },
   ];
 
   const userTypeOptions = [

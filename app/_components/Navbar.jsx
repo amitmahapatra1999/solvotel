@@ -160,12 +160,22 @@ export default function Navbar() {
     authToken ||
     (!userAuthToken &&
       !authToken &&
-      (roles.includes("Property & Frontdesk") ||
+      (roles.includes("Property") ||
         roles.includes("Restaurant") ||
-        roles.includes("Inventory")));
+        roles.includes("Inventory") ||
+        roles.includes("Frontoffice") ||
+        roles.includes("Accounts") ||
+        roles.includes("Housekeeping")));
   const showProperty =
+    authToken || ((userAuthToken || authToken) && roles.includes("Property"));
+  const showFrontoffice =
     authToken ||
-    ((userAuthToken || authToken) && roles.includes("Property & Frontdesk"));
+    ((userAuthToken || authToken) && roles.includes("Frontoffice"));
+  const showAccounts =
+    authToken || ((userAuthToken || authToken) && roles.includes("Accounts"));
+  const showHousekeeping =
+    authToken ||
+    ((userAuthToken || authToken) && roles.includes("Housekeeping"));
 
   const showRestaurant =
     authToken || ((userAuthToken || authToken) && roles.includes("Restaurant"));
@@ -269,7 +279,7 @@ export default function Navbar() {
             </li>
           )}
           {/* Property (shown if authToken exists or logged in with userAuthToken and has role) */}
-          {showProperty && (
+          {showFrontoffice && (
             <li
               className="relative group"
               onMouseEnter={() => handleMouseEnter(3)}
@@ -304,7 +314,7 @@ export default function Navbar() {
               )}
             </li>
           )}
-          {showProperty && (
+          {showHousekeeping && (
             <li
               className="relative group"
               onMouseEnter={() => handleMouseEnter(4)}
@@ -428,7 +438,7 @@ export default function Navbar() {
               )}
             </li>
           )}
-          {showMaster && (
+          {showAccounts && (
             <li
               className="relative group"
               onMouseEnter={() => handleMouseEnter(7)}

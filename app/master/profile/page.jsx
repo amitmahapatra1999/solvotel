@@ -4,9 +4,10 @@ import {
   TextField,
   Button,
   Box,
-  Grid,
+  Grid2,
   Typography,
   MenuItem,
+  Divider,
 } from "@mui/material";
 import Navbar from "../../_components/Navbar";
 import { Footer } from "../../_components/Footer";
@@ -862,6 +863,20 @@ const ProfilePage = () => {
     state: "",
     district: "",
     pinCode: "",
+    termsAndCondition: "",
+    hotelInTime: "",
+    hotelOutTime: "",
+    resName: "",
+    resMobileNo: "",
+    resAltMobile: "",
+    resEmail: "",
+    resGstNo: "",
+    resWebsite: "",
+    resAddressLine1: "",
+    resAddressLine2: "",
+    resState: "",
+    resDistrict: "",
+    resPinCode: "",
   });
 
   const [profileExists, setProfileExists] = useState(false);
@@ -880,6 +895,15 @@ const ProfilePage = () => {
       "district",
       "pinCode",
       "state",
+      "resName",
+      "resMobileNo",
+      "resEmail",
+      "resAddressLine1",
+      "resDistrict",
+      "resPinCode",
+      "resState",
+      "hotelInTime",
+      "hotelOutTime",
     ];
     return requiredFields.every((field) => formData[field].trim() !== "");
   };
@@ -919,6 +943,21 @@ const ProfilePage = () => {
           state: profileData.state || "",
           district: profileData.district || "",
           pinCode: profileData.pinCode || "",
+          termsAndCondition: profileData.termsAndCondition || "",
+          hotelInTime: profileData.hotelInTime || "",
+          hotelOutTime: profileData.hotelOutTime || "",
+          //
+          resName: profileData.resName || "",
+          resMobileNo: profileData.resMobileNo || "",
+          resAltMobile: profileData.resAltMobile || "",
+          resEmail: profileData.resEmail || "",
+          resGstNo: profileData.resGstNo || "",
+          resWebsite: profileData.resWebsite || "",
+          resAddressLine1: profileData.resAddressLine1 || "",
+          resAddressLine2: profileData.resAddressLine2 || "",
+          resState: profileData.resState || "",
+          resDistrict: profileData.resDistrict || "",
+          resPinCode: profileData.resPinCode || "",
         };
         setFormData(sanitizedData);
         setProfileExists(true);
@@ -1036,31 +1075,28 @@ const ProfilePage = () => {
           theme="dark"
         />
         {isLoading && <Preloader />}
-        <Box
-          sx={{
-            maxWidth: "800px",
-            margin: "50px auto",
-            padding: "20px",
-            border: "1px solid #e0e0e0",
+        <div
+          className="container mx-auto p-5 my-5"
+          style={{
+            maxWidth: "85%",
+            boxShadow: "0px 0px 5px #cecece",
             borderRadius: "8px",
-            backgroundColor: "#fff",
           }}
         >
           <Typography
-            variant="h4"
-            component="h1"
+            variant="h5"
             sx={{
               marginBottom: "20px",
               fontWeight: "bold",
-              textAlign: "center",
             }}
           >
-            Profile
+            💠Hotel Details
           </Typography>
           <form onSubmit={handleSubmit}>
-            <Grid container spacing={3} marginBottom={2}>
-              <Grid item xs={12} sm={6}>
+            <Grid2 container spacing={3} marginBottom={2}>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
+                  size="small"
                   fullWidth
                   label="Hotel Name *"
                   variant="outlined"
@@ -1069,9 +1105,10 @@ const ProfilePage = () => {
                   value={formData.hotelName}
                   onChange={handleChange}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
+                  size="small"
                   fullWidth
                   label="Mobile No *"
                   variant="outlined"
@@ -1080,9 +1117,10 @@ const ProfilePage = () => {
                   value={formData.mobileNo}
                   onChange={handleChange}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
+                  size="small"
                   fullWidth
                   label="Alt Mobile"
                   variant="outlined"
@@ -1090,9 +1128,10 @@ const ProfilePage = () => {
                   value={formData.altMobile}
                   onChange={handleChange}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
+                  size="small"
                   fullWidth
                   label="Email *"
                   variant="outlined"
@@ -1101,12 +1140,10 @@ const ProfilePage = () => {
                   value={formData.email}
                   onChange={handleChange}
                 />
-              </Grid>
-            </Grid>
-
-            <Grid container spacing={3} marginBottom={2}>
-              <Grid item xs={12} sm={6}>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
+                  size="small"
                   fullWidth
                   label="GST No"
                   variant="outlined"
@@ -1114,9 +1151,10 @@ const ProfilePage = () => {
                   value={formData.gstNo}
                   onChange={handleChange}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
+                  size="small"
                   fullWidth
                   label="Website"
                   variant="outlined"
@@ -1124,20 +1162,10 @@ const ProfilePage = () => {
                   value={formData.website}
                   onChange={handleChange}
                 />
-              </Grid>
-            </Grid>
-
-            <Typography
-              variant="h6"
-              component="h2"
-              sx={{ marginBottom: "10px", fontWeight: "bold" }}
-            >
-              Address
-            </Typography>
-
-            <Grid container spacing={3} marginBottom={2}>
-              <Grid item xs={12} sm={6}>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
+                  size="small"
                   fullWidth
                   label="Address Line 1 *"
                   variant="outlined"
@@ -1146,9 +1174,10 @@ const ProfilePage = () => {
                   value={formData.addressLine1}
                   onChange={handleChange}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
+                  size="small"
                   fullWidth
                   label="Address Line 2"
                   variant="outlined"
@@ -1156,9 +1185,10 @@ const ProfilePage = () => {
                   value={formData.addressLine2}
                   onChange={handleChange}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
+                  size="small"
                   fullWidth
                   select
                   label="State *"
@@ -1176,9 +1206,10 @@ const ProfilePage = () => {
                     </MenuItem>
                   ))}
                 </TextField>
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
+                  size="small"
                   fullWidth
                   select
                   label="District *"
@@ -1196,18 +1227,20 @@ const ProfilePage = () => {
                     </MenuItem>
                   ))}
                 </TextField>
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
+                  size="small"
                   fullWidth
                   label="Country"
                   variant="outlined"
                   value="India"
                   disabled
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
+                  size="small"
                   fullWidth
                   label="Pin Code *"
                   variant="outlined"
@@ -1216,14 +1249,222 @@ const ProfilePage = () => {
                   value={formData.pinCode}
                   onChange={handleChange}
                 />
-              </Grid>
-            </Grid>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Check-in Time "
+                  variant="outlined"
+                  required
+                  type="time"
+                  InputLabelProps={{ shrink: true }}
+                  name="hotelInTime"
+                  value={formData.hotelInTime}
+                  onChange={handleChange}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Check-out Time "
+                  variant="outlined"
+                  required
+                  type="time"
+                  InputLabelProps={{ shrink: true }}
+                  name="hotelOutTime"
+                  value={formData.hotelOutTime}
+                  onChange={handleChange}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Terms and Conditions"
+                  variant="outlined"
+                  multiline
+                  rows={4}
+                  name="termsAndCondition"
+                  value={formData.termsAndCondition}
+                  onChange={handleChange}
+                />
+              </Grid2>
+            </Grid2>
+            <Divider sx={{ margin: "20px 0" }} />
+            <Typography
+              variant="h5"
+              sx={{
+                marginBottom: "20px",
+                fontWeight: "bold",
+              }}
+            >
+              💠Restaurant Details
+            </Typography>
+            <Grid2 container spacing={3} marginBottom={2}>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Name"
+                  variant="outlined"
+                  name="resName"
+                  required
+                  value={formData.resName}
+                  onChange={handleChange}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Mobile No"
+                  variant="outlined"
+                  name="resMobileNo"
+                  required
+                  value={formData.resMobileNo}
+                  onChange={handleChange}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Alt Mobile"
+                  variant="outlined"
+                  name="resAltMobile"
+                  value={formData.resAltMobile}
+                  onChange={handleChange}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Email"
+                  variant="outlined"
+                  required
+                  name="resEmail"
+                  value={formData.resEmail}
+                  onChange={handleChange}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="GST No"
+                  variant="outlined"
+                  name="resGstNo"
+                  value={formData.resGstNo}
+                  onChange={handleChange}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Website"
+                  variant="outlined"
+                  name="resWebsite"
+                  value={formData.resWebsite}
+                  onChange={handleChange}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Address Line 1 *"
+                  variant="outlined"
+                  required
+                  name="resAddressLine1"
+                  value={formData.resAddressLine1}
+                  onChange={handleChange}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Address Line 2"
+                  variant="outlined"
+                  name="resAddressLine2"
+                  value={formData.resAddressLine2}
+                  onChange={handleChange}
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  select
+                  label="State"
+                  variant="outlined"
+                  required
+                  name="resState"
+                  value={formData.resState}
+                  onChange={handleChange}
+                >
+                  <MenuItem value="">Select State</MenuItem>
+
+                  {indianStatesAndUTs.map((state) => (
+                    <MenuItem key={state} value={state}>
+                      {state}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  select
+                  label="District"
+                  variant="outlined"
+                  required
+                  name="resDistrict"
+                  value={formData.resDistrict}
+                  onChange={handleChange}
+                  disabled={!formData.state} // Disable until state is selected
+                >
+                  <MenuItem value="">Select District</MenuItem>
+                  {getDistrictOptions().map((district) => (
+                    <MenuItem key={district} value={district}>
+                      {district}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Country"
+                  variant="outlined"
+                  value="India"
+                  disabled
+                />
+              </Grid2>
+              <Grid2 size={{ xs: 12, sm: 6, md: 4 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Pin Code"
+                  variant="outlined"
+                  required
+                  name="resPinCode"
+                  value={formData.resPinCode}
+                  onChange={handleChange}
+                />
+              </Grid2>
+            </Grid2>
 
             <Box textAlign="center">
               <Button
                 type="submit"
                 variant="contained"
-                fullWidth
                 disabled={!isProfileComplete && !areRequiredFieldsFilled()}
                 color="success"
               >
@@ -1231,7 +1472,8 @@ const ProfilePage = () => {
               </Button>
             </Box>
           </form>
-        </Box>
+        </div>
+
         {isProfileComplete && <Footer />}
       </div>
     </div>

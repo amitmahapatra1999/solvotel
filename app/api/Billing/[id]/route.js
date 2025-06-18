@@ -291,17 +291,6 @@ export async function PUT(req, { params }) {
       );
     }
 
-    // Initialize arrays if not present
-    const initializeNestedArrays = (arr, length) =>
-      Array.isArray(arr) ? arr : Array(length).fill([]);
-
-    // Handle nested array updates
-    const updateNestedArray = (target, source, index) => {
-      if (!target[index]) target[index] = [];
-      target[index] = source[index];
-      return target;
-    };
-
     if (data.dueAmount) {
       bill.dueAmount = data.dueAmount;
     }
@@ -312,6 +301,7 @@ export async function PUT(req, { params }) {
 
       // Initialize bill arrays if they don't exist
       if (!Array.isArray(bill.itemList)) bill.itemList = [];
+      if (!Array.isArray(bill.hsnList)) bill.hsnList = [];
       if (!Array.isArray(bill.priceList)) bill.priceList = [];
       if (!Array.isArray(bill.quantityList)) bill.quantityList = [];
       if (!Array.isArray(bill.taxList)) bill.taxList = [];
@@ -320,6 +310,7 @@ export async function PUT(req, { params }) {
 
       // Initialize arrays at room index if they don't exist
       while (bill.itemList.length <= roomIndex) bill.itemList.push([]);
+      while (bill.hsnList.length <= roomIndex) bill.hsnList.push([]);
       while (bill.priceList.length <= roomIndex) bill.priceList.push([]);
       while (bill.quantityList.length <= roomIndex) bill.quantityList.push([]);
       while (bill.taxList.length <= roomIndex) bill.taxList.push([]);
@@ -328,6 +319,7 @@ export async function PUT(req, { params }) {
 
       // Update arrays with new data
       bill.itemList[roomIndex] = data.itemList[roomIndex];
+      bill.hsnList[roomIndex] = data.hsnList[roomIndex];
       bill.priceList[roomIndex] = data.priceList[roomIndex];
       bill.quantityList[roomIndex] = data.quantityList[roomIndex];
       bill.taxList[roomIndex] = data.taxList[roomIndex];

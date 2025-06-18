@@ -112,7 +112,7 @@ export default function LoginPage() {
           // Determine the first role and its first route
           if (roles.length > 0) {
             const firstRole = roles[0]; // Get the first role from the array
-            let redirectPath = "/dashboard"; // Default redirect if no role match
+            let redirectPath = "/property/roomdashboard"; // Default redirect if no role match
             switch (firstRole) {
               case "Property & Frontdesk":
                 redirectPath = "/property/roomdashboard"; // First link for Property & Frontdesk
@@ -124,14 +124,14 @@ export default function LoginPage() {
                 redirectPath = "/Inventory/Category"; // First link for Inventory
                 break;
               default:
-                redirectPath = "/dashboard"; // Fallback redirect
+                redirectPath = "/property/roomdashboard"; // Fallback redirect
             }
             router.push(redirectPath);
           } else {
-            router.push("/dashboard"); // Redirect to dashboard if no roles
+            router.push("/property/roomdashboard"); // Redirect to dashboard if no roles
           }
         } else {
-          router.push("/dashboard"); // Fallback redirect if user data fetch fails
+          router.push("/property/roomdashboard"); // Fallback redirect if user data fetch fails
         }
       } else {
         toast.error(data.error || "Login failed", {

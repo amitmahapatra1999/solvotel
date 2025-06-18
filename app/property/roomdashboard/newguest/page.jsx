@@ -26,6 +26,8 @@ import TextField from "@mui/material/TextField";
 
 import MenuItem from "@mui/material/MenuItem";
 import { Autocomplete } from "@mui/material";
+import { getCookie } from "cookies-next";
+import { jwtVerify } from "jose";
 const indianStatesAndUTs = [
   "Andaman and Nicobar Islands",
   "Andhra Pradesh",
@@ -66,6 +68,7 @@ const indianStatesAndUTs = [
 ];
 
 export default function BookingForm() {
+  const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -319,12 +322,47 @@ export default function BookingForm() {
 
   const router = useRouter();
 
+  // Fetch existing profile data
+  const fetchProfileData = async () => {
+    try {
+      setLoading(true);
+      const token = getCookie("authToken");
+      if (!token) {
+        router.push("/");
+        return;
+      }
+
+      const decoded = await jwtVerify(
+        token,
+        new TextEncoder().encode(SECRET_KEY)
+      );
+      const userId = decoded.payload.id;
+
+      const response = await fetch(`/api/Profile/${userId}`);
+      const result = await response.json();
+
+      if (result.success) {
+        const profileData = result.data;
+        setFormData((prev) => ({
+          ...prev,
+          expectedArrival: profileData.hotelInTime,
+          expectedDeparture: profileData.hotelOutTime,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching profile data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const generateBookingId = () => {
       const timestamp = Date.now().toString(36);
       const randomString = Math.random().toString(36).substring(2, 8);
       return `SOLV-${timestamp}-${randomString}`.toUpperCase();
     };
+    fetchProfileData();
 
     setFormData((prev) => ({ ...prev, bookingId: generateBookingId() }));
   }, []);
@@ -528,6 +566,7 @@ export default function BookingForm() {
       let roomCharges = [];
       let roomTaxes = [];
       let quantities = [];
+      let hsn = [];
       let totalAmount = 0;
 
       // Process each selected room
@@ -569,6 +608,7 @@ export default function BookingForm() {
           itemList: Array.from({ length: allRoomNumbers.length }, () => [
             "Room Charge",
           ]),
+          hsnList: hsn,
           priceList: roomCharges,
           taxList: roomTaxes,
           quantityList: quantities,

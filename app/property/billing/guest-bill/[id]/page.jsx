@@ -18,6 +18,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Grid2,
 } from "@mui/material";
 import Preloader from "../../../../_components/Preloader";
 
@@ -39,11 +40,13 @@ const BookingDashboard = () => {
   const [openBillPaymentModal, setOpenBillPaymentModal] = useState(false);
   // Service Form States
   const [serviceName, setServiceName] = useState("");
+  const [serviceHsn, setServiceHsn] = useState("");
   const [serviceCGST, setServiceCGST] = useState("0"); // Changed from serviceTax to serviceCGST
   const [serviceSGST, setServiceSGST] = useState("0");
   const [servicePrice, setServicePrice] = useState("0");
   const [serviceTotal, setServiceTotal] = useState("0");
   const [services, setServices] = useState([]);
+
   // Food Form States
   const [menuItems, setMenuItems] = useState([]);
   const [selectedFoodItem, setSelectedFoodItem] = useState([]);
@@ -75,9 +78,10 @@ const BookingDashboard = () => {
     transform: "translate(-50%, -50%)",
     width: 400,
     bgcolor: "background.paper",
-    border: "2px solid #000",
+
     boxShadow: 24,
-    p: 4,
+    p: 3,
+    borderRadius: 1,
   };
 
   // Calculate service total when price or tax changes
@@ -143,6 +147,7 @@ const BookingDashboard = () => {
 
         // Process existing items with proper null checks
         const existingServices = billingData.itemList || [];
+        const existingHsns = billingData.hsnList || [];
         const existingPrices = billingData.priceList || [];
         const existingTaxes = billingData.taxList || [];
         const existingQuantities = billingData.quantityList || [];
@@ -153,7 +158,7 @@ const BookingDashboard = () => {
         const serviceItemsArray = [];
         existingServices.forEach((roomServices, roomIndex) => {
           if (!roomServices) return; // Skip if roomServices is undefined
-
+          const roomHsns = existingHsns[roomIndex] || [];
           const roomPrices = existingPrices[roomIndex] || [];
           const roomTaxes = existingTaxes[roomIndex] || [];
           const roomQuantities = existingQuantities[roomIndex] || [];
@@ -169,6 +174,7 @@ const BookingDashboard = () => {
 
             const itemDetails = {
               name: item,
+              hsn: roomHsns[itemIndex] || 0,
               price: roomPrices[itemIndex] || 0,
               quantity: roomQuantities[itemIndex] || 1,
               tax: roomTaxes[itemIndex] || 0,
@@ -258,6 +264,7 @@ const BookingDashboard = () => {
   const handleOpenServicesModal = () => {
     setOpenServicesModal(true);
     setServiceName("");
+    setServiceHsn("");
     setServicePrice("");
     setServiceCGST("");
     setServiceSGST("");
@@ -266,6 +273,7 @@ const BookingDashboard = () => {
   const handleCloseServicesModal = () => {
     setOpenServicesModal(false);
     setServiceName("");
+    setServiceHsn("");
     setServicePrice("");
     setServiceCGST("");
     setServiceSGST("");
@@ -333,6 +341,9 @@ const BookingDashboard = () => {
       const updatedItemList = Array.isArray(billing.itemList)
         ? [...billing.itemList]
         : [];
+      const updatedHsnList = Array.isArray(billing.hsnList)
+        ? [...billing.hsnList]
+        : [];
       const updatedPriceList = Array.isArray(billing.priceList)
         ? [...billing.priceList]
         : [];
@@ -353,6 +364,9 @@ const BookingDashboard = () => {
       while (updatedItemList.length <= selectedRoomIndex) {
         updatedItemList.push([]);
       }
+      while (updatedHsnList.length <= selectedRoomIndex) {
+        updatedHsnList.push([]);
+      }
       while (updatedPriceList.length <= selectedRoomIndex) {
         updatedPriceList.push([]);
       }
@@ -371,6 +385,7 @@ const BookingDashboard = () => {
 
       // Add new service to arrays
       updatedItemList[selectedRoomIndex].push(serviceName);
+      updatedHsnList[selectedRoomIndex].push(serviceHsn.toString());
       updatedPriceList[selectedRoomIndex].push(Number.parseFloat(servicePrice));
       updatedTaxList[selectedRoomIndex].push(totalTaxRate); // Store total tax rate for compatibility
       updatedQuantityList[selectedRoomIndex].push(1);
@@ -392,6 +407,7 @@ const BookingDashboard = () => {
         `/api/Billing/${id}`,
         {
           itemList: updatedItemList,
+          hsnList: updatedHsnList,
           priceList: updatedPriceList,
           taxList: updatedTaxList,
           quantityList: updatedQuantityList,
@@ -407,6 +423,7 @@ const BookingDashboard = () => {
       const newService = {
         roomIndex: selectedRoomIndex,
         name: serviceName,
+        hsn: serviceHsn,
         price: Number.parseFloat(serviceTotal),
         tax: totalTaxRate,
         cgst: Number.parseFloat(serviceCGST || 0),
@@ -936,7 +953,6 @@ const BookingDashboard = () => {
               </Typography>
               <TextField
                 fullWidth
-                margin="normal"
                 label="Payment Amount"
                 type="number"
                 helperText={`Remaining Due: ₹${remainingDueAmount.toFixed(2)}`}
@@ -949,7 +965,6 @@ const BookingDashboard = () => {
               />
               <TextField
                 fullWidth
-                margin="normal"
                 select
                 label="Mode of Payment"
                 value={modeOfPayment}
@@ -967,7 +982,6 @@ const BookingDashboard = () => {
               </TextField>
               <TextField
                 fullWidth
-                margin="normal"
                 label="Remarks (Optional)"
                 multiline
                 rows={3}
@@ -1138,6 +1152,7 @@ const BookingDashboard = () => {
                 <tr className="bg-gray-200">
                   <th className="p-2 text-left">Room No.</th>
                   <th className="p-2 text-left">Item</th>
+                  <th className="p-2 text-left">HSN/SAC</th>
                   <th className="p-2 text-center">Rate</th>
                   <th className="p-2 text-center">CGST</th>
                   <th className="p-2 text-center">SGST</th>
@@ -1151,6 +1166,7 @@ const BookingDashboard = () => {
                       Room #{billing.roomNo[service.roomIndex]}
                     </td>
                     <td className="p-2 text-left">{service.name}</td>
+                    <td className="p-2 text-left">{service.hsn}</td>
                     <td className="p-2 text-center">{service.price}</td>
                     <td className="p-2 text-center">
                       {service.cgst || service.tax / 2}%
@@ -1177,81 +1193,102 @@ const BookingDashboard = () => {
                   Add Service
                 </Typography>
                 {/* Room Selection Dropdown */}
-                <FormControl fullWidth margin="normal">
-                  <Typography
-                    id="add-services-modal"
-                    variant="h9"
-                    component="h1"
-                    sx={{ color: "text.secondary" }}
-                    mb={1}
-                  >
-                    Select Room
-                  </Typography>
-                  <Select
-                    value={selectedRoomIndex}
-                    onChange={(e) =>
-                      setSelectedRoomIndex(Number(e.target.value))
-                    }
-                  >
-                    {billing.roomNo.map((room, index) => (
-                      <MenuItem key={index} value={index}>
-                        Room {room}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  label="Service Details"
-                  value={serviceName}
-                  onChange={(e) => setServiceName(e.target.value)}
-                />
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  label="Service Price"
-                  type="number"
-                  value={servicePrice}
-                  onChange={(e) => setServicePrice(e.target.value)}
-                />
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  label="CGST (%)"
-                  type="number"
-                  value={serviceCGST}
-                  onChange={(e) => setServiceCGST(e.target.value)}
-                />
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  label="SGST (%)"
-                  type="number"
-                  value={serviceSGST}
-                  onChange={(e) => setServiceSGST(e.target.value)}
-                />
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  readOnly
-                  disabled
-                  label="Total Amount"
-                  type="number"
-                  value={serviceTotal}
-                  InputProps={{
-                    readOnly: true,
-                  }}
-                />
-                <TextField
-                  fullWidth
-                  margin="normal"
-                  label="Remarks (Optional)"
-                  multiline
-                  rows={3}
-                  value={serviceRemarks}
-                  onChange={(e) => setServiceRemarks(e.target.value)}
-                />
+                <Grid2 container spacing={2}>
+                  <Grid2 size={{ xs: 12 }}>
+                    <FormControl fullWidth margin="normal">
+                      <Typography
+                        id="add-services-modal"
+                        variant="h9"
+                        component="h1"
+                        sx={{ color: "text.secondary" }}
+                        mb={1}
+                      >
+                        Select Room
+                      </Typography>
+                      <Select
+                        value={selectedRoomIndex}
+                        onChange={(e) =>
+                          setSelectedRoomIndex(Number(e.target.value))
+                        }
+                      >
+                        {billing.roomNo.map((room, index) => (
+                          <MenuItem key={index} value={index}>
+                            Room {room}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12 }}>
+                    <TextField
+                      fullWidth
+                      label="Service Details"
+                      value={serviceName}
+                      onChange={(e) => setServiceName(e.target.value)}
+                    />
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth
+                      label="HSN/SAC"
+                      value={serviceHsn}
+                      onChange={(e) => setServiceHsn(e.target.value)}
+                    />
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
+                    {" "}
+                    <TextField
+                      fullWidth
+                      label="Service Price"
+                      type="number"
+                      value={servicePrice}
+                      onChange={(e) => setServicePrice(e.target.value)}
+                    />
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
+                    {" "}
+                    <TextField
+                      fullWidth
+                      label="CGST (%)"
+                      type="number"
+                      value={serviceCGST}
+                      onChange={(e) => setServiceCGST(e.target.value)}
+                    />
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      fullWidth
+                      label="SGST (%)"
+                      type="number"
+                      value={serviceSGST}
+                      onChange={(e) => setServiceSGST(e.target.value)}
+                    />
+                  </Grid2>
+                  <Grid2 size={{ xs: 12 }}>
+                    <TextField
+                      fullWidth
+                      readOnly
+                      disabled
+                      label="Total Amount"
+                      type="number"
+                      value={serviceTotal}
+                      InputProps={{
+                        readOnly: true,
+                      }}
+                    />
+                  </Grid2>
+                  <Grid2 size={{ xs: 12 }}>
+                    <TextField
+                      fullWidth
+                      label="Remarks (Optional)"
+                      multiline
+                      rows={3}
+                      value={serviceRemarks}
+                      onChange={(e) => setServiceRemarks(e.target.value)}
+                    />
+                  </Grid2>
+                </Grid2>
+
                 <Box
                   sx={{
                     display: "flex",
@@ -1345,7 +1382,6 @@ const BookingDashboard = () => {
 
                   <TextField
                     fullWidth
-                    margin="normal"
                     readOnly
                     disabled
                     label="Food Price"
@@ -1355,7 +1391,6 @@ const BookingDashboard = () => {
 
                   <TextField
                     fullWidth
-                    margin="normal"
                     readOnly
                     disabled
                     label="CGST (%)"
@@ -1365,7 +1400,6 @@ const BookingDashboard = () => {
 
                   <TextField
                     fullWidth
-                    margin="normal"
                     readOnly
                     disabled
                     label="SGST (%)"
@@ -1375,7 +1409,6 @@ const BookingDashboard = () => {
 
                   <TextField
                     fullWidth
-                    margin="normal"
                     type="number"
                     label="Quantity"
                     value={foodQuantity}
@@ -1384,7 +1417,6 @@ const BookingDashboard = () => {
                   />
                   <TextField
                     fullWidth
-                    margin="normal"
                     label="Food Remarks (Optional)"
                     multiline
                     rows={3}

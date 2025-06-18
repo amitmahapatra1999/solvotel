@@ -155,7 +155,7 @@ const PrintableInvoice = ({ invoiceId }) => {
 
   // Determine if invoice state matches profile state
   const isSameState =
-    invoice.state && profile.state && invoice.state === profile.state;
+    invoice.state && profile.resState && invoice.state === profile.resState;
 
   // Prepare items with correct attributes for display
   const preparedItems = invoice.menuitem.map((item, index) => ({
@@ -203,7 +203,7 @@ const PrintableInvoice = ({ invoiceId }) => {
                   variant="h5"
                   sx={{ fontWeight: "bold", color: "#00bcd4" }}
                 >
-                  {profile.hotelName}
+                  {profile.resName}
                 </Typography>
               </Box>
               <Typography
@@ -211,21 +211,22 @@ const PrintableInvoice = ({ invoiceId }) => {
                 color="textSecondary"
                 sx={{ mb: 0.5 }}
               >
-                {profile.addressLine1 || "N/A"}, {profile.addressLine2 || "N/A"}
+                {profile.resAddressLine1 || "N/A"},{" "}
+                {profile.resAddressLine2 || "N/A"}
               </Typography>
               <Typography
                 variant="body2"
                 color="textSecondary"
                 sx={{ mb: 0.5 }}
               >
-                {profile.district || "N/A"} - {profile.pinCode || "N/A"},
+                {profile.resDistrict || "N/A"} - {profile.resPinCode || "N/A"},
               </Typography>
               <Typography
                 variant="body2"
                 color="textSecondary"
                 sx={{ mb: 0.5 }}
               >
-                {profile.state || "N/A"}, {profile.country || "India"}
+                {profile.resState || "N/A"}, {profile.resCountry || "India"}
               </Typography>
               <Typography
                 variant="body2"
@@ -239,7 +240,7 @@ const PrintableInvoice = ({ invoiceId }) => {
                 color="textSecondary"
                 sx={{ mb: 0.5 }}
               >
-                Restaurant GST No: {profile.gstNo || "N/A"}
+                Restaurant GST No: {profile.resGstNo || "N/A"}
               </Typography>
             </Grid>
             <Grid item xs={6} sx={{ textAlign: "right" }}>

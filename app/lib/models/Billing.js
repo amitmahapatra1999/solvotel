@@ -10,6 +10,9 @@ const BillingSchema = new mongoose.Schema(
     itemList: {
       type: [[String]],
     },
+    hsnList: {
+      type: [[String]],
+    },
     priceList: {
       type: [[Number]],
       validate: {

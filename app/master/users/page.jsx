@@ -149,6 +149,20 @@ const StyledSelect = styled(Select)(({ theme }) => ({
   },
 }));
 
+const roleOptions = [
+  { value: "Property", label: "Property" },
+  { value: "Frontoffice", label: "Frontoffice" },
+  { value: "Housekeeping", label: "Housekeeping" },
+  { value: "Restaurant", label: "Restaurant" },
+  { value: "Inventory", label: "Inventory" },
+  { value: "Accounts", label: "Accounts" },
+];
+
+const userTypeOptions = [
+  { value: "Online", label: "Online" },
+  { value: "Offline", label: "Offline" },
+];
+
 export default function Page() {
   const [openDialog, setOpenDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -593,11 +607,11 @@ export default function Page() {
                         error={!!errors.roles}
                         sx={{ mb: errors.roles ? 0 : 2 }}
                       >
-                        <MenuItem value="Property & Frontdesk">
-                          Property & Frontdesk
-                        </MenuItem>
-                        <MenuItem value="Restaurant">Restaurant</MenuItem>
-                        <MenuItem value="Inventory">Inventory</MenuItem>
+                        {roleOptions.map((item, index) => (
+                          <MenuItem value={item.value} key={index}>
+                            {item?.label}
+                          </MenuItem>
+                        ))}
                       </StyledSelect>
                     )}
                   />
