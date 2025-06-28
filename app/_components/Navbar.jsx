@@ -450,6 +450,12 @@ export default function Navbar() {
               </button>
               {openDropdown === 7 && (
                 <ul className="absolute top-[100%] left-0 w-48 bg-white text-gray-800 rounded-b-lg shadow-xl z-10">
+                  <Link href="/expense">
+                    <li className="px-4 py-2 hover:text-blue-900 flex items-center space-x-2 transition-colors duration-200">
+                      <ClipboardList className="w-4 h-4 hover:text-blue-900" />
+                      <span>Manage Expenses</span>
+                    </li>
+                  </Link>
                   <Link href="/Inventory/StockReport">
                     <li className="px-4 py-2 hover:text-blue-900 flex items-center space-x-2 transition-colors duration-200">
                       <ShoppingCart className="w-4 h-4 hover:text-blue-900 " />

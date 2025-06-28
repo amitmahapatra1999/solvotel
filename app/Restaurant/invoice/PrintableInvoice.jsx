@@ -251,7 +251,7 @@ const PrintableInvoice = ({ invoiceId }) => {
                 Invoice
               </Typography>
               <Typography variant="body1" color="textSecondary">
-                #{invoice.invoiceno}
+                #INV-{invoice.invoiceno}
               </Typography>
             </Grid>
           </Grid>

@@ -127,7 +127,7 @@ const InvoicePage = () => {
         }
         return {
           "Invoice Date": billingDate,
-          "Invoice No": item?.invoiceno,
+          "Invoice No": `INV-${item?.invoiceno}`,
           "Customer Name": item?.custname,
           GSTIN: item?.custgst,
           "Taxable Amount": item?.totalamt.toFixed(2),
@@ -300,7 +300,9 @@ const InvoicePage = () => {
                             sx={{ backgroundColor: "white" }}
                           >
                             <CustomBodyCell>{billingDate}</CustomBodyCell>
-                            <CustomBodyCell>{invoice.invoiceno}</CustomBodyCell>
+                            <CustomBodyCell>
+                              INV-{invoice.invoiceno}
+                            </CustomBodyCell>
                             <CustomBodyCell>{invoice.custname}</CustomBodyCell>
                             <CustomBodyCell>{invoice.custgst}</CustomBodyCell>
                             <CustomBodyCell sx={{ textAlign: "center" }}>

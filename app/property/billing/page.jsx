@@ -409,7 +409,7 @@ export default function Billing() {
                   <CustomHeadingCell>#</CustomHeadingCell>
                   <CustomHeadingCell>Booking ID</CustomHeadingCell>
                   <CustomHeadingCell>Guest</CustomHeadingCell>
-                  <CustomHeadingCell>Room No</CustomHeadingCell>
+                  <CustomHeadingCell width="120px">Room No</CustomHeadingCell>
                   <CustomHeadingCell>Check In/Out</CustomHeadingCell>
                   <CustomHeadingCell>Booked On</CustomHeadingCell>
                   <CustomHeadingCell>No. Of Guest</CustomHeadingCell>

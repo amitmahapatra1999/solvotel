@@ -33,6 +33,7 @@ const BookingDashboard = () => {
   const [printableServiceInvoice, setPrintableServiceInvoice] = useState(null);
   const [showPrintModal, setShowPrintModal] = useState(false);
   // Modal States
+  console.log(bookingData);
 
   const [openServicesModal, setOpenServicesModal] = useState(false);
   const [openFoodModal, setOpenFoodModal] = useState(false);
@@ -153,12 +154,14 @@ const BookingDashboard = () => {
         const existingQuantities = billingData.quantityList || [];
         const existingCGSTArray = billingData.cgstArray || [];
         const existingSGSTArray = billingData.sgstArray || [];
+
         // Separate food and service items
         const foodItemsArray = [];
         const serviceItemsArray = [];
         existingServices.forEach((roomServices, roomIndex) => {
           if (!roomServices) return; // Skip if roomServices is undefined
           const roomHsns = existingHsns[roomIndex] || [];
+
           const roomPrices = existingPrices[roomIndex] || [];
           const roomTaxes = existingTaxes[roomIndex] || [];
           const roomQuantities = existingQuantities[roomIndex] || [];
@@ -166,15 +169,16 @@ const BookingDashboard = () => {
           const roomSGST = existingSGSTArray[roomIndex] || [];
 
           roomServices.forEach((item, itemIndex) => {
-            if (!item) return; // Skip if item is undefined
+            if (!item) return;
 
             const menuItem = menuItemsList.find(
               (menuItem) => menuItem.itemName === item
             );
 
+            const isService = !menuItem;
+
             const itemDetails = {
               name: item,
-              hsn: roomHsns[itemIndex] || 0,
               price: roomPrices[itemIndex] || 0,
               quantity: roomQuantities[itemIndex] || 1,
               tax: roomTaxes[itemIndex] || 0,
@@ -183,10 +187,14 @@ const BookingDashboard = () => {
               roomIndex: roomIndex,
             };
 
-            if (menuItem) {
+            if (isService) {
+              // Skip "Room Charge"
+              if (item !== "Room Charge") {
+                itemDetails.hsn = roomHsns[itemIndex] || 0;
+                serviceItemsArray.push(itemDetails);
+              }
+            } else {
               foodItemsArray.push(itemDetails);
-            } else if (item !== "Room Charge") {
-              serviceItemsArray.push(itemDetails);
             }
           });
         });

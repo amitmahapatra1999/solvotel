@@ -106,7 +106,7 @@ export default function BookingForm() {
     checkOut: "",
     expectedArrival: "",
     expectedDeparture: "",
-    bookingStatus: "Confirm",
+    bookingStatus: "Confirmed",
     address: "",
     remarks: "",
     state: "West Bengal",
@@ -144,22 +144,15 @@ export default function BookingForm() {
       "expectedArrival",
       "expectedDeparture",
       "mobileNo",
-      "guestid",
-      "guestidno",
       "checkIn",
       "checkOut",
-      "dateofbirth",
       "bookingStatus",
     ];
 
     // Initialize all error flags at the start
     let dateErrors = false;
     let mobileError = false;
-    let emailError = false;
-    let gstinError = false;
-    let referenceError = false;
-    let adultsError = false;
-    let childrenError = false;
+
     let passportError = false;
     let visaError = false;
     let passportIssueError = false;
@@ -593,6 +586,7 @@ export default function BookingForm() {
         roomCharges.push([roomCharge]);
         roomTaxes.push([roomTax]);
         quantities.push([1]);
+        hsn.push(["996311"]);
         totalAmount += roomCharge;
 
         // Update room records...
@@ -965,7 +959,7 @@ export default function BookingForm() {
                       select
                       required
                     >
-                      {["Confirm", "Block"].map((status) => (
+                      {["Confirmed", "Blocked"].map((status) => (
                         <MenuItem key={status} value={status}>
                           {status}
                         </MenuItem>

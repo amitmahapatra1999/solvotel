@@ -21,7 +21,6 @@ const newBookingSchema = new mongoose.Schema(
     },
     dateofbirth: {
       type: Date,
-      required: true,
     },
     dateofanniversary: {
       type: Date,
@@ -39,18 +38,9 @@ const newBookingSchema = new mongoose.Schema(
     },
     guestid: {
       type: String,
-      enum: [
-        "Adhaar",
-        "Driving License",
-        "Passport",
-        "Voter ID Card",
-        "Others",
-      ],
-      required: true,
     },
     guestidno: {
       type: String,
-      required: true,
     },
     // New fields with conditional validation
     passportIssueDate: {
@@ -119,7 +109,7 @@ const newBookingSchema = new mongoose.Schema(
     },
     bookingStatus: {
       type: String,
-      enum: ["Confirm", "Block", "Pencil"],
+      enum: ["Confirmed", "Blocked", "Pencil"],
       required: true,
     },
     address: {

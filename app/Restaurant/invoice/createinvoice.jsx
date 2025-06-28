@@ -74,6 +74,7 @@ const CreateInvoicePage = ({
   existingInvoice,
   onCancel,
   paymentMethods,
+  lastInvId,
 }) => {
   const [menu, setMenu] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -452,17 +453,16 @@ const CreateInvoicePage = ({
     if (onCancel) onCancel();
   };
 
-  const generateRandomString = (length) => {
-    const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let result = "";
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  };
-
   const generateInvoiceNumber = () => {
-    return `INV-${generateRandomString(6)}`;
+    if (!lastInvId) {
+      return "01";
+    }
+
+    // Convert to number, increment, and format with leading zero if needed
+    const nextNumber = (parseInt(lastInvId, 10) + 1)
+      .toString()
+      .padStart(2, "0");
+    return nextNumber;
   };
 
   const isSameState =
@@ -497,7 +497,7 @@ const CreateInvoicePage = ({
                 disabled
                 label="Invoice ID."
                 name="invoiceno"
-                value={formData.invoiceno}
+                value={`INV-${formData.invoiceno}`}
                 variant="outlined"
                 InputProps={{ readOnly: true }}
                 required

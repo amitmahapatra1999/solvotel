@@ -38,6 +38,7 @@ const InvoicePage = () => {
   const [printableInvoice, setPrintableInvoice] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [profileState, setProfileState] = useState(null);
+  const [lastInvId, setLastInvId] = useState(0);
 
   // Date filter states
   const [startDate, setStartDate] = useState("");
@@ -66,16 +67,32 @@ const InvoicePage = () => {
         setIsLoading(true);
         const response = await fetch("/api/restaurantinvoice");
         const data = await response.json();
+
         // Sort invoices by date in descending order (newest first)
         const sortedInvoices = data.invoices.sort(
           (a, b) => new Date(b.date) - new Date(a.date)
         );
+
         setInvoices(sortedInvoices);
         setFilteredInvoices(sortedInvoices);
+
+        // Find the invoice with the highest invoice number
+        if (sortedInvoices.length > 0) {
+          const lastInv = sortedInvoices.reduce((max, curr) => {
+            const currNum = parseInt(curr.invoiceno, 10);
+            const maxNum = parseInt(max.invoiceno, 10);
+            return currNum > maxNum ? curr : max;
+          }, sortedInvoices[0]);
+
+          setLastInvId(lastInv?.invoiceno);
+        }
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoading(false);
       }
     };
+
     fetchInvoices();
   }, []);
 
@@ -433,7 +450,7 @@ const InvoicePage = () => {
                         sx={{ backgroundColor: "white" }}
                       >
                         <TableCell sx={{ textAlign: "center" }}>
-                          {invoice.invoiceno}
+                          {`INV-${invoice.invoiceno}`}
                         </TableCell>
                         <TableCell sx={{ textAlign: "center" }}>
                           {(() => {
@@ -526,6 +543,7 @@ const InvoicePage = () => {
                 onInvoiceCreate={handleInvoiceSave}
                 existingInvoice={currentInvoice}
                 onCancel={handleCancelModal}
+                lastInvId={lastInvId}
               />
             </div>
           )}
